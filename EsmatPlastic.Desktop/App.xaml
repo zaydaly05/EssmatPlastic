@@ -1,0 +1,130 @@
+<Application x:Class="EsmatPlastic.Desktop.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Application.Resources>
+
+                <SolidColorBrush x:Key="InkBrush" Color="#17212B"/>
+                <SolidColorBrush x:Key="MutedBrush" Color="#718096"/>
+                <SolidColorBrush x:Key="CanvasBrush" Color="#F4F7F9"/>
+                <SolidColorBrush x:Key="PanelBrush" Color="#FFFFFF"/>
+                <SolidColorBrush x:Key="TealBrush" Color="#087E8B"/>
+                <SolidColorBrush x:Key="TealDarkBrush" Color="#05616B"/>
+                <SolidColorBrush x:Key="CoralBrush" Color="#F28F79"/>
+                <SolidColorBrush x:Key="LineBrush" Color="#E5EBEF"/>
+
+                <CornerRadius x:Key="PanelRadius">14</CornerRadius>
+
+                <Style TargetType="Window">
+                        <Setter Property="Background" Value="{DynamicResource CanvasBrush}"/>
+                        <Setter Property="FontFamily" Value="Segoe UI"/>
+                        <Setter Property="Foreground" Value="{DynamicResource InkBrush}"/>
+                        <Setter Property="FlowDirection" Value="RightToLeft"/>
+                </Style>
+
+                <Style x:Key="NavButton" TargetType="Button">
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="Foreground" Value="#DDECEF"/>
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Right"/>
+                        <Setter Property="Padding" Value="18,0"/>
+                        <Setter Property="Margin" Value="0,4"/>
+                        <Setter Property="Height" Value="48"/>
+                        <Setter Property="FontSize" Value="14"/>
+                        <Setter Property="Template">
+                                <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                                <Border Background="{TemplateBinding Background}" CornerRadius="10">
+                                                        <ContentPresenter VerticalAlignment="Center"
+                                                                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                                                          Margin="{TemplateBinding Padding}"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter Property="Background" Value="#24515A"/>
+                                                                <Setter Property="Foreground" Value="White"/>
+                                                        </Trigger>
+                                                        <Trigger Property="IsPressed" Value="True">
+                                                                <Setter Property="Background" Value="{DynamicResource TealBrush}"/>
+                                                        </Trigger>
+                                                </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                </Setter.Value>
+                        </Setter>
+                </Style>
+
+                <Style x:Key="PrimaryButton" TargetType="Button">
+                        <Setter Property="Background" Value="{DynamicResource TealBrush}"/>
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="Padding" Value="18,0"/>
+                        <Setter Property="Cursor" Value="Hand"/>
+                        <Setter Property="FontWeight" Value="SemiBold"/>
+                        <Setter Property="Template">
+                                <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                                <Border Background="{TemplateBinding Background}" CornerRadius="9">
+                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter Property="Background" Value="{DynamicResource TealDarkBrush}"/>
+                                                        </Trigger>
+                                                </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                </Setter.Value>
+                        </Setter>
+                </Style>
+
+                <Style TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+                        <Setter Property="MinHeight" Value="38"/>
+                </Style>
+
+                <Style TargetType="TextBox">
+                        <Setter Property="Background" Value="White"/>
+                        <Setter Property="Foreground" Value="{DynamicResource InkBrush}"/>
+                        <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}"/>
+                        <Setter Property="BorderThickness" Value="1"/>
+                        <Setter Property="Padding" Value="12,0"/>
+                        <Setter Property="VerticalContentAlignment" Value="Center"/>
+                </Style>
+
+                <Style TargetType="ListView">
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="BorderThickness" Value="0"/>
+                </Style>
+
+                <Style TargetType="ListViewItem">
+                        <Setter Property="Padding" Value="0"/>
+                        <Setter Property="Margin" Value="0,3"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                        <Setter Property="Template">
+                                <Setter.Value>
+                                        <ControlTemplate TargetType="ListViewItem">
+                                                <Border Background="{TemplateBinding Background}" CornerRadius="10">
+                                                        <ContentPresenter/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter Property="Background" Value="#EEF8F8"/>
+                                                        </Trigger>
+                                                        <Trigger Property="IsSelected" Value="True">
+                                                                <Setter Property="Background" Value="#DDF1F2"/>
+                                                        </Trigger>
+                                                </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                </Setter.Value>
+                        </Setter>
+                </Style>
+
+                <Style TargetType="PasswordBox">
+                        <Setter Property="Background" Value="White"/>
+                        <Setter Property="Foreground" Value="{DynamicResource InkBrush}"/>
+                        <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}"/>
+                        <Setter Property="BorderThickness" Value="1"/>
+                        <Setter Property="Padding" Value="12,0"/>
+                </Style>
+
+    </Application.Resources>
+
+</Application>

@@ -1,0 +1,66 @@
+<Window x:Class="EsmatPlastic.Desktop.Views.Products.AddProductWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="إضافة منتج"
+        Width="500"
+        Height="420"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize">
+
+    <Grid Margin="30">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="20"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="15"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="15"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                   Text="إضافة منتج جديد"
+                   FontSize="24"
+                   FontWeight="Bold"/>
+
+        <TextBlock Grid.Row="2"
+                   Text="اسم المنتج"
+                   FontWeight="SemiBold"/>
+
+        <TextBox x:Name="NameInput"
+                 Grid.Row="4"
+                 Height="40"
+                 FontSize="16"
+                 Padding="10"/>
+
+        <TextBlock Grid.Row="6"
+                   Text="الوصف"
+                   FontWeight="SemiBold"/>
+
+        <TextBox x:Name="DescriptionInput"
+                 Grid.Row="7"
+                 Height="70"
+                 FontSize="14"
+                 Padding="10"
+                 TextWrapping="Wrap"
+                 AcceptsReturn="True"/>
+
+        <StackPanel Grid.Row="8"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right">
+
+            <Button Content="إلغاء"
+                    Width="100"
+                    Height="40"
+                    Margin="0,0,10,0"
+                    Click="CancelButton_Click"/>
+
+            <Button Content="حفظ"
+                    Width="120"
+                    Height="40"
+                    Click="SaveButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

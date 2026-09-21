@@ -1,0 +1,107 @@
+<Window x:Class="EsmatPlastic.Desktop.Views.ProductVariants.AddProductVariantWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="إضافة صنف / عبوة"
+        Width="600"
+        Height="650"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+
+        <Grid Margin="30">
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="20"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="12"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="12"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="12"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="12"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="30"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0"
+                       Text="إضافة صنف / عبوة جديدة"
+                       FontSize="24"
+                       FontWeight="Bold"/>
+
+            <TextBlock Grid.Row="2"
+                       Text="اسم الصنف"
+                       FontWeight="SemiBold"/>
+
+            <TextBox x:Name="NameInput"
+                     Grid.Row="4"
+                     Height="40"
+                     FontSize="15"
+                     Padding="10"/>
+
+            <TextBlock Grid.Row="6"
+                       Text="المقاس"
+                       FontWeight="SemiBold"/>
+
+            <TextBox x:Name="SizeInput"
+                     Grid.Row="7"
+                     Height="40"
+                     FontSize="15"
+                     Padding="10"/>
+
+            <TextBlock Grid.Row="8"
+                       Text="اللون"
+                       FontWeight="SemiBold"/>
+
+            <TextBox x:Name="ColorInput"
+                     Grid.Row="9"
+                     Height="40"
+                     FontSize="15"
+                     Padding="10"/>
+
+            <TextBlock Grid.Row="10"
+                       Text="نوع الغطاء"
+                       FontWeight="SemiBold"/>
+
+            <TextBox x:Name="CapTypeInput"
+                     Grid.Row="11"
+                     Height="40"
+                     FontSize="15"
+                     Padding="10"/>
+
+            <TextBlock Grid.Row="12"
+                       Text="المادة"
+                       FontWeight="SemiBold"/>
+
+            <TextBox x:Name="MaterialInput"
+                     Grid.Row="13"
+                     Height="40"
+                     FontSize="15"
+                     Padding="10"/>
+
+            <StackPanel Grid.Row="14"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Margin="0,20,0,0">
+
+                <Button Content="إلغاء"
+                        Width="100"
+                        Height="40"
+                        Margin="0,0,10,0"
+                        Click="CancelButton_Click"/>
+
+                <Button Content="حفظ"
+                        Width="120"
+                        Height="40"
+                        Click="SaveButton_Click"/>
+
+            </StackPanel>
+
+        </Grid>
+
+    </ScrollViewer>
+
+</Window>

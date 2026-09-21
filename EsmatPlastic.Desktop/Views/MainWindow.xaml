@@ -1,0 +1,170 @@
+<Window x:Class="EsmatPlastic.Desktop.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="إسمت بلاستيك"
+        Width="1200"
+        Height="750"
+        WindowStartupLocation="CenterScreen"
+        WindowState="Maximized">
+
+    <Grid Background="{DynamicResource CanvasBrush}">
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="240"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Sidebar -->
+        <Border Grid.Column="0"
+            Background="#173B44"
+            Padding="14,20">
+
+            <Grid>
+
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0"
+                            Margin="8,15,8,30">
+
+                    <TextBlock Text="إسمت بلاستيك"
+                               Foreground="White"
+                               FontSize="25"
+                               FontWeight="Bold"
+                               HorizontalAlignment="Center"/>
+
+                    <TextBlock Text="نظام إدارة المخزون"
+                               Foreground="#BFC4CA"
+                               FontSize="13"
+                               HorizontalAlignment="Center"
+                               Margin="0,8,0,0"/>
+
+                </StackPanel>
+
+                <StackPanel Grid.Row="1"
+                            Margin="0,0">
+
+                    <Button x:Name="DashboardButton"
+                            Content="لوحة التحكم"
+                            Style="{StaticResource NavButton}"
+                            Click="DashboardButton_Click"/>
+
+                    <Button x:Name="WarehouseButton"
+                            Content="المستودع"
+                            Style="{StaticResource NavButton}"
+                            Click="WarehouseButton_Click"/>
+
+                    <Button x:Name="ProductsButton"
+                            Content="المنتجات"
+                            Style="{StaticResource NavButton}"
+                            Click="ProductsButton_Click"/>
+
+                    <Button x:Name="ReportsButton"
+                            Content="التقارير"
+                            Style="{StaticResource NavButton}"
+                            Click="ReportsButton_Click"/>
+
+                    <Button x:Name="PermissionsButton"
+                      Content="الصلاحيات"
+                      Click="PermissionsButton_Click"
+                      Style="{StaticResource NavButton}"/>
+
+            <Button x:Name="UsersButton"
+                            Content="المستخدمون"
+                            Style="{StaticResource NavButton}"
+                            Click="UsersButton_Click"/>
+
+                    <Button x:Name="SettingsButton"
+                        Content="الإعدادات"
+                        Style="{StaticResource NavButton}"
+                        Click="SettingsButton_Click"/>
+
+                </StackPanel>
+
+                <Button Grid.Row="2"
+                        Content="تسجيل الخروج"
+                        Style="{StaticResource NavButton}"
+                        Margin="0,15,0,5"
+                        Click="LogoutButton_Click"/>
+
+            </Grid>
+
+        </Border>
+
+        <!-- Main -->
+        <Grid Grid.Column="1"
+              Margin="28">
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="20"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- User Header -->
+            <Border Grid.Row="0"
+                    Background="{DynamicResource PanelBrush}"
+                    Padding="26"
+                    CornerRadius="14">
+
+                <Grid>
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+
+                        <TextBlock Text="مرحباً"
+                                   FontSize="16"
+                                   Foreground="{DynamicResource MutedBrush}"/>
+
+                        <TextBlock x:Name="FullNameText"
+                                   Text="المستخدم"
+                                   FontSize="27"
+                                   FontWeight="Bold"
+                                   Margin="0,5,0,0"/>
+
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1"
+                                HorizontalAlignment="Right">
+
+                        <TextBlock x:Name="RoleText"
+                                   Text="Role"
+                                   FontSize="14"
+                                   FontWeight="SemiBold"
+                                   HorizontalAlignment="Right"/>
+
+                        <TextBlock Text="نتمنى لك يوماً سعيداً"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource MutedBrush}"
+                                   HorizontalAlignment="Right"
+                                   Margin="0,5,0,0"/>
+
+                    </StackPanel>
+
+                </Grid>
+
+            </Border>
+
+            <!-- Content -->
+            <Border Grid.Row="2"
+                    Background="{DynamicResource PanelBrush}"
+                    CornerRadius="14"
+                    Padding="24">
+
+                <ContentControl x:Name="MainContent"/>
+
+            </Border>
+
+        </Grid>
+
+    </Grid>
+
+</Window>
+
