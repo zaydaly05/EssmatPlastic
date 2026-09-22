@@ -7,9 +7,14 @@ namespace EsmatPlastic.Desktop.Services;
 
 public class ApiClient
 {
-    private readonly HttpClient _httpClient;
+    private HttpClient _httpClient;
 
     public ApiClient()
+    {
+        _httpClient = CreateHttpClient();
+    }
+
+    private static HttpClient CreateHttpClient()
     {
         var handler = new SocketsHttpHandler
         {
@@ -18,7 +23,7 @@ public class ApiClient
             EnableMultipleHttp2Connections = true
         };
 
-        _httpClient = new HttpClient(handler, disposeHandler: true)
+        return new HttpClient(handler, disposeHandler: true)
         {
             BaseAddress = new Uri("http://localhost:5023/"),
             Timeout = TimeSpan.FromSeconds(15)
@@ -42,7 +47,16 @@ public class ApiClient
         if (!url.EndsWith("/")) url += "/";
         if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
         {
-            _httpClient.BaseAddress = uri;
+            if (_httpClient.BaseAddress == uri)
+                return;
+
+            var previousClient = _httpClient;
+            var replacementClient = CreateHttpClient();
+            replacementClient.BaseAddress = uri;
+            replacementClient.DefaultRequestHeaders.Authorization =
+                previousClient.DefaultRequestHeaders.Authorization;
+            _httpClient = replacementClient;
+            previousClient.Dispose();
         }
     }
 

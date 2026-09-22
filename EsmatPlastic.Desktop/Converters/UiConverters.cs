@@ -81,3 +81,37 @@ public class StockTypeToTextConverter : IValueConverter
         CultureInfo culture) =>
         throw new NotSupportedException();
 }
+
+public class UnitFormatConverter : IValueConverter
+{
+    public object Convert(
+        object value,
+        Type targetType,
+        object parameter,
+        CultureInfo culture)
+    {
+        var unitType = parameter as string;
+        var isArabic = Loc.Current.IsArabic;
+        if (value is null)
+            return string.Empty;
+
+        if (unitType == "Piece")
+        {
+            return isArabic ? $"{value:N0} قطعة" : $"{value:N0} pcs";
+        }
+
+        if (unitType == "Variant")
+        {
+            return isArabic ? $"{value} صنف" : $"{value} variants";
+        }
+
+        return value.ToString() ?? string.Empty;
+    }
+
+    public object ConvertBack(
+        object value,
+        Type targetType,
+        object parameter,
+        CultureInfo culture) =>
+        throw new NotSupportedException();
+}

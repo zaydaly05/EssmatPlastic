@@ -109,13 +109,13 @@ public class ProductsViewModel : INotifyPropertyChanged
             foreach (var product in products)
                 Products.Add(product);
 
-            StatusMessage =
-                $"تم تحميل المنتجات: {Products.Count}";
+            var loc = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<EsmatPlastic.Desktop.Services.Localization.LocalizationService>(App.ServiceProvider);
+            StatusMessage = loc.IsArabic ? $"تم تحميل المنتجات: {Products.Count}" : $"Products loaded: {Products.Count}";
         }
         catch (Exception ex)
         {
-            StatusMessage =
-                $"تعذر تحميل المنتجات: {ex.Message}";
+            var loc = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<EsmatPlastic.Desktop.Services.Localization.LocalizationService>(App.ServiceProvider);
+            StatusMessage = loc.IsArabic ? $"تعذر تحميل المنتجات: {ex.Message}" : $"Failed to load products: {ex.Message}";
         }
         finally
         {
@@ -168,12 +168,13 @@ public class ProductsViewModel : INotifyPropertyChanged
 
             SelectedProduct = null;
 
-            StatusMessage = "تم حذف المنتج بنجاح.";
+            var loc = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<EsmatPlastic.Desktop.Services.Localization.LocalizationService>(App.ServiceProvider);
+            StatusMessage = loc.IsArabic ? "تم حذف المنتج بنجاح." : "Product deleted successfully.";
         }
         catch (Exception ex)
         {
-            StatusMessage =
-                $"تعذر حذف المنتج: {ex.Message}";
+            var loc = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<EsmatPlastic.Desktop.Services.Localization.LocalizationService>(App.ServiceProvider);
+            StatusMessage = loc.IsArabic ? $"تعذر حذف المنتج: {ex.Message}" : $"Failed to delete product: {ex.Message}";
         }
         finally
         {

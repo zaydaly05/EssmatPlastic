@@ -25,7 +25,22 @@ public partial class ChangePasswordWindow : Window
         UsernameText.Text = user.Username;
         FullNameText.Text = user.FullName;
 
+        ApplyLocalization();
+
         Loaded += (_, _) => NewPasswordBox.Focus();
+    }
+
+    private void ApplyLocalization()
+    {
+        Title = _loc.T("تغيير كلمة المرور");
+        HeaderTitle.Text = _loc.T("تغيير كلمة المرور");
+        HeaderSubtitle.Text = _loc.T("أدخل كلمة المرور الجديدة للمستخدم.");
+        UsernameLabel.Text = _loc.T("اسم المستخدم");
+        FullNameLabel.Text = _loc.T("الاسم الكامل");
+        NewPasswordLabel.Text = _loc.T("كلمة المرور الجديدة");
+        ConfirmPasswordLabel.Text = _loc.T("تأكيد كلمة المرور");
+        CancelButton.Content = _loc.T("إلغاء");
+        SaveButton.Content = _loc.T("حفظ");
     }
 
     private async void SaveButton_Click(

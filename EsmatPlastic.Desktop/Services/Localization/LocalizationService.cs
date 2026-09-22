@@ -237,7 +237,143 @@ public class LocalizationService : INotifyPropertyChanged
         ["🌐  لغة الواجهة والتفضيلات"] = "🌐  Language & Preferences",
         ["🔌  اتصال خادم واجهة البيانات (API)"] = "🔌  API Server Connection",
         ["عنوان السيرفر (Server API Base URL)"] = "Server API Base URL",
-        ["فحص الاتصال"] = "Test Connection"
+        ["فحص الاتصال"] = "Test Connection",
+        ["لوحة تحكم بسيطة لإدارة مخزون البلاستيك."] = "A simple dashboard to manage plastic inventory.",
+        ["اختر اللغة ثم سجّل الدخول للمتابعة."] = "Choose language and sign in to continue.",
+        ["إدارة حسابات المستخدمين والدور والصلاحيات"] = "Manage user accounts, roles, and permissions",
+        ["إدارة المنتجات والأصناف والبطاقات"] = "Manage products, variants, and cards",
+        ["أدخل معلومات المنتج الأساسية والصورة للحفظ في النظام."] = "Enter basic product information and image to save.",
+        ["صورة المنتج"] = "Product Image",
+        ["🖼️  اختيار صورة للمنتج"] = "🖼️  Select Product Image",
+        ["🖼️  تغيير صورة المنتج"] = "🖼️  Change Product Image",
+        ["اختيار صورة للمنتج"] = "Select Product Image",
+        ["لم يتم اختيار صورة بعد"] = "No image selected yet",
+        ["تعديل بيانات المنتج"] = "Edit Product Information",
+        ["قم بتحديث معلومات المنتج أو صورته أو حالته."] = "Update product details, image, or status.",
+        ["حذف المنتج"] = "Delete Product",
+        ["عرض الأصناف"] = "View Variants",
+        ["إضافة صنف جديد"] = "Add New Variant",
+        ["أدخل مواصفات الصنف الفرعي كالمقاس واللون والغطاء."] = "Enter variant specifications like size, color, and cap.",
+        ["تعديل بيانات الصنف"] = "Edit Variant Details",
+        ["حذف الصنف"] = "Delete Variant",
+        ["يرجى اختيار صنف أولاً."] = "Please select a variant first.",
+        ["يرجى اختيار منتج أولاً."] = "Please select a product first.",
+        ["أدخل بيانات حساب المستخدم والدور والصلاحيات."] = "Enter user account details, role, and permissions.",
+        ["تعديل المستخدم"] = "Edit User",
+        ["حذف المستخدم"] = "Delete User",
+        ["تسجيل حركة مخزنية"] = "Record Stock Transaction",
+        ["أدخل كمية الحركة الواردة أو الصادرة والملاحظات."] = "Enter incoming or outgoing quantity and notes.",
+        ["أرصدة المنتجات في المستودع"] = "Product balances in warehouse",
+        ["+ وارد"] = "+ Incoming",
+        ["- صادر"] = "- Outgoing",
+        ["معطل"] = "Disabled",
+        ["تسجيل الخروج"] = "Log out",
+        ["تنبيهات المخزون المنخفض"] = "Low Stock Alerts",
+        ["💡 ملخص وعمليات النظام"] = "💡 System Insights & Operations",
+        ["يتم تحديث جميع بيانات المنتجات والمخزون بشكل فوري ومباشر مع خادم النظام."] = "All product and stock data is updated live with the system server.",
+        ["• حالة الاتصال بالواجهة:"] = "• API Connection Status:",
+        ["• حالة الاتصالبالواجهة:"] = "• API Connection Status:",
+        ["حالة الاتصالبالواجهة:"] = "API Connection Status:",
+        ["متصل بنجاح"] = "Connected successfully",
+        [" متصل بنجاح"] = " Connected successfully",
+        ["• آخر تحديث:"] = "• Last Updated:",
+        ["الآن"] = "Just now",
+        [" الآن"] = " Just now",
+        ["المخزون الحقيقي"] = "Available Stock",
+        ["المتاح الحقيقي"] = "Available Stock",
+        ["الصورة"] = "Image",
+        ["المنتج والوصف"] = "Product & Description",
+        ["جميع الأقسام"] = "All Categories",
+        ["عام"] = "General",
+        ["إجمالي المستخدمين"] = "Total Users",
+        ["جميع الحسابات المنسجلة"] = "All Registered Accounts",
+        ["الحسابات النشطة"] = "Active Accounts",
+        ["حسابات مفعلة ومتاحة"] = "Active & Available Accounts",
+        ["مديرو النظام"] = "Administrators",
+        ["صلاحيات كاملة بالنظام"] = "Full System Permissions",
+        ["يرجى إدخال اسم المستخدم وكلمة المرور."] = "Please enter username and password.",
+        ["اسم المستخدم أو كلمة المرور غير صحيحة."] = "Invalid username or password.",
+        ["تعذر الاتصال بالخادم."] = "Unable to connect to server.",
+        ["حدث خطأ أثناء تسجيل الدخول."] = "An error occurred during sign in.",
+        ["يرجى إدخال عنوان واجهة API."] = "Please enter API base URL.",
+        ["يرجى إدخال عنوان السيرفر أولاً."] = "Please enter server URL first.",
+        ["جاري التوصيل وفحص الخادم..."] = "Connecting and checking server...",
+        ["🟢 الاتصال بالسيرفر يعمل بنجاح!"] = "🟢 Server connection successful!",
+        ["🔴 تعذر الاتصال بالسيرفر. يرجى التحقق من العنوان أو حالة الخادم."] = "🔴 Unable to connect to server. Check URL or server status.",
+        ["تم حفظ الإعدادات وتحديث الاتصال واللغة بنجاح."] = "Settings saved and connection updated successfully.",
+        ["يرجى إدخال اسم المنتج."] = "Please enter product name.",
+        ["تعذر حفظ المنتج."] = "Failed to save product.",
+        ["تعذر تحديث المنتج."] = "Failed to update product.",
+        ["خطأ في تحديث المنتج"] = "Error updating product",
+        ["يرجى إدخال اسم الصنف."] = "Please enter variant name.",
+        ["تعذر حفظ الصنف."] = "Failed to save variant.",
+        ["تعذر تحديث الصنف."] = "Failed to update variant.",
+        ["خطأ في حفظ الصنف"] = "Error saving variant",
+        ["خطأ في تحديث الصنف"] = "Error updating variant",
+        ["يرجى إدخال كمية صحيحة أكبر من صفر."] = "Please enter a valid quantity greater than zero.",
+        ["يرجى اختيار نوع الحركة."] = "Please select transaction type.",
+        ["تعذر حفظ حركة المخزون."] = "Failed to save stock transaction.",
+        ["تمت إضافة الحركة الواردة بنجاح."] = "Incoming transaction added successfully.",
+        ["تمت إضافة الحركة الصادرة بنجاح."] = "Outgoing transaction added successfully.",
+        ["خطأ في الاتصال بالخادم"] = "Server connection error",
+        ["تعذر تحميل سجل الحركات"] = "Failed to load transaction history",
+        ["يرجى إدخال اسم المستخدم."] = "Please enter username.",
+        ["يرجى إدخال كلمة المرور."] = "Please enter password.",
+        ["يرجى إدخال الاسم الكامل."] = "Please enter full name.",
+        ["تعذر حفظ المستخدم"] = "Failed to save user",
+        ["تعذر حذف المستخدم"] = "Failed to delete user",
+        ["تعذر تحميل الصلاحيات"] = "Failed to load permissions",
+        ["جاري تحميل الصلاحيات..."] = "Loading permissions...",
+        ["لم يتم العثور على صلاحيات مطابقة لنتائج البحث"] = "No matching permissions found",
+        ["تعذر طباعة التقرير"] = "Failed to print report",
+        ["تعذر تصدير التقرير"] = "Failed to export report",
+        ["لا توجد بيانات تقارير متاحة للتصدير."] = "No report data available for export.",
+        ["لا توجد بيانات تقارير متاحة للطباعة."] = "No report data available for printing.",
+        ["تصدير تقرير المخزون"] = "Export Stock Report",
+        ["تم تصدير التقرير بنجاح إلى ملف CSV."] = "Report exported successfully to CSV.",
+        ["تم التصدير"] = "Exported",
+        ["تقرير حركة ورصيد المخزون"] = "Stock Movement and Balance Report",
+        ["تقرير حركة المخزون"] = "Stock Movement Report",
+        ["تاريخ التصدير:"] = "Export Date:",
+        ["شركة عصمت للبلاستيك"] = "Esmat Plastic Company",
+        ["يرجى إدخال كلمة المرور الجديدة."] = "Please enter new password.",
+        ["يجب أن تتكون كلمة المرور من 6 أحرف على الأقل."] = "Password must be at least 6 characters.",
+        ["كلمتا المرور غير متطابقتين."] = "Passwords do not match.",
+        ["تم تغيير كلمة المرور بنجاح."] = "Password changed successfully.",
+        ["تعذر تحميل بيانات لوحة التحكم"] = "Failed to load dashboard data",
+        ["تعذر تحميل المنتجات"] = "Failed to load products",
+        ["تعذر تحميل الأصناف"] = "Failed to load variants",
+        ["تعذر تحميل المخزون"] = "Failed to load stock",
+        ["أدخل تفاصيل ومواصفات العبوة أو الصنف للمنتج."] = "Enter packaging or variant specifications for the product.",
+        ["تعديل بيانات العبوة أو تعديل حالة التفعيل."] = "Update packaging details or toggle active status.",
+        ["حدد الصلاحيات الممنوحة لهذا المستخدم في النظام."] = "Select permissions granted to this user in the system.",
+        ["قائمة الصلاحيات"] = "Permissions List",
+        ["إلغاء التحديد"] = "Clear Selection",
+        ["حفظ الصلاحيات"] = "Save Permissions",
+        ["تعذر حفظ صلاحيات المستخدم."] = "Failed to save user permissions.",
+        ["أدخل كلمة المرور الجديدة للمستخدم."] = "Enter the new password for the user.",
+        ["بحث باسم المنتج أو الصنف أو المقاس..."] = "Search by product, variant, or size...",
+        ["بحث باسم المستخدم أو الاسم الكامل أو الدور..."] = "Search by username, full name, or role...",
+        ["بحث باسم الصلاحية أو الوصف..."] = "Search by permission name or description...",
+        ["هل تريد حذف المستخدم {0}؟"] = "Do you want to delete user {0}?",
+        ["انقر لتعديل/رفع صورة للمنتج"] = "Click to edit / upload product image",
+        ["عفواً، ميزة إضافة المنتجات ورفع الصور مقتصرة على مدير النظام فقط."] = "Sorry, adding products and uploading photos is restricted to the administrator.",
+        ["عفواً، ميزة تعديل المنتجات ورفع الصور مقتصرة على مدير النظام فقط."] = "Sorry, editing products and uploading photos is restricted to the administrator.",
+        ["عفواً، ميزة تعديل المنتجات مقتصرة على مدير النظام فقط."] = "Sorry, editing products is restricted to the administrator.",
+        ["عفواً، ميزة حذف المنتجات مقتصرة على مدير النظام فقط."] = "Sorry, deleting products is restricted to the administrator.",
+        ["تنبيه الصلاحيات"] = "Permission Notice",
+        ["شركة عصمت للبلاستيك - نظام إدارة المخازن"] = "Esmat Plastic Company - Inventory Management System",
+        ["إغلاق"] = "Close",
+        ["سجّل حركة دخول (وارد) أو خروج (صادر) من المخزن."] = "Record an incoming or outgoing stock transaction.",
+        ["إدارة صلاحيات المستخدم"] = "Manage User Permissions",
+        ["المستخدم:"] = "User:",
+        ["المنتج:"] = "Product:",
+        ["الصنف:"] = "Variant:",
+        ["النوع:"] = "Type:",
+        ["الكمية:"] = "Quantity:",
+        ["التاريخ:"] = "Date:",
+        ["الملاحظات:"] = "Notes:",
+        ["الصلاحيات"] = "Permissions"
     };
 
     public string Language
@@ -300,13 +436,35 @@ public class LocalizationService : INotifyPropertyChanged
         if (element is FrameworkElement fe)
         {
             fe.FlowDirection = FlowDirection;
+            if (fe.ToolTip is string toolTipStr && !string.IsNullOrWhiteSpace(toolTipStr))
+            {
+                fe.ToolTip = Translate(toolTipStr);
+            }
         }
 
-        if (element is TextBlock textBlock &&
-            !BindingOperations.IsDataBound(textBlock, TextBlock.TextProperty) &&
-            textBlock.Tag as string != "NoTranslate")
+        if (element is HeaderedContentControl headeredControl && headeredControl.Header is string headerStr)
         {
-            textBlock.Text = Translate(textBlock.Text);
+            headeredControl.Header = Translate(headerStr);
+        }
+
+        if (element is TextBlock textBlock)
+        {
+            if (!BindingOperations.IsDataBound(textBlock, TextBlock.TextProperty) &&
+                textBlock.Tag as string != "NoTranslate")
+            {
+                textBlock.Text = Translate(textBlock.Text);
+            }
+
+            if (textBlock.Inlines.Count > 0)
+            {
+                foreach (var inline in textBlock.Inlines.Cast<System.Windows.Documents.Inline>().ToList())
+                {
+                    if (inline is System.Windows.Documents.Run run && !string.IsNullOrWhiteSpace(run.Text))
+                    {
+                        run.Text = Translate(run.Text);
+                    }
+                }
+            }
         }
         else if (element is Button button && button.Content is string buttonContent)
         {
@@ -326,6 +484,17 @@ public class LocalizationService : INotifyPropertyChanged
                  !(contentControl is CheckBox))
         {
             contentControl.Content = Translate(content);
+        }
+
+        if (element is DataGrid dataGrid)
+        {
+            foreach (var column in dataGrid.Columns)
+            {
+                if (column.Header is string colHeader)
+                {
+                    column.Header = Translate(colHeader);
+                }
+            }
         }
 
         if (element is ItemsControl itemsControl && itemsControl.ItemsSource is not null)
@@ -359,10 +528,10 @@ public class LocalizationService : INotifyPropertyChanged
 
         if (IsArabic)
         {
-            if (_en.ContainsValue(value))
+            if (_en.FirstOrDefault(pair => pair.Value == value) is { Key: { Length: > 0 } key } &&
+                _ar.TryGetValue(key, out var arabicValue))
             {
-                var key = _en.FirstOrDefault(pair => pair.Value == value).Key;
-                return _ar[key];
+                return arabicValue;
             }
 
             return _extraArToEn.FirstOrDefault(pair => pair.Value == value).Key is { Length: > 0 } arabic
@@ -373,7 +542,9 @@ public class LocalizationService : INotifyPropertyChanged
         if (_ar.ContainsValue(value))
         {
             var key = _ar.FirstOrDefault(pair => pair.Value == value).Key;
-            return key.Length > 0 ? _en[key] : value;
+            return key.Length > 0 && _en.TryGetValue(key, out var englishValue)
+                ? englishValue
+                : value;
         }
 
         return _extraArToEn.TryGetValue(value, out var translation)

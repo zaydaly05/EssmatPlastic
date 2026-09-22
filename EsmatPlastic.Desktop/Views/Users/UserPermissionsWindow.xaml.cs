@@ -37,7 +37,22 @@ public partial class UserPermissionsWindow : Window
 
         PermissionsItemsControl.ItemsSource = Permissions;
 
+        ApplyLocalization();
+
         Loaded += Window_Loaded;
+    }
+
+    private void ApplyLocalization()
+    {
+        Title = _loc.T("إدارة صلاحيات المستخدم");
+        HeaderTitle.Text = _loc.T("إدارة صلاحيات المستخدم");
+        HeaderSubtitle.Text = _loc.T("حدد الصلاحيات الممنوحة لهذا المستخدم في النظام.");
+        RoleText.Text = LocalizedRole(_user.Role.ToString(), _loc);
+        PermissionsListLabel.Text = _loc.T("قائمة الصلاحيات");
+        SelectAllButton.Content = _loc.T("تحديد الكل");
+        ClearAllButton.Content = _loc.T("إلغاء التحديد");
+        CancelButton.Content = _loc.T("إلغاء");
+        SaveButton.Content = _loc.T("حفظ الصلاحيات");
     }
 
     private static string LocalizedRole(string role, LocalizationService loc)

@@ -104,7 +104,7 @@
                                             Padding="10,4"
                                             HorizontalAlignment="Center"
                                             VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding VariantCount, StringFormat={}{0} أصناف}"
+                                        <TextBlock Text="{Binding VariantCount, Converter={StaticResource UnitFormatConverter}, ConverterParameter=Variant}"
                                                    FontSize="12"
                                                    FontWeight="SemiBold"
                                                    Foreground="{DynamicResource InkBrush}"/>

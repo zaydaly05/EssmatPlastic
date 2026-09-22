@@ -33,6 +33,7 @@ public partial class MainWindow : Window
         Loaded += async (_, _) =>
         {
             LoadUserInformation();
+            ApplyLocalization();
             UpdateLanguageButtons();
             await CheckHealthAsync();
             StartHealthTimer();
@@ -51,6 +52,7 @@ public partial class MainWindow : Window
 
     private async Task CheckHealthAsync()
     {
+        var loc = App.ServiceProvider.GetRequiredService<LocalizationService>();
         try
         {
             var health = await _apiClient.GetHealthStatusAsync();
@@ -58,33 +60,66 @@ public partial class MainWindow : Window
             {
                 if (health.IsNeonBackupOnline)
                 {
-                    ConnectionStatusText.Text = "🟢 Local LAN + Cloud Backup";
+                    ConnectionStatusText.Text = loc.IsArabic
+                        ? "🟢 LAN المحلي + نسخ سحابي"
+                        : "🟢 Local LAN + Cloud Backup";
                     ConnectionStatusDot.Fill = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(30, 142, 62));
                     ConnectionStatusBorder.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(230, 244, 234));
-                    ConnectionStatusBorder.ToolTip = "شبكة مصنع محلية + نسخة احتياطية سحابية متصلة (Neon PostgreSQL)";
+                    ConnectionStatusBorder.ToolTip = loc.IsArabic
+                        ? "شبكة مصنع محلية + نسخة احتياطية سحابية متصلة (Neon PostgreSQL)"
+                        : "Local factory LAN + cloud backup connected (Neon PostgreSQL)";
                 }
                 else
                 {
-                    ConnectionStatusText.Text = "🔵 Local LAN (Offline Backup)";
+                    ConnectionStatusText.Text = loc.IsArabic
+                        ? "🔵 LAN محلي (بدون سحاب)"
+                        : "🔵 Local LAN (Offline Backup)";
                     ConnectionStatusDot.Fill = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(26, 115, 232));
                     ConnectionStatusBorder.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(232, 240, 254));
-                    ConnectionStatusBorder.ToolTip = "شبكة مصنع محلية تعمل بشكل مباشر (النسخ السحابي غير متصل حالياً)";
+                    ConnectionStatusBorder.ToolTip = loc.IsArabic
+                        ? "شبكة مصنع محلية تعمل بشكل مباشر (النسخ السحابي غير متصل حالياً)"
+                        : "Local factory LAN running directly (cloud backup currently offline)";
                 }
             }
             else
             {
-                ConnectionStatusText.Text = "🟡 API Offline / Disconnected";
+                ConnectionStatusText.Text = loc.IsArabic
+                    ? "🟡 API غير متصل"
+                    : "🟡 API Offline / Disconnected";
                 ConnectionStatusDot.Fill = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(181, 129, 5));
                 ConnectionStatusBorder.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(254, 247, 224));
-                ConnectionStatusBorder.ToolTip = "الخادم الرئيسي غير متصل";
+                ConnectionStatusBorder.ToolTip = loc.IsArabic
+                    ? "الخادم الرئيسي غير متصل"
+                    : "Main server is offline";
             }
         }
         catch
         {
-            ConnectionStatusText.Text = "🟡 API Offline / Disconnected";
+            ConnectionStatusText.Text = loc.IsArabic
+                ? "🟡 API غير متصل"
+                : "🟡 API Offline / Disconnected";
             ConnectionStatusDot.Fill = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(181, 129, 5));
             ConnectionStatusBorder.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(254, 247, 224));
         }
+    }
+
+    private void ApplyLocalization()
+    {
+        var loc = App.ServiceProvider.GetRequiredService<LocalizationService>();
+
+        AppNameText.Text = loc["AppName"];
+        AppTaglineText.Text = loc["AppTagline"];
+        WelcomeText.Text = loc["Welcome"];
+        HaveANiceDayText.Text = loc["HaveANiceDay"];
+
+        DashboardButton.Content = loc["Dashboard"];
+        WarehouseButton.Content = loc["Warehouse"];
+        ProductsButton.Content = loc["Products"];
+        ReportsButton.Content = loc["Reports"];
+        PermissionsButton.Content = loc["Permissions"];
+        UsersButton.Content = loc["Users"];
+        SettingsButton.Content = loc["Settings"];
+        LogoutButton.Content = loc["Logout"];
     }
 
     private void LoadUserInformation()
@@ -127,6 +162,7 @@ public partial class MainWindow : Window
     public void RefreshForCurrentUser()
     {
         LoadUserInformation();
+        ApplyLocalization();
         ApplyPermissions();
         ShowDashboard();
         UpdateLanguageButtons();
@@ -216,7 +252,9 @@ public partial class MainWindow : Window
     private void AfterLanguageChange()
     {
         LoadUserInformation();
+        ApplyLocalization();
         UpdateLanguageButtons();
+        _ = CheckHealthAsync();
 
         if (_selectedNav == WarehouseButton)
             ShowContent(new WarehouseView(), WarehouseButton);

@@ -34,6 +34,8 @@ public partial class UserEditorWindow : Window
         PermissionsItemsControl.ItemsSource = Permissions;
         RoleInput.SelectionChanged += RoleInput_SelectionChanged;
 
+        ApplyLocalization();
+
         if (existingUser is not null)
         {
             Title = _loc.T("تعديل المستخدم");
@@ -51,11 +53,26 @@ public partial class UserEditorWindow : Window
         }
         else
         {
+            Title = _loc.T("إضافة مستخدم");
+            HeaderTitle.Text = _loc.T("بيانات المستخدم");
             RoleInput.SelectedItem = UserRole.Warehouse;
             Loaded += (_, _) => UsernameInput.Focus();
         }
 
         Loaded += Window_Loaded;
+    }
+
+    private void ApplyLocalization()
+    {
+        HeaderSubtitle.Text = _loc.T("أدخل بيانات حساب المستخدم والدور والصلاحيات.");
+        UsernameLabel.Text = _loc.T("اسم المستخدم");
+        FullNameLabel.Text = _loc.T("الاسم الكامل");
+        PasswordLabel.Text = _loc.T("كلمة المرور");
+        RoleLabel.Text = _loc.T("الدور");
+        ActiveInput.Content = _loc.T("نشط حالياً");
+        PermissionsLabel.Text = _loc.T("صلاحيات المستخدم");
+        CancelButton.Content = _loc.T("إلغاء");
+        SaveButton.Content = _loc.T("حفظ");
     }
 
     private async void Window_Loaded(object sender, RoutedEventArgs e)

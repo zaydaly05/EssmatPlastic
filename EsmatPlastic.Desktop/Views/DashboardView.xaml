@@ -200,7 +200,7 @@
 
                                         <!-- Quantity -->
                                         <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center">
-                                            <TextBlock Text="{Binding Quantity, StringFormat={}{0:N0} قطعة}" FontWeight="Bold" FontSize="12"/>
+                                            <TextBlock Text="{Binding Quantity, Converter={StaticResource UnitFormatConverter}, ConverterParameter=Piece}" FontWeight="Bold" FontSize="12"/>
                                         </StackPanel>
 
                                         <!-- User -->
@@ -234,7 +234,7 @@
                                 <TextBlock Text="تنبيهات المخزون المنخفض" FontSize="15" FontWeight="Bold"/>
                             </StackPanel>
                             <Border Background="{DynamicResource DangerSoftBrush}" CornerRadius="10" Padding="8,2" HorizontalAlignment="Right">
-                                <TextBlock Text="{Binding LowStockCount, StringFormat={}{0} صنف}" Foreground="{DynamicResource DangerBrush}" FontSize="12" FontWeight="Bold"/>
+                                <TextBlock Text="{Binding LowStockCount, Converter={StaticResource UnitFormatConverter}, ConverterParameter=Variant}" Foreground="{DynamicResource DangerBrush}" FontSize="12" FontWeight="Bold"/>
                             </Border>
                         </Grid>
 

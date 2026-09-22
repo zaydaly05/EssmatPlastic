@@ -10,10 +10,12 @@
 
     <Border Padding="28">
         <StackPanel>
-            <TextBlock Text="إضافة حركة مخزون"
+            <TextBlock x:Name="ModalHeaderText"
+                       Text="إضافة حركة مخزون"
                        Style="{StaticResource ModalHeader}"/>
 
-            <TextBlock Text="سجّل حركة دخول (وارد) أو خروج (صادر) من المخزن."
+            <TextBlock x:Name="ModalSubtitleText"
+                       Text="سجّل حركة دخول (وارد) أو خروج (صادر) من المخزن."
                        Style="{StaticResource PageSubtitle}"
                        Margin="0,0,0,20"/>
 
@@ -24,7 +26,7 @@
                 </StackPanel>
             </Border>
 
-            <TextBlock Text="نوع الحركة" Style="{StaticResource FieldLabel}"/>
+            <TextBlock x:Name="TransactionTypeLabel" Text="نوع الحركة" Style="{StaticResource FieldLabel}"/>
             <ComboBox x:Name="TransactionTypeInput"
                       Height="40"
                       Margin="0,0,0,14"
@@ -33,12 +35,12 @@
                 <ComboBoxItem Content="صادر"/>
             </ComboBox>
 
-            <TextBlock Text="الكمية" Style="{StaticResource FieldLabel}"/>
+            <TextBlock x:Name="QuantityLabel" Text="الكمية" Style="{StaticResource FieldLabel}"/>
             <TextBox x:Name="QuantityInput"
                      Height="40"
                      Margin="0,0,0,14"/>
 
-            <TextBlock Text="الملاحظات" Style="{StaticResource FieldLabel}"/>
+            <TextBlock x:Name="NotesLabel" Text="الملاحظات" Style="{StaticResource FieldLabel}"/>
             <TextBox x:Name="NotesInput"
                      Height="65"
                      TextWrapping="Wrap"
@@ -48,7 +50,8 @@
                      Margin="0,0,0,24"/>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="إلغاء"
+                <Button x:Name="CancelBtn"
+                        Content="إلغاء"
                         Style="{StaticResource SecondaryButton}"
                         Width="100"
                         Height="40"

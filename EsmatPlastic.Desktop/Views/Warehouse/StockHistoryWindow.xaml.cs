@@ -28,6 +28,20 @@ public partial class StockHistoryWindow : Window
         DataContext = this;
 
         VariantText.Text = $"{stock.ProductName} - {stock.VariantName}";
+
+        ApplyLocalization();
+    }
+
+    private void ApplyLocalization()
+    {
+        Title = _loc.T("سجل حركات المخزون");
+        WindowTitleText.Text = _loc.T("سجل حركات المخزون");
+        HeaderDate.Text = _loc.T("التاريخ");
+        HeaderType.Text = _loc.T("النوع");
+        HeaderQty.Text = _loc.T("الكمية");
+        HeaderUser.Text = _loc.T("المستخدم");
+        HeaderNotes.Text = _loc.T("الملاحظات");
+        CloseBtn.Content = _loc.T("إغلاق");
     }
 
     private async void Window_Loaded(

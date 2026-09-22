@@ -11,14 +11,16 @@
     <Border Padding="28">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel>
-                <TextBlock Text="إضافة صنف / عبوة جديدة"
+                <TextBlock x:Name="HeaderTitle"
+                           Text="إضافة صنف / عبوة جديدة"
                            Style="{StaticResource ModalHeader}"/>
 
-                <TextBlock Text="أدخل تفاصيل ومواصفات العبوة أو الصنف للمنتج."
+                <TextBlock x:Name="HeaderSubtitle"
+                           Text="أدخل تفاصيل ومواصفات العبوة أو الصنف للمنتج."
                            Style="{StaticResource PageSubtitle}"
                            Margin="0,0,0,20"/>
 
-                <TextBlock Text="اسم الصنف" Style="{StaticResource FieldLabel}"/>
+                <TextBlock x:Name="NameLabel" Text="اسم الصنف" Style="{StaticResource FieldLabel}"/>
                 <TextBox x:Name="NameInput"
                          Height="40"
                          Margin="0,0,0,14"/>
@@ -31,12 +33,12 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0">
-                        <TextBlock Text="المقاس" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock x:Name="SizeLabel" Text="المقاس" Style="{StaticResource FieldLabel}"/>
                         <TextBox x:Name="SizeInput" Height="40"/>
                     </StackPanel>
 
                     <StackPanel Grid.Column="2">
-                        <TextBlock Text="اللون" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock x:Name="ColorLabel" Text="اللون" Style="{StaticResource FieldLabel}"/>
                         <TextBox x:Name="ColorInput" Height="40"/>
                     </StackPanel>
                 </Grid>
@@ -49,18 +51,19 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0">
-                        <TextBlock Text="نوع الغطاء" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock x:Name="CapTypeLabel" Text="نوع الغطاء" Style="{StaticResource FieldLabel}"/>
                         <TextBox x:Name="CapTypeInput" Height="40"/>
                     </StackPanel>
 
                     <StackPanel Grid.Column="2">
-                        <TextBlock Text="المادة" Style="{StaticResource FieldLabel}"/>
+                        <TextBlock x:Name="MaterialLabel" Text="المادة" Style="{StaticResource FieldLabel}"/>
                         <TextBox x:Name="MaterialInput" Height="40"/>
                     </StackPanel>
                 </Grid>
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button Content="إلغاء"
+                    <Button x:Name="CancelButton"
+                            Content="إلغاء"
                             Style="{StaticResource SecondaryButton}"
                             Width="100"
                             Height="40"

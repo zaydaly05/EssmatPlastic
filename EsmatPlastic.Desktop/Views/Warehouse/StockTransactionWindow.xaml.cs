@@ -34,8 +34,23 @@ public partial class StockTransactionWindow : Window
         ProductText.Text = $"{_loc.T("المنتج")}: {stock.ProductName}";
         VariantText.Text = BuildVariantText(stock, _loc);
 
+        ApplyLocalization();
         ConfigureTransactionTypes();
         Loaded += (_, _) => QuantityInput.Focus();
+    }
+
+    private void ApplyLocalization()
+    {
+        Title = _loc.T("حركة مخزون");
+        ModalHeaderText.Text = _loc.T("إضافة حركة مخزون");
+        ModalSubtitleText.Text = _loc.IsArabic
+            ? "سجّل حركة دخول (وارد) أو خروج (صادر) من المخزن."
+            : "Record an incoming or outgoing stock transaction.";
+        TransactionTypeLabel.Text = _loc.T("نوع الحركة");
+        QuantityLabel.Text = _loc.T("الكمية");
+        NotesLabel.Text = _loc.T("الملاحظات");
+        CancelBtn.Content = _loc.T("إلغاء");
+        SaveButton.Content = _loc.T("حفظ الحركة");
     }
 
     private void ConfigureTransactionTypes()

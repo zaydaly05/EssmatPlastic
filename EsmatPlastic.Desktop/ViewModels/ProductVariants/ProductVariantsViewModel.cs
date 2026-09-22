@@ -159,13 +159,13 @@ public class ProductVariantsViewModel : INotifyPropertyChanged
                 Variants.Add(variant);
             }
 
-            StatusMessage =
-                $"تم تحميل الأصناف: {Variants.Count}";
+            var loc = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<EsmatPlastic.Desktop.Services.Localization.LocalizationService>(App.ServiceProvider);
+            StatusMessage = loc.IsArabic ? $"تم تحميل الأصناف: {Variants.Count}" : $"Variants loaded: {Variants.Count}";
         }
         catch (Exception ex)
         {
-            StatusMessage =
-                $"تعذر تحميل الأصناف: {ex.Message}";
+            var loc = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<EsmatPlastic.Desktop.Services.Localization.LocalizationService>(App.ServiceProvider);
+            StatusMessage = loc.IsArabic ? $"تعذر تحميل الأصناف: {ex.Message}" : $"Failed to load variants: {ex.Message}";
         }
         finally
         {
@@ -213,13 +213,13 @@ public class ProductVariantsViewModel : INotifyPropertyChanged
 
             SelectedVariant = null;
 
-            StatusMessage =
-                "تم حذف الصنف بنجاح.";
+            var loc = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<EsmatPlastic.Desktop.Services.Localization.LocalizationService>(App.ServiceProvider);
+            StatusMessage = loc.IsArabic ? "تم حذف الصنف بنجاح." : "Variant deleted successfully.";
         }
         catch (Exception ex)
         {
-            StatusMessage =
-                $"تعذر حذف الصنف: {ex.Message}";
+            var loc = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<EsmatPlastic.Desktop.Services.Localization.LocalizationService>(App.ServiceProvider);
+            StatusMessage = loc.IsArabic ? $"تعذر حذف الصنف: {ex.Message}" : $"Failed to delete variant: {ex.Message}";
         }
         finally
         {

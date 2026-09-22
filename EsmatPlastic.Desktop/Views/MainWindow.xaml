@@ -24,12 +24,14 @@
                 </Grid.RowDefinitions>
 
                 <StackPanel Margin="8,8,8,24">
-                    <TextBlock Text="عصمت للبلاستيك"
+                    <TextBlock x:Name="AppNameText"
+                               Text="عصمت للبلاستيك"
                                Foreground="White"
                                FontSize="22"
                                FontWeight="SemiBold"
                                HorizontalAlignment="Center"/>
-                    <TextBlock Text="نظام إدارة المخزون"
+                    <TextBlock x:Name="AppTaglineText"
+                               Text="نظام إدارة المخزون"
                                Foreground="#A9C2C7"
                                FontSize="13"
                                HorizontalAlignment="Center"
@@ -67,7 +69,8 @@
                             Click="SettingsButton_Click"/>
                 </StackPanel>
 
-                <Button Grid.Row="2"
+                <Button x:Name="LogoutButton"
+                        Grid.Row="2"
                         Content="تسجيل الخروج"
                         Style="{StaticResource NavButton}"
                         Margin="0,12,0,4"
@@ -90,7 +93,8 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel>
-                        <TextBlock Text="مرحباً"
+                        <TextBlock x:Name="WelcomeText"
+                                   Text="مرحباً"
                                    FontSize="14"
                                    Foreground="{DynamicResource MutedBrush}"/>
                         <TextBlock x:Name="FullNameText"
@@ -142,7 +146,8 @@
                                    HorizontalAlignment="Right"
                                    Margin="0,10,0,0"/>
 
-                        <TextBlock Text="نتمنى لك يوماً سعيداً"
+                        <TextBlock x:Name="HaveANiceDayText"
+                                   Text="نتمنى لك يوماً سعيداً"
                                    FontSize="13"
                                    Foreground="{DynamicResource MutedBrush}"
                                    HorizontalAlignment="Right"

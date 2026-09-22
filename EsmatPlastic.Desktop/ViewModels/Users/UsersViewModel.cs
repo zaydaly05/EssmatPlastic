@@ -81,7 +81,8 @@ public class UsersViewModel : INotifyPropertyChanged
         }
         catch (Exception ex)
         {
-            StatusMessage = $"تعذر تحميل المستخدمين: {ex.Message}";
+            var loc = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<EsmatPlastic.Desktop.Services.Localization.LocalizationService>(App.ServiceProvider);
+            StatusMessage = loc.IsArabic ? $"تعذر تحميل المستخدمين: {ex.Message}" : $"Failed to load users: {ex.Message}";
         }
     }
 
@@ -101,9 +102,10 @@ public class UsersViewModel : INotifyPropertyChanged
             }
         }
 
+        var loc = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<EsmatPlastic.Desktop.Services.Localization.LocalizationService>(App.ServiceProvider);
         StatusMessage = string.IsNullOrEmpty(query)
-            ? $"إجمالي المستخدمين: {AllUsers.Count}"
-            : $"يعرض {FilteredUsers.Count} من أصل {AllUsers.Count} مستخدم";
+            ? (loc.IsArabic ? $"إجمالي المستخدمين: {AllUsers.Count}" : $"Total Users: {AllUsers.Count}")
+            : (loc.IsArabic ? $"يعرض {FilteredUsers.Count} من أصل {AllUsers.Count} مستخدم" : $"Showing {FilteredUsers.Count} of {AllUsers.Count} users");
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

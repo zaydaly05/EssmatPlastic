@@ -18,7 +18,8 @@
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0">
-            <TextBlock Text="سجل حركات المخزون"
+            <TextBlock x:Name="WindowTitleText"
+                       Text="سجل حركات المخزون"
                        Style="{StaticResource ModalHeader}"/>
 
             <TextBlock x:Name="VariantText"
@@ -44,11 +45,11 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock Grid.Column="0" Text="التاريخ" Style="{StaticResource ColumnHeader}"/>
-                    <TextBlock Grid.Column="1" Text="النوع" Style="{StaticResource ColumnHeader}" HorizontalAlignment="Center"/>
-                    <TextBlock Grid.Column="2" Text="الكمية" Style="{StaticResource ColumnHeader}" HorizontalAlignment="Center"/>
-                    <TextBlock Grid.Column="3" Text="المستخدم" Style="{StaticResource ColumnHeader}"/>
-                    <TextBlock Grid.Column="4" Text="الملاحظات" Style="{StaticResource ColumnHeader}"/>
+                    <TextBlock x:Name="HeaderDate" Grid.Column="0" Text="التاريخ" Style="{StaticResource ColumnHeader}"/>
+                    <TextBlock x:Name="HeaderType" Grid.Column="1" Text="النوع" Style="{StaticResource ColumnHeader}" HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="HeaderQty" Grid.Column="2" Text="الكمية" Style="{StaticResource ColumnHeader}" HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="HeaderUser" Grid.Column="3" Text="المستخدم" Style="{StaticResource ColumnHeader}"/>
+                    <TextBlock x:Name="HeaderNotes" Grid.Column="4" Text="الملاحظات" Style="{StaticResource ColumnHeader}"/>
                 </Grid>
 
                 <ListView Grid.Row="1" ItemsSource="{Binding Transactions}">
@@ -126,7 +127,8 @@
         </Border>
 
         <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="إغلاق"
+            <Button x:Name="CloseBtn"
+                    Content="إغلاق"
                     Style="{StaticResource SecondaryButton}"
                     Width="100"
                     Height="38"

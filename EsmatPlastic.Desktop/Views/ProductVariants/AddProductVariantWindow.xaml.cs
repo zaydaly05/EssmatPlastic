@@ -24,7 +24,23 @@ public partial class AddProductVariantWindow : Window
         _productId = productId;
         _loc = App.ServiceProvider.GetRequiredService<LocalizationService>();
 
+        ApplyLocalization();
+
         Loaded += (_, _) => NameInput.Focus();
+    }
+
+    private void ApplyLocalization()
+    {
+        Title = _loc.T("إضافة صنف / عبوة");
+        HeaderTitle.Text = _loc.T("إضافة صنف / عبوة جديدة");
+        HeaderSubtitle.Text = _loc.T("أدخل تفاصيل ومواصفات العبوة أو الصنف للمنتج.");
+        NameLabel.Text = _loc.T("اسم الصنف");
+        SizeLabel.Text = _loc.T("المقاس");
+        ColorLabel.Text = _loc.T("اللون");
+        CapTypeLabel.Text = _loc.T("نوع الغطاء");
+        MaterialLabel.Text = _loc.T("المادة");
+        CancelButton.Content = _loc.T("إلغاء");
+        SaveButton.Content = _loc.T("حفظ");
     }
 
     private async void SaveButton_Click(

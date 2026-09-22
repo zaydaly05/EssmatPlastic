@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using EsmatPlastic.Desktop.Models.Stock;
+using EsmatPlastic.Desktop.Services.Localization;
 using EsmatPlastic.Desktop.Services.Stock;
 
 namespace EsmatPlastic.Desktop.ViewModels.Warehouse;
@@ -123,13 +124,15 @@ public class WarehouseViewModel : INotifyPropertyChanged
 
             ApplyFilter();
 
+            var loc = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<LocalizationService>(App.ServiceProvider);
             StatusMessage =
-                $"تم تحميل المخزون: {StockItems.Count}";
+                loc.IsArabic ? $"تم تحميل المخزون: {StockItems.Count}" : $"Stock items loaded: {StockItems.Count}";
         }
         catch (Exception ex)
         {
+            var loc = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<LocalizationService>(App.ServiceProvider);
             StatusMessage =
-                $"تعذر تحميل المخزون: {ex.Message}";
+                loc.IsArabic ? $"تعذر تحميل المخزون: {ex.Message}" : $"Failed to load stock: {ex.Message}";
         }
         finally
         {

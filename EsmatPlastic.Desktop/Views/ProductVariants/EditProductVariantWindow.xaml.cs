@@ -31,7 +31,24 @@ public partial class EditProductVariantWindow : Window
         MaterialInput.Text = variant.Material ?? string.Empty;
         ActiveInput.IsChecked = variant.IsActive;
 
+        ApplyLocalization();
+
         Loaded += (_, _) => NameInput.Focus();
+    }
+
+    private void ApplyLocalization()
+    {
+        Title = _loc.T("تعديل الصنف");
+        HeaderTitle.Text = _loc.T("تعديل الصنف");
+        HeaderSubtitle.Text = _loc.T("تعديل بيانات العبوة أو تعديل حالة التفعيل.");
+        NameLabel.Text = _loc.T("اسم الصنف");
+        SizeLabel.Text = _loc.T("المقاس");
+        ColorLabel.Text = _loc.T("اللون");
+        CapTypeLabel.Text = _loc.T("نوع الغطاء");
+        MaterialLabel.Text = _loc.T("المادة");
+        ActiveInput.Content = _loc.T("نشط حالياً");
+        CancelButton.Content = _loc.T("إلغاء");
+        SaveButton.Content = _loc.T("حفظ");
     }
 
     private async void SaveButton_Click(

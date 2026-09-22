@@ -5,17 +5,25 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
 using EsmatPlastic.Desktop.Models.Reports;
+using EsmatPlastic.Desktop.Services.Localization;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EsmatPlastic.Desktop.Services.Reports;
 
 public class ReportExportService
 {
+    private LocalizationService Loc => App.ServiceProvider.GetRequiredService<LocalizationService>();
+
     public void ExportToCsv(IEnumerable<StockReportResponse> items, string filePath)
     {
         var sb = new StringBuilder();
 
         // Write CSV Header with UTF-8 BOM
-        sb.AppendLine("المنتج,الصنف,المقاس,الوارد,الصادر,المتاح الحقيقي");
+        string headerLine = Loc.IsArabic
+            ? "المنتج,الصنف,المقاس,الوارد,الصادر,المتاح الحقيقي"
+            : "Product,Variant,Size,Total In,Total Out,Available Stock";
+
+        sb.AppendLine(headerLine);
 
         foreach (var item in items)
         {
@@ -29,7 +37,7 @@ public class ReportExportService
             sb.AppendLine($"\"{product}\",\"{variant}\",\"{size}\",{totalIn},{totalOut},{currentQty}");
         }
 
-        // Use UTF-8 with BOM for Excel compatibility with Arabic
+        // Use UTF-8 with BOM for Excel compatibility with Arabic/English
         File.WriteAllText(filePath, sb.ToString(), new UTF8Encoding(true));
     }
 
@@ -52,16 +60,18 @@ public class ReportExportService
         if (printDialog.ShowDialog() != true)
             return;
 
+        var loc = Loc;
+
         var doc = new FlowDocument
         {
             PagePadding = new Thickness(40),
             ColumnWidth = printDialog.PrintableAreaWidth,
-            FlowDirection = FlowDirection.RightToLeft,
+            FlowDirection = loc.FlowDirection,
             FontFamily = new FontFamily("Segoe UI, Tahoma")
         };
 
         // Header Title
-        var headerPara = new Paragraph(new Run("تقرير حركة ورصيد المخزون"))
+        var headerPara = new Paragraph(new Run(loc.T("تقرير حركة ورصيد المخزون")))
         {
             FontSize = 22,
             FontWeight = FontWeights.Bold,
@@ -72,7 +82,11 @@ public class ReportExportService
         doc.Blocks.Add(headerPara);
 
         // Date & Time Subtitle
-        var datePara = new Paragraph(new Run($"تاريخ التصدير: {DateTime.Now:yyyy-MM-dd HH:mm:ss} | شركة عصمت للبلاستيك"))
+        var dateSubtitle = loc.IsArabic
+            ? $"تاريخ التصدير: {DateTime.Now:yyyy-MM-dd HH:mm:ss} | شركة عصمت للبلاستيك"
+            : $"Export Date: {DateTime.Now:yyyy-MM-dd HH:mm:ss} | Esmat Plastic Company";
+
+        var datePara = new Paragraph(new Run(dateSubtitle))
         {
             FontSize = 11,
             TextAlignment = TextAlignment.Center,
@@ -91,10 +105,10 @@ public class ReportExportService
         var summaryGroup = new TableRowGroup();
         var summaryRow = new TableRow();
 
-        summaryRow.Cells.Add(CreateStatCell("إجمالي الوارد", totalIn.ToString("N0")));
-        summaryRow.Cells.Add(CreateStatCell("إجمالي الصادر", totalOut.ToString("N0")));
-        summaryRow.Cells.Add(CreateStatCell("المخزون الحقيقي", currentStock.ToString("N0")));
-        summaryRow.Cells.Add(CreateStatCell("عدد الأصناف", variantCount.ToString()));
+        summaryRow.Cells.Add(CreateStatCell(loc.T("إجمالي الوارد"), totalIn.ToString("N0")));
+        summaryRow.Cells.Add(CreateStatCell(loc.T("إجمالي الصادر"), totalOut.ToString("N0")));
+        summaryRow.Cells.Add(CreateStatCell(loc.T("المخزون المتاح"), currentStock.ToString("N0")));
+        summaryRow.Cells.Add(CreateStatCell(loc.T("عدد الأصناف"), variantCount.ToString()));
 
         summaryGroup.Rows.Add(summaryRow);
         summaryTable.RowGroups.Add(summaryGroup);
@@ -115,12 +129,12 @@ public class ReportExportService
         var headerGroup = new TableRowGroup();
         var headerRow = new TableRow { Background = new SolidColorBrush(Color.FromRgb(241, 245, 249)) };
 
-        headerRow.Cells.Add(CreateHeaderCell("المنتج"));
-        headerRow.Cells.Add(CreateHeaderCell("الصنف"));
-        headerRow.Cells.Add(CreateHeaderCell("المقاس"));
-        headerRow.Cells.Add(CreateHeaderCell("الوارد"));
-        headerRow.Cells.Add(CreateHeaderCell("الصادر"));
-        headerRow.Cells.Add(CreateHeaderCell("المتاح"));
+        headerRow.Cells.Add(CreateHeaderCell(loc.T("المنتج")));
+        headerRow.Cells.Add(CreateHeaderCell(loc.T("الصنف")));
+        headerRow.Cells.Add(CreateHeaderCell(loc.T("المقاس")));
+        headerRow.Cells.Add(CreateHeaderCell(loc.T("الوارد")));
+        headerRow.Cells.Add(CreateHeaderCell(loc.T("الصادر")));
+        headerRow.Cells.Add(CreateHeaderCell(loc.T("المتاح")));
 
         headerGroup.Rows.Add(headerRow);
         table.RowGroups.Add(headerGroup);
@@ -135,12 +149,12 @@ public class ReportExportService
                 Background = isAlternate ? new SolidColorBrush(Color.FromRgb(248, 250, 252)) : Brushes.White
             };
 
-            row.Cells.Add(CreateDataCell(item.ProductName, false, true));
-            row.Cells.Add(CreateDataCell(item.VariantName, false, false));
-            row.Cells.Add(CreateDataCell(item.Size ?? "-", true, false));
-            row.Cells.Add(CreateDataCell(item.TotalIn.ToString("N0"), true, false));
-            row.Cells.Add(CreateDataCell(item.TotalOut.ToString("N0"), true, false));
-            row.Cells.Add(CreateDataCell(item.CurrentQuantity.ToString("N0"), true, true));
+            row.Cells.Add(CreateDataCell(item.ProductName, false, true, loc.IsArabic));
+            row.Cells.Add(CreateDataCell(item.VariantName, false, false, loc.IsArabic));
+            row.Cells.Add(CreateDataCell(item.Size ?? "-", true, false, loc.IsArabic));
+            row.Cells.Add(CreateDataCell(item.TotalIn.ToString("N0"), true, false, loc.IsArabic));
+            row.Cells.Add(CreateDataCell(item.TotalOut.ToString("N0"), true, false, loc.IsArabic));
+            row.Cells.Add(CreateDataCell(item.CurrentQuantity.ToString("N0"), true, true, loc.IsArabic));
 
             dataGroup.Rows.Add(row);
             isAlternate = !isAlternate;
@@ -151,7 +165,7 @@ public class ReportExportService
 
         // Print Document
         IDocumentPaginatorSource paginator = doc;
-        printDialog.PrintDocument(paginator.DocumentPaginator, "تقرير حركة المخزون");
+        printDialog.PrintDocument(paginator.DocumentPaginator, loc.T("تقرير حركة المخزون"));
     }
 
     private TableCell CreateStatCell(string title, string value)
@@ -195,7 +209,7 @@ public class ReportExportService
         };
     }
 
-    private TableCell CreateDataCell(string text, bool center, bool bold)
+    private TableCell CreateDataCell(string text, bool center, bool bold, bool isArabic = true)
     {
         return new TableCell
         {
@@ -207,7 +221,7 @@ public class ReportExportService
                 new Paragraph(new Run(text))
                 {
                     FontSize = 11,
-                    TextAlignment = center ? TextAlignment.Center : TextAlignment.Right,
+                    TextAlignment = center ? TextAlignment.Center : (isArabic ? TextAlignment.Right : TextAlignment.Left),
                     FontWeight = bold ? FontWeights.SemiBold : FontWeights.Normal
                 }
             }
