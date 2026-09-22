@@ -90,14 +90,14 @@
                                     </Grid.ColumnDefinitions>
 
                                     <StackPanel>
-                                        <TextBlock Text="{Binding ProductName, Converter={StaticResource TranslateConverter}}" FontSize="15" FontWeight="SemiBold"/>
-                                        <TextBlock Text="{Binding VariantName, Converter={StaticResource TranslateConverter}}"
+                                        <TextBlock Text="{Binding ProductName}" FontSize="15" FontWeight="SemiBold"/>
+                                        <TextBlock Text="{Binding VariantName}"
                                                    FontSize="12"
                                                    Foreground="{DynamicResource MutedBrush}"
                                                    Margin="0,3,0,0"/>
                                     </StackPanel>
 
-                                    <TextBlock Grid.Column="1" Text="{Binding Size, Converter={StaticResource TranslateConverter}}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding Size}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Column="2" Text="{Binding TotalIn}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Column="3" Text="{Binding TotalOut}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Column="4"

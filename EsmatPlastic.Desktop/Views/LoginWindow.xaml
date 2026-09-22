@@ -27,20 +27,17 @@
                                    VerticalAlignment="Center"/>
                     </Border>
 
-                    <TextBlock x:Name="BrandTitle"
-                               Text="إسمت بلاستيك"
+                    <TextBlock Text="عصمت للبلاستيك"
                                FontSize="32"
                                FontWeight="SemiBold"
                                Foreground="White"/>
 
-                    <TextBlock x:Name="BrandSubtitle"
-                               Text="نظام إدارة المخزون"
+                    <TextBlock Text="نظام إدارة المخزون"
                                FontSize="16"
                                Foreground="#C5D9DD"
                                Margin="0,10,0,0"/>
 
-                    <TextBlock x:Name="BrandDesc"
-                               Text="لوحة تحكم بسيطة لإدارة مخزون البلاستيك."
+                    <TextBlock Text="لوحة تحكم بسيطة لإدارة مخزون البلاستيك."
                                FontSize="14"
                                Foreground="#9BB4B9"
                                TextWrapping="Wrap"
@@ -69,23 +66,18 @@
                 </StackPanel>
 
                 <StackPanel Grid.Row="1" VerticalAlignment="Center" MaxWidth="360" HorizontalAlignment="Stretch">
-                    <TextBlock x:Name="TitleText"
-                               Text="تسجيل الدخول"
+                    <TextBlock Text="تسجيل الدخول"
                                Style="{StaticResource PageTitle}"/>
-                    <TextBlock x:Name="SubtitleText"
-                               Text="اختر اللغة ثم سجّل الدخول للمتابعة."
+                    <TextBlock Text="اختر اللغة ثم سجّل الدخول للمتابعة."
                                Style="{StaticResource PageSubtitle}"
                                Margin="0,8,0,28"/>
 
-                    <TextBlock x:Name="UsernameLabel"
-                               Text="اسم المستخدم"
-                               Style="{StaticResource FieldLabel}"/>
+                    <TextBlock Text="اسم المستخدم" Style="{StaticResource FieldLabel}"/>
                     <TextBox x:Name="UsernameInput"
                              Height="44"
                              Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"/>
 
-                    <TextBlock x:Name="PasswordLabel"
-                               Text="كلمة المرور"
+                    <TextBlock Text="كلمة المرور"
                                Style="{StaticResource FieldLabel}"
                                Margin="0,16,0,8"/>
                     <PasswordBox x:Name="PasswordInput"
@@ -98,8 +90,7 @@
                                MinHeight="22"
                                Margin="0,14,0,0"/>
 
-                    <Button x:Name="LoginButton"
-                            Height="46"
+                    <Button Height="46"
                             Margin="0,10,0,0"
                             Content="تسجيل الدخول"
                             IsDefault="True"

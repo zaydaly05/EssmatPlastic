@@ -85,14 +85,15 @@
                                                 </Style.Triggers>
                                             </Style>
                                         </Border.Style>
-                                        <TextBlock Text="{Binding Type, Converter={StaticResource StockTypeToTextConverter}}"
-                                                   HorizontalAlignment="Center"
-                                                   FontWeight="SemiBold">
+                                        <TextBlock HorizontalAlignment="Center">
                                             <TextBlock.Style>
                                                 <Style TargetType="TextBlock">
+                                                    <Setter Property="Text" Value="صادر"/>
                                                     <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
+                                                    <Setter Property="FontWeight" Value="SemiBold"/>
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding Type}" Value="In">
+                                                            <Setter Property="Text" Value="وارد"/>
                                                             <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
                                                         </DataTrigger>
                                                     </Style.Triggers>
@@ -109,11 +110,11 @@
                                                VerticalAlignment="Center"/>
 
                                     <TextBlock Grid.Column="3"
-                                               Text="{Binding FullName, Converter={StaticResource TranslateConverter}}"
+                                               Text="{Binding FullName}"
                                                VerticalAlignment="Center"/>
 
                                     <TextBlock Grid.Column="4"
-                                               Text="{Binding Notes, Converter={StaticResource TranslateConverter}}"
+                                               Text="{Binding Notes}"
                                                Foreground="{DynamicResource MutedBrush}"
                                                VerticalAlignment="Center"/>
                                 </Grid>
@@ -127,10 +128,12 @@
         <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
             <Button Content="إغلاق"
                     Style="{StaticResource SecondaryButton}"
-                    MinWidth="115"
-                    MinHeight="38"
+                    Width="100"
+                    Height="38"
                     IsCancel="True"
                     Click="CloseButton_Click"/>
         </StackPanel>
     </Grid>
 </Window>
+
+

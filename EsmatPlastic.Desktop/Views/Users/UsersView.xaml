@@ -144,7 +144,7 @@
 
                                     <!-- Full Name & Username -->
                                     <StackPanel VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding FullName, Converter={StaticResource TranslateConverter}}" FontWeight="Bold" FontSize="13" Foreground="{DynamicResource InkBrush}"/>
+                                        <TextBlock Text="{Binding FullName}" FontWeight="Bold" FontSize="13" Foreground="{DynamicResource InkBrush}"/>
                                         <TextBlock Text="{Binding Username}"
                                                    Foreground="{DynamicResource MutedBrush}"
                                                    FontSize="12"

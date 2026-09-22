@@ -1,7 +1,7 @@
 <Window x:Class="EsmatPlastic.Desktop.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="إسمت بلاستيك"
+        Title="عصمت للبلاستيك"
         Width="1280"
         Height="800"
         MinWidth="1024"
@@ -24,7 +24,7 @@
                 </Grid.RowDefinitions>
 
                 <StackPanel Margin="8,8,8,24">
-                    <TextBlock Text="إسمت بلاستيك"
+                    <TextBlock Text="عصمت للبلاستيك"
                                Foreground="White"
                                FontSize="22"
                                FontWeight="SemiBold"

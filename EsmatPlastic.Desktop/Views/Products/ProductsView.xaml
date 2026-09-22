@@ -87,8 +87,8 @@
 
                                     <!-- Product Name & Description -->
                                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0">
-                                        <TextBlock Text="{Binding Name, Converter={StaticResource TranslateConverter}}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource InkBrush}"/>
-                                        <TextBlock Text="{Binding Description, Converter={StaticResource TranslateConverter}}"
+                                        <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource InkBrush}"/>
+                                        <TextBlock Text="{Binding Description}"
                                                    FontSize="12"
                                                    Foreground="{DynamicResource MutedBrush}"
                                                    Margin="0,3,0,0"

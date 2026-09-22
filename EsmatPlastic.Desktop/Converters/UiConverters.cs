@@ -12,32 +12,6 @@ public static class Loc
         App.ServiceProvider.GetRequiredService<LocalizationService>();
 }
 
-public class TranslateConverter : IValueConverter
-{
-    public object Convert(
-        object value,
-        Type targetType,
-        object parameter,
-        CultureInfo culture)
-    {
-        if (value is null)
-            return string.Empty;
-
-        var str = value.ToString();
-        if (string.IsNullOrWhiteSpace(str))
-            return string.Empty;
-
-        return Loc.Current.Translate(str);
-    }
-
-    public object ConvertBack(
-        object value,
-        Type targetType,
-        object parameter,
-        CultureInfo culture) =>
-        throw new NotSupportedException();
-}
-
 public class BoolToStatusConverter : IValueConverter
 {
     public object Convert(
@@ -68,15 +42,13 @@ public class RoleToTextConverter : IValueConverter
         object parameter,
         CultureInfo culture)
     {
-        var roleStr = value switch
+        return value switch
         {
-            UserRole.Admin or "Admin" => "AdminRole",
-            UserRole.Warehouse or "Warehouse" => "WarehouseRole",
-            UserRole.Accountant or "Accountant" => "AccountantRole",
+            UserRole.Admin or "Admin" => Loc.Current["AdminRole"],
+            UserRole.Warehouse or "Warehouse" => Loc.Current["WarehouseRole"],
+            UserRole.Accountant or "Accountant" => Loc.Current["AccountantRole"],
             _ => value?.ToString() ?? string.Empty
         };
-
-        return Loc.Current[roleStr];
     }
 
     public object ConvertBack(

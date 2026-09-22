@@ -51,18 +51,9 @@ public class AuthService : IAuthService
             if (passwordResult == PasswordVerificationResult.Failed) return null;
 
             var permissions = user.UserPermissions
-                .Where(x => x.Permission != null && x.Permission.IsActive)
+                .Where(x => x.Permission.IsActive)
                 .Select(x => x.Permission.Name)
                 .ToList();
-
-            if (user.Role == Domain.Enums.UserRole.Admin)
-            {
-                var allPerms = await db.Permissions
-                    .Where(x => x.IsActive)
-                    .Select(x => x.Name)
-                    .ToListAsync();
-                permissions = permissions.Union(allPerms).ToList();
-            }
 
             var jwtSettings = _configuration.GetSection("Jwt");
             var key = jwtSettings["Key"] ?? throw new InvalidOperationException("JWT Key is not configured.");

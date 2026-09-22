@@ -8,7 +8,6 @@
             <converters:BoolToStatusConverter x:Key="BoolToStatusConverter"/>
             <converters:RoleToTextConverter x:Key="RoleToTextConverter"/>
             <converters:StockTypeToTextConverter x:Key="StockTypeToTextConverter"/>
-            <converters:TranslateConverter x:Key="TranslateConverter"/>
 
             <!-- Color Palette -->
             <SolidColorBrush x:Key="InkBrush" Color="#1E293B"/>

@@ -56,25 +56,12 @@ public partial class LoginWindow : Window
 
     private void UpdateLanguageButtons()
     {
-        var loc = App.ServiceProvider.GetRequiredService<LocalizationService>();
-        var isArabic = loc.IsArabic;
+        var isArabic = App.ServiceProvider
+            .GetRequiredService<LocalizationService>()
+            .IsArabic;
 
         ArabicLangButton.Tag = isArabic ? "Selected" : null;
         EnglishLangButton.Tag = isArabic ? null : "Selected";
-
-        ApplyLocalization(loc);
-    }
-
-    private void ApplyLocalization(LocalizationService loc)
-    {
-        TitleText.Text = loc.T("تسجيل الدخول");
-        SubtitleText.Text = loc.T("اختر اللغة ثم سجّل الدخول للمتابعة.");
-        UsernameLabel.Text = loc.T("اسم المستخدم");
-        PasswordLabel.Text = loc.T("كلمة المرور");
-        LoginButton.Content = loc.T("تسجيل الدخول");
-        BrandTitle.Text = loc.T("إسمت بلاستيك");
-        BrandSubtitle.Text = loc.T("نظام إدارة المخزون");
-        BrandDesc.Text = loc.T("لوحة تحكم بسيطة لإدارة مخزون البلاستيك.");
     }
 
     private void ViewModel_LoginSucceeded(object? sender, EventArgs e)

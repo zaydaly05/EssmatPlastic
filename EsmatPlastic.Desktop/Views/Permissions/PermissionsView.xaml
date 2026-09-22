@@ -169,7 +169,7 @@
 
                                     <!-- Code Name -->
                                     <TextBlock Grid.Column="1"
-                                               Text="{Binding Name, Converter={StaticResource TranslateConverter}}"
+                                               Text="{Binding Name}"
                                                FontWeight="Bold"
                                                Foreground="{DynamicResource TealDarkBrush}"
                                                VerticalAlignment="Center"/>
@@ -183,7 +183,7 @@
                                             Padding="8,3"
                                             HorizontalAlignment="Left"
                                             VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding Category, Converter={StaticResource TranslateConverter}}"
+                                        <TextBlock Text="{Binding Category}"
                                                    FontSize="12"
                                                    FontWeight="SemiBold"
                                                    Foreground="{DynamicResource InkBrush}"/>
@@ -191,7 +191,7 @@
 
                                     <!-- Description -->
                                     <TextBlock Grid.Column="3"
-                                               Text="{Binding Description, Converter={StaticResource TranslateConverter}}"
+                                               Text="{Binding Description}"
                                                Foreground="{DynamicResource InkBrush}"
                                                TextTrimming="CharacterEllipsis"
                                                VerticalAlignment="Center"/>
