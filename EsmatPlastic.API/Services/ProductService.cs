@@ -7,154 +7,154 @@ namespace EsmatPlastic.API.Services;
 
 public class ProductService : IProductService
 {
-    private readonly AppDbContext _db;
+    private readonly IResilientDbExecutor _executor;
+    private readonly IDbSyncTrigger _syncTrigger;
 
-    public ProductService(AppDbContext db)
+    public ProductService(IResilientDbExecutor executor, IDbSyncTrigger syncTrigger)
     {
-        _db = db;
+        _executor = executor;
+        _syncTrigger = syncTrigger;
     }
 
     public async Task<List<ProductResponse>> GetAllAsync()
     {
-        return await _db.Products
-            .AsNoTracking()
-            .OrderBy(x => x.Name)
-            .Select(x => new ProductResponse
-            {
-                Id = x.Id,
-                Name = x.Name,
-                Description = x.Description,
-                ImagePath = x.ImagePath,
-                IsActive = x.IsActive,
-                CreatedAt = x.CreatedAt,
-                VariantCount = x.Variants.Count
-            })
-            .ToListAsync();
+        return await _executor.ExecuteAsync(async db =>
+            await db.Products
+                .AsNoTracking()
+                .OrderBy(x => x.Name)
+                .Select(x => new ProductResponse
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    Description = x.Description,
+                    ImagePath = x.ImagePath,
+                    IsActive = x.IsActive,
+                    CreatedAt = x.CreatedAt,
+                    VariantCount = x.Variants.Count
+                })
+                .ToListAsync());
     }
 
     public async Task<ProductResponse?> GetByIdAsync(int id)
     {
-        return await _db.Products
-            .AsNoTracking()
-            .Where(x => x.Id == id)
-            .Select(x => new ProductResponse
+        return await _executor.ExecuteAsync(async db =>
+            await db.Products
+                .AsNoTracking()
+                .Where(x => x.Id == id)
+                .Select(x => new ProductResponse
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    Description = x.Description,
+                    ImagePath = x.ImagePath,
+                    IsActive = x.IsActive,
+                    CreatedAt = x.CreatedAt,
+                    VariantCount = x.Variants.Count
+                })
+                .FirstOrDefaultAsync());
+    }
+
+    public async Task<ProductResponse?> CreateAsync(CreateProductRequest request)
+    {
+        var name = request.Name.Trim();
+
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return null;
+        }
+
+        return await _executor.ExecuteAsync(async db =>
+        {
+            var exists = await db.Products.AnyAsync(x => x.Name == name);
+            if (exists)
             {
-                Id = x.Id,
-                Name = x.Name,
-                Description = x.Description,
-                ImagePath = x.ImagePath,
-                IsActive = x.IsActive,
-                CreatedAt = x.CreatedAt,
-                VariantCount = x.Variants.Count
-            })
-            .FirstOrDefaultAsync();
+                throw new InvalidOperationException("A product with the same name already exists.");
+            }
+
+            var product = new Product
+            {
+                Name = name,
+                Description = request.Description?.Trim(),
+                ImagePath = request.ImagePath?.Trim(),
+                IsActive = true
+            };
+
+            db.Products.Add(product);
+            await db.SaveChangesAsync();
+            _syncTrigger.TriggerSync();
+
+            return new ProductResponse
+            {
+                Id = product.Id,
+                Name = product.Name,
+                Description = product.Description,
+                ImagePath = product.ImagePath,
+                IsActive = product.IsActive,
+                CreatedAt = product.CreatedAt,
+                VariantCount = 0
+            };
+        });
     }
 
-    public async Task<ProductResponse?> CreateAsync(
-        CreateProductRequest request)
+    public async Task<ProductResponse?> UpdateAsync(int id, UpdateProductRequest request)
     {
         var name = request.Name.Trim();
-
         if (string.IsNullOrWhiteSpace(name))
         {
-            return null;
+            throw new InvalidOperationException("Product name is required.");
         }
 
-        var exists = await _db.Products
-            .AnyAsync(x => x.Name == name);
-
-        if (exists)
+        return await _executor.ExecuteAsync(async db =>
         {
-            throw new InvalidOperationException(
-                "A product with the same name already exists.");
-        }
+            var product = await db.Products.FirstOrDefaultAsync(x => x.Id == id);
+            if (product is null) return null;
 
-        var product = new Product
-        {
-            Name = name,
-            Description = request.Description?.Trim(),
-            ImagePath = request.ImagePath?.Trim(),
-            IsActive = true
-        };
+            var duplicate = await db.Products.AnyAsync(x => x.Id != id && x.Name == name);
+            if (duplicate)
+            {
+                throw new InvalidOperationException("A product with the same name already exists.");
+            }
 
-        _db.Products.Add(product);
+            product.Name = name;
+            product.Description = request.Description?.Trim();
+            product.ImagePath = request.ImagePath?.Trim();
+            product.IsActive = request.IsActive;
 
-        await _db.SaveChangesAsync();
+            await db.SaveChangesAsync();
+            _syncTrigger.TriggerSync();
 
-        return new ProductResponse
-        {
-            Id = product.Id,
-            Name = product.Name,
-            Description = product.Description,
-            ImagePath = product.ImagePath,
-            IsActive = product.IsActive,
-            CreatedAt = product.CreatedAt,
-            VariantCount = 0
-        };
-    }
-
-    public async Task<ProductResponse?> UpdateAsync(
-        int id,
-        UpdateProductRequest request)
-    {
-        var product = await _db.Products
-            .FirstOrDefaultAsync(x => x.Id == id);
-
-        if (product is null)
-        {
-            return null;
-        }
-
-        var name = request.Name.Trim();
-
-        if (string.IsNullOrWhiteSpace(name))
-        {
-            throw new InvalidOperationException(
-                "Product name is required.");
-        }
-
-        var duplicate = await _db.Products
-            .AnyAsync(x =>
-                x.Id != id &&
-                x.Name == name);
-
-        if (duplicate)
-        {
-            throw new InvalidOperationException(
-                "A product with the same name already exists.");
-        }
-
-        product.Name = name;
-        product.Description = request.Description?.Trim();
-        product.ImagePath = request.ImagePath?.Trim();
-        product.IsActive = request.IsActive;
-
-        await _db.SaveChangesAsync();
-
-        return await GetByIdAsync(id);
+            return new ProductResponse
+            {
+                Id = product.Id,
+                Name = product.Name,
+                Description = product.Description,
+                ImagePath = product.ImagePath,
+                IsActive = product.IsActive,
+                CreatedAt = product.CreatedAt,
+                VariantCount = product.Variants.Count
+            };
+        });
     }
 
     public async Task<bool> DeleteAsync(int id)
     {
-        var product = await _db.Products
-            .Include(x => x.Variants)
-            .FirstOrDefaultAsync(x => x.Id == id);
-
-        if (product is null)
+        return await _executor.ExecuteAsync(async db =>
         {
-            return false;
-        }
+            var product = await db.Products
+                .Include(x => x.Variants)
+                .FirstOrDefaultAsync(x => x.Id == id);
 
-        if (product.Variants.Count > 0)
-        {
-            throw new InvalidOperationException(
-                "Cannot delete a product that has variants.");
-        }
+            if (product is null) return false;
 
-        _db.Products.Remove(product);
+            if (product.Variants.Count > 0)
+            {
+                throw new InvalidOperationException("Cannot delete a product that has variants.");
+            }
 
-        await _db.SaveChangesAsync();
-
-        return true;
+            db.Products.Remove(product);
+            await db.SaveChangesAsync();
+            _syncTrigger.TriggerSync();
+            return true;
+        });
     }
 }

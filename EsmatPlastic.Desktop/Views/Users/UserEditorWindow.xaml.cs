@@ -1,15 +1,22 @@
-using EsmatPlastic.Desktop.Models.Users;
+using System.Collections.ObjectModel;
 using System.Windows;
+using System.Windows.Controls;
+using EsmatPlastic.Desktop.Models.Users;
+using EsmatPlastic.Desktop.Services.Localization;
+using EsmatPlastic.Desktop.Services.Permissions;
 using EsmatPlastic.Desktop.Services.Users;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EsmatPlastic.Desktop.Views.Users;
 
 public partial class UserEditorWindow : Window
 {
     private readonly UserService _userService;
-
+    private readonly PermissionService _permissionService;
     private readonly UserResponse? _existingUser;
+    private readonly LocalizationService _loc;
 
+    public ObservableCollection<PermissionSelectionItem> Permissions { get; } = new();
     public UserResponse? SavedUser { get; private set; }
 
     public UserEditorWindow(
@@ -19,37 +26,104 @@ public partial class UserEditorWindow : Window
         InitializeComponent();
 
         _userService = userService;
-
+        _permissionService = App.ServiceProvider.GetRequiredService<PermissionService>();
         _existingUser = existingUser;
+        _loc = App.ServiceProvider.GetRequiredService<LocalizationService>();
 
-        RoleInput.ItemsSource =
-            Enum.GetValues<UserRole>();
+        RoleInput.ItemsSource = Enum.GetValues<UserRole>();
+        PermissionsItemsControl.ItemsSource = Permissions;
+        RoleInput.SelectionChanged += RoleInput_SelectionChanged;
 
         if (existingUser is not null)
         {
-            Title = "تعديل المستخدم";
+            Title = _loc.T("تعديل المستخدم");
+            HeaderTitle.Text = _loc.T("تعديل المستخدم");
 
-            UsernameInput.Text =
-                existingUser.Username;
-
+            UsernameInput.Text = existingUser.Username;
             UsernameInput.IsEnabled = false;
 
-            FullNameInput.Text =
-                existingUser.FullName;
+            FullNameInput.Text = existingUser.FullName;
+            RoleInput.SelectedItem = existingUser.Role;
+            ActiveInput.IsChecked = existingUser.IsActive;
 
-            RoleInput.SelectedItem =
-                existingUser.Role;
-
-            ActiveInput.IsChecked =
-                existingUser.IsActive;
-
-            PasswordInput.Visibility =
-                Visibility.Collapsed;
+            PasswordPanel.Visibility = Visibility.Collapsed;
+            Loaded += (_, _) => FullNameInput.Focus();
         }
         else
         {
-            RoleInput.SelectedItem =
-                UserRole.Warehouse;
+            RoleInput.SelectedItem = UserRole.Warehouse;
+            Loaded += (_, _) => UsernameInput.Focus();
+        }
+
+        Loaded += Window_Loaded;
+    }
+
+    private async void Window_Loaded(object sender, RoutedEventArgs e)
+    {
+        await LoadPermissionsAsync();
+    }
+
+    private void RoleInput_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_existingUser is not null) return;
+        if (RoleInput.SelectedItem is UserRole selectedRole)
+        {
+            AutoCheckPermissionsForRole(selectedRole);
+        }
+    }
+
+    private void AutoCheckPermissionsForRole(UserRole role)
+    {
+        if (Permissions.Count == 0) return;
+
+        foreach (var item in Permissions)
+        {
+            item.IsGranted = ShouldGrantPermissionForRole(role, item.Name);
+        }
+    }
+
+    private static bool ShouldGrantPermissionForRole(UserRole role, string permissionName)
+    {
+        return role switch
+        {
+            UserRole.Admin => true,
+            UserRole.Warehouse => permissionName is "Products.View" or "Stock.View" or "Stock.In" or "Stock.Out",
+            UserRole.Accountant => permissionName is "Products.View" or "Stock.View" or "Reports.View",
+            _ => false
+        };
+    }
+
+    private async Task LoadPermissionsAsync()
+    {
+        try
+        {
+            var systemPermissions = await _permissionService.GetAllAsync();
+            var grantedIds = _existingUser != null ? new HashSet<int>(_existingUser.PermissionIds) : new HashSet<int>();
+
+            Permissions.Clear();
+            foreach (var perm in systemPermissions)
+            {
+                Permissions.Add(new PermissionSelectionItem
+                {
+                    Id = perm.Id,
+                    Name = perm.Name,
+                    Description = _loc.T(perm.Description ?? perm.Name),
+                    IsGranted = grantedIds.Contains(perm.Id)
+                });
+            }
+
+            if (_existingUser is null && RoleInput.SelectedItem is UserRole role)
+            {
+                AutoCheckPermissionsForRole(role);
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(
+                ex.Message,
+                _loc.T("تعذر تحميل الصلاحيات"),
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
         }
     }
 
@@ -57,87 +131,80 @@ public partial class UserEditorWindow : Window
         object sender,
         RoutedEventArgs e)
     {
-        if (string.IsNullOrWhiteSpace(
-            FullNameInput.Text))
+        if (_existingUser is null)
+        {
+            if (string.IsNullOrWhiteSpace(UsernameInput.Text))
+            {
+                MessageBox.Show(
+                    _loc.T("يرجى إدخال اسم المستخدم."),
+                    _loc.T("تنبيه"),
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+
+                UsernameInput.Focus();
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(PasswordInput.Password))
+            {
+                MessageBox.Show(
+                    _loc.T("يرجى إدخال كلمة المرور."),
+                    _loc.T("تنبيه"),
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+
+                PasswordInput.Focus();
+                return;
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(FullNameInput.Text))
         {
             MessageBox.Show(
-                "يرجى إدخال الاسم الكامل.",
-                "تنبيه",
+                _loc.T("يرجى إدخال الاسم الكامل."),
+                _loc.T("تنبيه"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
 
+            FullNameInput.Focus();
             return;
         }
 
+        SaveButton.IsEnabled = false;
+
         try
         {
+            var selectedPermissionIds = Permissions
+                .Where(p => p.IsGranted)
+                .Select(p => p.Id)
+                .ToList();
+
             if (_existingUser is null)
             {
-                if (string.IsNullOrWhiteSpace(
-                    UsernameInput.Text))
-                {
-                    MessageBox.Show(
-                        "يرجى إدخال اسم المستخدم.",
-                        "تنبيه",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Warning);
-
-                    return;
-                }
-
-                if (string.IsNullOrWhiteSpace(
-                    PasswordInput.Password))
-                {
-                    MessageBox.Show(
-                        "يرجى إدخال كلمة المرور.",
-                        "تنبيه",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Warning);
-
-                    return;
-                }
-
-                var result =
-                    await _userService.CreateAsync(
-                        new CreateUserRequest
-                        {
-                            Username =
-                                UsernameInput.Text.Trim(),
-
-                            Password =
-                                PasswordInput.Password,
-
-                            FullName =
-                                FullNameInput.Text.Trim(),
-
-                            Role =
-                                (UserRole)RoleInput.SelectedItem!,
-
-                            IsActive =
-                                ActiveInput.IsChecked == true
-                        });
+                var result = await _userService.CreateAsync(
+                    new CreateUserRequest
+                    {
+                        Username = UsernameInput.Text.Trim(),
+                        Password = PasswordInput.Password,
+                        FullName = FullNameInput.Text.Trim(),
+                        Role = (UserRole)RoleInput.SelectedItem!,
+                        IsActive = ActiveInput.IsChecked == true,
+                        PermissionIds = selectedPermissionIds
+                    });
 
                 SavedUser = result;
             }
             else
             {
-                var result =
-                    await _userService.UpdateAsync(
-                        _existingUser.Id,
-                        new UpdateUserRequest
-                        {
-                            FullName =
-                                FullNameInput.Text.Trim(),
-
-                            Role =
-                                (UserRole)RoleInput.SelectedItem!,
-
-                            IsActive =
-                                ActiveInput.IsChecked == true,
-
-                            PermissionIds =
-                                _existingUser.PermissionIds
-                        });
+                var result = await _userService.UpdateAsync(
+                    _existingUser.Id,
+                    new UpdateUserRequest
+                    {
+                        FullName = FullNameInput.Text.Trim(),
+                        Role = (UserRole)RoleInput.SelectedItem!,
+                        IsActive = ActiveInput.IsChecked == true,
+                        PermissionIds = selectedPermissionIds
+                    });
 
                 SavedUser = result;
             }
@@ -152,9 +219,13 @@ public partial class UserEditorWindow : Window
         {
             MessageBox.Show(
                 ex.Message,
-                "تعذر حفظ المستخدم",
+                _loc.T("تعذر حفظ المستخدم"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
+        }
+        finally
+        {
+            SaveButton.IsEnabled = true;
         }
     }
 
@@ -166,6 +237,7 @@ public partial class UserEditorWindow : Window
         Close();
     }
 }
+
 
 
 

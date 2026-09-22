@@ -1,26 +1,21 @@
 using System.Net.Http;
 using System.Windows;
 using EsmatPlastic.Desktop.Models.Stock;
+using EsmatPlastic.Desktop.Services.Localization;
 using EsmatPlastic.Desktop.Services.Stock;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EsmatPlastic.Desktop.Views.Warehouse;
 
 public partial class StockTransactionWindow : Window
 {
     private readonly StockService _stockService;
-
     private readonly StockBalanceResponse _stock;
-
     private readonly bool _allowIn;
-
     private readonly bool _allowOut;
+    private readonly LocalizationService _loc;
 
-    public StockTransactionResponse?
-        CreatedTransaction
-    {
-        get;
-        private set;
-    }
+    public StockTransactionResponse? CreatedTransaction { get; private set; }
 
     public StockTransactionWindow(
         StockService stockService,
@@ -31,20 +26,16 @@ public partial class StockTransactionWindow : Window
         InitializeComponent();
 
         _stockService = stockService;
-
         _stock = stock;
-
         _allowIn = allowIn;
-
         _allowOut = allowOut;
+        _loc = App.ServiceProvider.GetRequiredService<LocalizationService>();
 
-        ProductText.Text =
-            $"المنتج: {stock.ProductName}";
-
-        VariantText.Text =
-            BuildVariantText(stock);
+        ProductText.Text = $"{_loc.T("المنتج")}: {stock.ProductName}";
+        VariantText.Text = BuildVariantText(stock, _loc);
 
         ConfigureTransactionTypes();
+        Loaded += (_, _) => QuantityInput.Focus();
     }
 
     private void ConfigureTransactionTypes()
@@ -56,7 +47,7 @@ public partial class StockTransactionWindow : Window
             TransactionTypeInput.Items.Add(
                 new System.Windows.Controls.ComboBoxItem
                 {
-                    Content = "وارد",
+                    Content = _loc.T("وارد"),
                     Tag = StockTransactionType.In
                 });
         }
@@ -66,7 +57,7 @@ public partial class StockTransactionWindow : Window
             TransactionTypeInput.Items.Add(
                 new System.Windows.Controls.ComboBoxItem
                 {
-                    Content = "صادر",
+                    Content = _loc.T("صادر"),
                     Tag = StockTransactionType.Out
                 });
         }
@@ -81,61 +72,51 @@ public partial class StockTransactionWindow : Window
         object sender,
         RoutedEventArgs e)
     {
-        if (!decimal.TryParse(
-            QuantityInput.Text.Trim(),
-            out var quantity) ||
-            quantity <= 0)
+        if (!decimal.TryParse(QuantityInput.Text.Trim(), out var quantity) || quantity <= 0)
         {
             MessageBox.Show(
-                "يرجى إدخال كمية صحيحة أكبر من صفر.",
-                "تنبيه",
+                _loc.T("يرجى إدخال كمية صحيحة أكبر من صفر."),
+                _loc.T("تنبيه"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
 
+            QuantityInput.Focus();
             return;
         }
 
-        if (TransactionTypeInput.SelectedItem
-            is not System.Windows.Controls.ComboBoxItem selectedItem ||
+        if (TransactionTypeInput.SelectedItem is not System.Windows.Controls.ComboBoxItem selectedItem ||
             selectedItem.Tag is not StockTransactionType type)
         {
             MessageBox.Show(
-                "يرجى اختيار نوع الحركة.",
-                "تنبيه",
+                _loc.T("يرجى اختيار نوع الحركة."),
+                _loc.T("تنبيه"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
 
             return;
         }
 
+        SaveButton.IsEnabled = false;
+
         try
         {
-            var request =
-                new CreateStockTransactionRequest
-                {
-                    ProductVariantId =
-                        _stock.ProductVariantId,
+            var request = new CreateStockTransactionRequest
+            {
+                ProductVariantId = _stock.ProductVariantId,
+                Type = type,
+                Quantity = quantity,
+                Notes = string.IsNullOrWhiteSpace(NotesInput.Text)
+                    ? null
+                    : NotesInput.Text.Trim()
+            };
 
-                    Type = type,
-
-                    Quantity = quantity,
-
-                    Notes =
-                        string.IsNullOrWhiteSpace(
-                            NotesInput.Text)
-                            ? null
-                            : NotesInput.Text.Trim()
-                };
-
-            CreatedTransaction =
-                await _stockService
-                    .CreateTransactionAsync(request);
+            CreatedTransaction = await _stockService.CreateTransactionAsync(request);
 
             if (CreatedTransaction is null)
             {
                 MessageBox.Show(
-                    "تعذر حفظ حركة المخزون.",
-                    "خطأ",
+                    _loc.T("تعذر حفظ حركة المخزون."),
+                    _loc.T("خطأ"),
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
 
@@ -144,21 +125,20 @@ public partial class StockTransactionWindow : Window
 
             MessageBox.Show(
                 type == StockTransactionType.In
-                    ? "تمت إضافة الحركة الواردة بنجاح."
-                    : "تمت إضافة الحركة الصادرة بنجاح.",
-                "تم الحفظ",
+                    ? _loc.T("تمت إضافة الحركة الواردة بنجاح.")
+                    : _loc.T("تمت إضافة الحركة الصادرة بنجاح."),
+                _loc.T("تم الحفظ"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
 
             DialogResult = true;
-
             Close();
         }
         catch (HttpRequestException ex)
         {
             MessageBox.Show(
                 ex.Message,
-                "خطأ في الاتصال بالخادم",
+                _loc.T("خطأ في الاتصال بالخادم"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
@@ -166,32 +146,36 @@ public partial class StockTransactionWindow : Window
         {
             MessageBox.Show(
                 ex.Message,
-                "خطأ",
+                _loc.T("خطأ"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
+        }
+        finally
+        {
+            SaveButton.IsEnabled = true;
         }
     }
 
     private static string BuildVariantText(
-        StockBalanceResponse stock)
+        StockBalanceResponse stock,
+        LocalizationService loc)
     {
-        var parts =
-            new List<string>();
+        var parts = new List<string>();
 
         if (!string.IsNullOrWhiteSpace(stock.VariantName))
             parts.Add(stock.VariantName);
 
         if (!string.IsNullOrWhiteSpace(stock.Size))
-            parts.Add($"المقاس: {stock.Size}");
+            parts.Add($"{loc.T("المقاس")}: {stock.Size}");
 
         if (!string.IsNullOrWhiteSpace(stock.Color))
-            parts.Add($"اللون: {stock.Color}");
+            parts.Add($"{loc.T("اللون")}: {stock.Color}");
 
         if (!string.IsNullOrWhiteSpace(stock.CapType))
-            parts.Add($"الغطاء: {stock.CapType}");
+            parts.Add($"{loc.T("نوع الغطاء")}: {stock.CapType}");
 
         if (!string.IsNullOrWhiteSpace(stock.Material))
-            parts.Add($"المادة: {stock.Material}");
+            parts.Add($"{loc.T("المادة")}: {stock.Material}");
 
         return string.Join(" | ", parts);
     }
@@ -201,8 +185,8 @@ public partial class StockTransactionWindow : Window
         RoutedEventArgs e)
     {
         DialogResult = false;
-
         Close();
     }
 }
+
 

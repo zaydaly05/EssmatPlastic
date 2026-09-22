@@ -11,9 +11,17 @@ public class ApiClient
 
     public ApiClient()
     {
-        _httpClient = new HttpClient
+        var handler = new SocketsHttpHandler
         {
-            BaseAddress = new Uri("http://localhost:5023/")
+            PooledConnectionLifetime = TimeSpan.FromMinutes(15),
+            PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2),
+            EnableMultipleHttp2Connections = true
+        };
+
+        _httpClient = new HttpClient(handler, disposeHandler: true)
+        {
+            BaseAddress = new Uri("http://localhost:5023/"),
+            Timeout = TimeSpan.FromSeconds(15)
         };
     }
 
@@ -26,6 +34,59 @@ public class ApiClient
     public void ClearToken()
     {
         _httpClient.DefaultRequestHeaders.Authorization = null;
+    }
+
+    public void UpdateBaseUrl(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return;
+        if (!url.EndsWith("/")) url += "/";
+        if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
+        {
+            _httpClient.BaseAddress = uri;
+        }
+    }
+
+    public async Task<bool> TestConnectionAsync(string url)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(url)) return false;
+            if (!url.EndsWith("/")) url += "/";
+
+            using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(3) };
+            var response = await client.GetAsync(new Uri(new Uri(url), "api/Health/status"));
+            return response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.Unauthorized;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public async Task<HealthStatusResponse?> GetHealthStatusAsync()
+    {
+        try
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+            var response = await _httpClient.GetAsync("api/Health/status", cts.Token);
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<HealthStatusResponse>(cancellationToken: cts.Token);
+            }
+        }
+        catch
+        {
+            // API unreachable or connection timed out
+        }
+
+        return new HealthStatusResponse
+        {
+            Status = "Offline",
+            Mode = "LocalNetworkPrimary",
+            IsOnline = false,
+            IsNeonBackupOnline = false,
+            PrimaryDatabase = "Local Offline Cache"
+        };
     }
 
     public async Task<TResponse?> GetAsync<TResponse>(
@@ -115,4 +176,15 @@ public class ApiClient
         throw new HttpRequestException(
             message ?? $"HTTP {(int)response.StatusCode}");
     }
+}
+
+public class HealthStatusResponse
+{
+    public string Status { get; set; } = "Healthy";
+    public string Architecture { get; set; } = "";
+    public string Mode { get; set; } = "LocalNetworkPrimary";
+    public bool IsOnline { get; set; } = true;
+    public bool IsNeonBackupOnline { get; set; } = false;
+    public string PrimaryDatabase { get; set; } = "";
+    public DateTime? LastSyncUtc { get; set; }
 }

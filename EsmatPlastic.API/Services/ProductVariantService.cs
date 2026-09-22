@@ -7,66 +7,67 @@ namespace EsmatPlastic.API.Services;
 
 public class ProductVariantService : IProductVariantService
 {
-    private readonly AppDbContext _db;
+    private readonly IResilientDbExecutor _executor;
+    private readonly IDbSyncTrigger _syncTrigger;
 
-    public ProductVariantService(AppDbContext db)
+    public ProductVariantService(IResilientDbExecutor executor, IDbSyncTrigger syncTrigger)
     {
-        _db = db;
+        _executor = executor;
+        _syncTrigger = syncTrigger;
     }
 
-    public async Task<List<ProductVariantResponse>> GetByProductIdAsync(
-        int productId)
+    public async Task<List<ProductVariantResponse>> GetByProductIdAsync(int productId)
     {
-        return await _db.ProductVariants
-            .AsNoTracking()
-            .Where(x => x.ProductId == productId)
-            .OrderBy(x => x.Name)
-            .Select(x => new ProductVariantResponse
-            {
-                Id = x.Id,
-                ProductId = x.ProductId,
-                ProductName = x.Product.Name,
-                Name = x.Name,
-                Size = x.Size,
-                Color = x.Color,
-                CapType = x.CapType,
-                Material = x.Material,
-                ImagePath = x.ImagePath,
-                IsActive = x.IsActive,
-                CreatedAt = x.CreatedAt
-            })
-            .ToListAsync();
+        return await _executor.ExecuteAsync(async db =>
+            await db.ProductVariants
+                .AsNoTracking()
+                .Where(x => x.ProductId == productId)
+                .OrderBy(x => x.Name)
+                .Select(x => new ProductVariantResponse
+                {
+                    Id = x.Id,
+                    ProductId = x.ProductId,
+                    ProductName = x.Product.Name,
+                    Name = x.Name,
+                    Size = x.Size,
+                    Color = x.Color,
+                    CapType = x.CapType,
+                    Material = x.Material,
+                    ImagePath = x.ImagePath,
+                    IsActive = x.IsActive,
+                    CreatedAt = x.CreatedAt
+                })
+                .ToListAsync());
     }
 
     public async Task<ProductVariantResponse?> GetByIdAsync(int id)
     {
-        return await _db.ProductVariants
-            .AsNoTracking()
-            .Where(x => x.Id == id)
-            .Select(x => new ProductVariantResponse
-            {
-                Id = x.Id,
-                ProductId = x.ProductId,
-                ProductName = x.Product.Name,
-                Name = x.Name,
-                Size = x.Size,
-                Color = x.Color,
-                CapType = x.CapType,
-                Material = x.Material,
-                ImagePath = x.ImagePath,
-                IsActive = x.IsActive,
-                CreatedAt = x.CreatedAt
-            })
-            .FirstOrDefaultAsync();
+        return await _executor.ExecuteAsync(async db =>
+            await db.ProductVariants
+                .AsNoTracking()
+                .Where(x => x.Id == id)
+                .Select(x => new ProductVariantResponse
+                {
+                    Id = x.Id,
+                    ProductId = x.ProductId,
+                    ProductName = x.Product.Name,
+                    Name = x.Name,
+                    Size = x.Size,
+                    Color = x.Color,
+                    CapType = x.CapType,
+                    Material = x.Material,
+                    ImagePath = x.ImagePath,
+                    IsActive = x.IsActive,
+                    CreatedAt = x.CreatedAt
+                })
+                .FirstOrDefaultAsync());
     }
 
-    public async Task<ProductVariantResponse?> CreateAsync(
-        CreateProductVariantRequest request)
+    public async Task<ProductVariantResponse?> CreateAsync(CreateProductVariantRequest request)
     {
         if (request.ProductId <= 0)
         {
-            throw new InvalidOperationException(
-                "A valid product is required.");
+            throw new InvalidOperationException("A valid product is required.");
         }
 
         var name = request.Name.Trim();
@@ -76,115 +77,125 @@ public class ProductVariantService : IProductVariantService
             return null;
         }
 
-        var productExists = await _db.Products
-            .AnyAsync(x =>
-                x.Id == request.ProductId &&
-                x.IsActive);
-
-        if (!productExists)
+        return await _executor.ExecuteAsync(async db =>
         {
-            throw new InvalidOperationException(
-                "The selected product does not exist or is inactive.");
-        }
+            var productExists = await db.Products.AnyAsync(x => x.Id == request.ProductId && x.IsActive);
+            if (!productExists)
+            {
+                throw new InvalidOperationException("The selected product does not exist or is inactive.");
+            }
 
-        var duplicate = await _db.ProductVariants
-            .AnyAsync(x =>
-                x.ProductId == request.ProductId &&
-                x.Name == name);
+            var duplicate = await db.ProductVariants.AnyAsync(x => x.ProductId == request.ProductId && x.Name == name);
+            if (duplicate)
+            {
+                throw new InvalidOperationException("A variant with the same name already exists for this product.");
+            }
 
-        if (duplicate)
-        {
-            throw new InvalidOperationException(
-                "A variant with the same name already exists for this product.");
-        }
+            var variant = new ProductVariant
+            {
+                ProductId = request.ProductId,
+                Name = name,
+                Size = request.Size?.Trim(),
+                Color = request.Color?.Trim(),
+                CapType = request.CapType?.Trim(),
+                Material = request.Material?.Trim(),
+                ImagePath = request.ImagePath?.Trim(),
+                IsActive = true
+            };
 
-        var variant = new ProductVariant
-        {
-            ProductId = request.ProductId,
-            Name = name,
-            Size = request.Size?.Trim(),
-            Color = request.Color?.Trim(),
-            CapType = request.CapType?.Trim(),
-            Material = request.Material?.Trim(),
-            ImagePath = request.ImagePath?.Trim(),
-            IsActive = true
-        };
+            db.ProductVariants.Add(variant);
+            await db.SaveChangesAsync();
+            _syncTrigger.TriggerSync();
 
-        _db.ProductVariants.Add(variant);
-
-        await _db.SaveChangesAsync();
-
-        return await GetByIdAsync(variant.Id);
+            return await db.ProductVariants
+                .AsNoTracking()
+                .Where(x => x.Id == variant.Id)
+                .Select(x => new ProductVariantResponse
+                {
+                    Id = x.Id,
+                    ProductId = x.ProductId,
+                    ProductName = x.Product.Name,
+                    Name = x.Name,
+                    Size = x.Size,
+                    Color = x.Color,
+                    CapType = x.CapType,
+                    Material = x.Material,
+                    ImagePath = x.ImagePath,
+                    IsActive = x.IsActive,
+                    CreatedAt = x.CreatedAt
+                })
+                .FirstOrDefaultAsync();
+        });
     }
 
-    public async Task<ProductVariantResponse?> UpdateAsync(
-        int id,
-        UpdateProductVariantRequest request)
+    public async Task<ProductVariantResponse?> UpdateAsync(int id, UpdateProductVariantRequest request)
     {
-        var variant = await _db.ProductVariants
-            .FirstOrDefaultAsync(x => x.Id == id);
-
-        if (variant is null)
-        {
-            return null;
-        }
-
         var name = request.Name.Trim();
-
         if (string.IsNullOrWhiteSpace(name))
         {
-            throw new InvalidOperationException(
-                "Variant name is required.");
+            throw new InvalidOperationException("Variant name is required.");
         }
 
-        var duplicate = await _db.ProductVariants
-            .AnyAsync(x =>
-                x.Id != id &&
-                x.ProductId == variant.ProductId &&
-                x.Name == name);
-
-        if (duplicate)
+        return await _executor.ExecuteAsync(async db =>
         {
-            throw new InvalidOperationException(
-                "A variant with the same name already exists for this product.");
-        }
+            var variant = await db.ProductVariants.FirstOrDefaultAsync(x => x.Id == id);
+            if (variant is null) return null;
 
-        variant.Name = name;
-        variant.Size = request.Size?.Trim();
-        variant.Color = request.Color?.Trim();
-        variant.CapType = request.CapType?.Trim();
-        variant.Material = request.Material?.Trim();
-        variant.ImagePath = request.ImagePath?.Trim();
-        variant.IsActive = request.IsActive;
+            var duplicate = await db.ProductVariants.AnyAsync(x => x.Id != id && x.ProductId == variant.ProductId && x.Name == name);
+            if (duplicate)
+            {
+                throw new InvalidOperationException("A variant with the same name already exists for this product.");
+            }
 
-        await _db.SaveChangesAsync();
+            variant.Name = name;
+            variant.Size = request.Size?.Trim();
+            variant.Color = request.Color?.Trim();
+            variant.CapType = request.CapType?.Trim();
+            variant.Material = request.Material?.Trim();
+            variant.ImagePath = request.ImagePath?.Trim();
+            variant.IsActive = request.IsActive;
 
-        return await GetByIdAsync(id);
+            await db.SaveChangesAsync();
+            _syncTrigger.TriggerSync();
+
+            return await db.ProductVariants
+                .AsNoTracking()
+                .Where(x => x.Id == id)
+                .Select(x => new ProductVariantResponse
+                {
+                    Id = x.Id,
+                    ProductId = x.ProductId,
+                    ProductName = x.Product.Name,
+                    Name = x.Name,
+                    Size = x.Size,
+                    Color = x.Color,
+                    CapType = x.CapType,
+                    Material = x.Material,
+                    ImagePath = x.ImagePath,
+                    IsActive = x.IsActive,
+                    CreatedAt = x.CreatedAt
+                })
+                .FirstOrDefaultAsync();
+        });
     }
 
     public async Task<bool> DeleteAsync(int id)
     {
-        var variant = await _db.ProductVariants
-            .FirstOrDefaultAsync(x => x.Id == id);
-
-        if (variant is null)
+        return await _executor.ExecuteAsync(async db =>
         {
-            return false;
-        }
+            var variant = await db.ProductVariants.FirstOrDefaultAsync(x => x.Id == id);
+            if (variant is null) return false;
 
-        var hasTransactions = await _db.StockTransactions
-            .AnyAsync(x => x.ProductVariantId == id);
+            var hasTransactions = await db.StockTransactions.AnyAsync(x => x.ProductVariantId == id);
+            if (hasTransactions)
+            {
+                throw new InvalidOperationException("Cannot delete a variant that has stock transactions.");
+            }
 
-        if (hasTransactions)
-        {
-            throw new InvalidOperationException(
-                "Cannot delete a variant that has stock transactions.");
-        }
-
-        _db.ProductVariants.Remove(variant);
-
-        await _db.SaveChangesAsync();
-
-        return true;
+            db.ProductVariants.Remove(variant);
+            await db.SaveChangesAsync();
+            _syncTrigger.TriggerSync();
+            return true;
+        });
     }
 }

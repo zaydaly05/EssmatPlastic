@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using EsmatPlastic.Desktop.Models.ProductVariants;
 using EsmatPlastic.Desktop.Services;
+using EsmatPlastic.Desktop.Services.Localization;
 using EsmatPlastic.Desktop.Services.ProductVariants;
 using EsmatPlastic.Desktop.ViewModels.ProductVariants;
 using Microsoft.Extensions.DependencyInjection;
@@ -41,8 +42,8 @@ public partial class ProductVariantsView : UserControl
         DataContext =
             _viewModel;
 
-        ProductNameText.Text =
-            $"المنتج: {productName}";
+        var loc = App.ServiceProvider.GetRequiredService<LocalizationService>();
+        ProductNameText.Text = $"{loc.T("المنتج")}: {productName}";
 
         UpdatePermissionVisibility();
 
@@ -104,9 +105,10 @@ public partial class ProductVariantsView : UserControl
     {
         if (_viewModel.SelectedVariant is null)
         {
+            var loc = App.ServiceProvider.GetRequiredService<LocalizationService>();
             MessageBox.Show(
-                "يرجى اختيار صنف أولاً.",
-                "تنبيه",
+                loc.T("يرجى اختيار صنف أولاً."),
+                loc.T("تنبيه"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
 
@@ -137,22 +139,26 @@ public partial class ProductVariantsView : UserControl
     {
         if (_viewModel.SelectedVariant is null)
         {
+            var loc = App.ServiceProvider.GetRequiredService<LocalizationService>();
             MessageBox.Show(
-                "يرجى اختيار صنف أولاً.",
-                "تنبيه",
+                loc.T("يرجى اختيار صنف أولاً."),
+                loc.T("تنبيه"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
 
             return;
         }
 
+        var locConfirm = App.ServiceProvider.GetRequiredService<LocalizationService>();
         var variant =
             _viewModel.SelectedVariant;
 
         var result =
             MessageBox.Show(
-                $"هل تريد حذف الصنف:\n\n{variant.Name}؟",
-                "تأكيد الحذف",
+                locConfirm.IsArabic
+                    ? $"هل تريد حذف الصنف:\n\n{variant.Name}؟"
+                    : $"Delete this variant?\n\n{variant.Name}",
+                locConfirm.T("تأكيد الحذف"),
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning);
 

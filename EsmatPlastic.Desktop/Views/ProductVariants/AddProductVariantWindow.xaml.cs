@@ -1,20 +1,18 @@
 using System.Windows;
 using EsmatPlastic.Desktop.Models.ProductVariants;
+using EsmatPlastic.Desktop.Services.Localization;
 using EsmatPlastic.Desktop.Services.ProductVariants;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EsmatPlastic.Desktop.Views.ProductVariants;
 
 public partial class AddProductVariantWindow : Window
 {
     private readonly ProductVariantService _variantService;
-
     private readonly int _productId;
+    private readonly LocalizationService _loc;
 
-    public ProductVariantResponse? CreatedVariant
-    {
-        get;
-        private set;
-    }
+    public ProductVariantResponse? CreatedVariant { get; private set; }
 
     public AddProductVariantWindow(
         ProductVariantService variantService,
@@ -24,56 +22,48 @@ public partial class AddProductVariantWindow : Window
 
         _variantService = variantService;
         _productId = productId;
+        _loc = App.ServiceProvider.GetRequiredService<LocalizationService>();
+
+        Loaded += (_, _) => NameInput.Focus();
     }
 
     private async void SaveButton_Click(
         object sender,
         RoutedEventArgs e)
     {
-        if (string.IsNullOrWhiteSpace(
-            NameInput.Text))
+        if (string.IsNullOrWhiteSpace(NameInput.Text))
         {
             MessageBox.Show(
-                "يرجى إدخال اسم الصنف.",
-                "تنبيه",
+                _loc.T("يرجى إدخال اسم الصنف."),
+                _loc.T("تنبيه"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
 
+            NameInput.Focus();
             return;
         }
 
+        SaveButton.IsEnabled = false;
+
         try
         {
-            var request =
-                new CreateProductVariantRequest
-                {
-                    ProductId = _productId,
+            var request = new CreateProductVariantRequest
+            {
+                ProductId = _productId,
+                Name = NameInput.Text.Trim(),
+                Size = EmptyToNull(SizeInput.Text),
+                Color = EmptyToNull(ColorInput.Text),
+                CapType = EmptyToNull(CapTypeInput.Text),
+                Material = EmptyToNull(MaterialInput.Text)
+            };
 
-                    Name =
-                        NameInput.Text.Trim(),
-
-                    Size =
-                        EmptyToNull(SizeInput.Text),
-
-                    Color =
-                        EmptyToNull(ColorInput.Text),
-
-                    CapType =
-                        EmptyToNull(CapTypeInput.Text),
-
-                    Material =
-                        EmptyToNull(MaterialInput.Text)
-                };
-
-            CreatedVariant =
-                await _variantService
-                    .CreateAsync(request);
+            CreatedVariant = await _variantService.CreateAsync(request);
 
             if (CreatedVariant is null)
             {
                 MessageBox.Show(
-                    "تعذر حفظ الصنف.",
-                    "خطأ",
+                    _loc.T("تعذر حفظ الصنف."),
+                    _loc.T("خطأ"),
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
 
@@ -87,14 +77,17 @@ public partial class AddProductVariantWindow : Window
         {
             MessageBox.Show(
                 ex.Message,
-                "خطأ في حفظ الصنف",
+                _loc.T("خطأ في حفظ الصنف"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
+        finally
+        {
+            SaveButton.IsEnabled = true;
+        }
     }
 
-    private static string? EmptyToNull(
-        string value)
+    private static string? EmptyToNull(string value)
     {
         return string.IsNullOrWhiteSpace(value)
             ? null
@@ -109,3 +102,4 @@ public partial class AddProductVariantWindow : Window
         Close();
     }
 }
+

@@ -6,40 +6,42 @@ namespace EsmatPlastic.API.Services;
 
 public class PermissionService : IPermissionService
 {
-    private readonly AppDbContext _db;
+    private readonly IResilientDbExecutor _executor;
 
-    public PermissionService(AppDbContext db)
+    public PermissionService(IResilientDbExecutor executor)
     {
-        _db = db;
+        _executor = executor;
     }
 
     public async Task<List<PermissionResponse>> GetAllAsync()
     {
-        return await _db.Permissions
-            .AsNoTracking()
-            .OrderBy(x => x.Id)
-            .Select(x => new PermissionResponse
-            {
-                Id = x.Id,
-                Name = x.Name,
-                Description = x.Description,
-                IsActive = x.IsActive
-            })
-            .ToListAsync();
+        return await _executor.ExecuteAsync(async db =>
+            await db.Permissions
+                .AsNoTracking()
+                .OrderBy(x => x.Id)
+                .Select(x => new PermissionResponse
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    Description = x.Description,
+                    IsActive = x.IsActive
+                })
+                .ToListAsync());
     }
 
     public async Task<PermissionResponse?> GetByIdAsync(int id)
     {
-        return await _db.Permissions
-            .AsNoTracking()
-            .Where(x => x.Id == id)
-            .Select(x => new PermissionResponse
-            {
-                Id = x.Id,
-                Name = x.Name,
-                Description = x.Description,
-                IsActive = x.IsActive
-            })
-            .FirstOrDefaultAsync();
+        return await _executor.ExecuteAsync(async db =>
+            await db.Permissions
+                .AsNoTracking()
+                .Where(x => x.Id == id)
+                .Select(x => new PermissionResponse
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    Description = x.Description,
+                    IsActive = x.IsActive
+                })
+                .FirstOrDefaultAsync());
     }
 }

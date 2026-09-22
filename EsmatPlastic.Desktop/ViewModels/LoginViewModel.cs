@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using EsmatPlastic.Desktop.Services;
+using EsmatPlastic.Desktop.Services.Localization;
 
 namespace EsmatPlastic.Desktop.ViewModels;
 
@@ -10,6 +11,7 @@ public class LoginViewModel : INotifyPropertyChanged
 {
     private readonly AuthService _authService;
     private readonly AppSession _appSession;
+    private readonly LocalizationService _localization;
 
     private string _username = string.Empty;
     private string _password = string.Empty;
@@ -18,16 +20,16 @@ public class LoginViewModel : INotifyPropertyChanged
 
     public LoginViewModel(
         AuthService authService,
-        AppSession appSession)
+        AppSession appSession,
+        LocalizationService localization)
     {
         _authService = authService;
         _appSession = appSession;
+        _localization = localization;
 
         LoginCommand = new RelayCommand(
             async _ => await LoginAsync(),
-            _ => !IsLoading &&
-                 !string.IsNullOrWhiteSpace(Username) &&
-                 !string.IsNullOrWhiteSpace(Password));
+            _ => !IsLoading);
     }
 
     public string Username
@@ -94,6 +96,13 @@ public class LoginViewModel : INotifyPropertyChanged
     private async Task LoginAsync()
     {
         ErrorMessage = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(Username) || string.IsNullOrWhiteSpace(Password))
+        {
+            ErrorMessage = _localization.T("يرجى إدخال اسم المستخدم وكلمة المرور.");
+            return;
+        }
+
         IsLoading = true;
 
         try
@@ -104,9 +113,7 @@ public class LoginViewModel : INotifyPropertyChanged
 
             if (result is null)
             {
-                ErrorMessage =
-                    "يرجى إدخال اسم المستخدم وكلمة المرور.";
-
+                ErrorMessage = _localization.T("اسم المستخدم أو كلمة المرور غير صحيحة.");
                 return;
             }
 
@@ -118,14 +125,11 @@ public class LoginViewModel : INotifyPropertyChanged
         }
         catch (HttpRequestException)
         {
-            ErrorMessage =
-                "تعذر الاتصال بالخادم.";
-
+            ErrorMessage = _localization.T("تعذر الاتصال بالخادم.");
         }
         catch (Exception)
         {
-            ErrorMessage =
-                "حدث خطأ أثناء تسجيل الدخول.";
+            ErrorMessage = _localization.T("حدث خطأ أثناء تسجيل الدخول.");
         }
         finally
         {

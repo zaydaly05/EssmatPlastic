@@ -3,129 +3,228 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <Grid>
-
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="15"/>
+            <RowDefinition Height="12"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="16"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="12"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
+        <!-- Top Header Bar -->
         <Grid Grid.Row="0">
-
             <StackPanel>
-
-                <TextBlock Text="المستخدمون"
-                           FontSize="28"
-                           FontWeight="Bold"/>
-
-                <TextBlock Text="إدارة المستخدمين والصلاحيات"
-                           Foreground="#666666"
-                           Margin="0,5,0,0"/>
-
+                <TextBlock x:Name="PageTitleText" Text="المستخدمون" Style="{StaticResource PageTitle}"/>
+                <TextBlock x:Name="PageSubtitleText" Text="إدارة حسابات المستخدمين والدور والصلاحيات" Style="{StaticResource PageSubtitle}"/>
             </StackPanel>
 
-            <Button Content="+ إضافة مستخدم"
-                    Width="130"
+            <Button x:Name="AddButton"
+                    Content="+  إضافة مستخدم"
+                    Style="{StaticResource PrimaryButton}"
+                    Width="160"
                     Height="40"
                     HorizontalAlignment="Right"
                     Click="AddButton_Click"/>
-
         </Grid>
 
+        <!-- Summary Statistics Cards (Professional User Stats Header) -->
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
-        <Border Grid.Row="2"
-                Background="White"
-                CornerRadius="10"
-                Padding="15">
+            <!-- Total Users Card -->
+            <Border Grid.Column="0" Style="{StaticResource StatCard}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <TextBlock x:Name="StatTotalUsersLabel" Text="إجمالي المستخدمين" Style="{StaticResource ColumnHeader}"/>
+                        <TextBlock Text="{Binding TotalUsersCount}" FontSize="26" FontWeight="Bold" Foreground="{DynamicResource InkBrush}" Margin="0,4,0,0"/>
+                        <TextBlock x:Name="StatTotalUsersSubtext" Text="جميع الحسابات المنسجلة" FontSize="12" Foreground="{DynamicResource MutedBrush}"/>
+                    </StackPanel>
+                    <Border Grid.Column="1" Width="40" Height="40" CornerRadius="10" Background="#F1F5F9" VerticalAlignment="Top">
+                        <TextBlock Text="👥" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                </Grid>
+            </Border>
 
-            <ListView x:Name="UsersList"
-                      SelectedValuePath="Id"
-                      BorderThickness="0">
+            <!-- Active Users Card -->
+            <Border Grid.Column="1" Style="{StaticResource StatCard}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <TextBlock x:Name="StatActiveUsersLabel" Text="الحسابات النشطة" Style="{StaticResource ColumnHeader}"/>
+                        <TextBlock Text="{Binding ActiveUsersCount}" FontSize="26" FontWeight="Bold" Foreground="{DynamicResource SuccessBrush}" Margin="0,4,0,0"/>
+                        <TextBlock x:Name="StatActiveUsersSubtext" Text="حسابات مفعلة ومتاحة" FontSize="12" Foreground="{DynamicResource MutedBrush}"/>
+                    </StackPanel>
+                    <Border Grid.Column="1" Width="40" Height="40" CornerRadius="10" Background="{DynamicResource SuccessSoftBrush}" VerticalAlignment="Top">
+                        <TextBlock Text="✅" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                </Grid>
+            </Border>
 
-                <ListView.ItemTemplate>
+            <!-- Admin Users Card -->
+            <Border Grid.Column="2" Style="{StaticResource StatCard}" Margin="0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <TextBlock x:Name="StatAdminUsersLabel" Text="مديرو النظام" Style="{StaticResource ColumnHeader}"/>
+                        <TextBlock Text="{Binding AdminUsersCount}" FontSize="26" FontWeight="Bold" Foreground="{DynamicResource TealBrush}" Margin="0,4,0,0"/>
+                        <TextBlock x:Name="StatAdminUsersSubtext" Text="صلاحيات كاملة بالنظام" FontSize="12" Foreground="{DynamicResource MutedBrush}"/>
+                    </StackPanel>
+                    <Border Grid.Column="1" Width="40" Height="40" CornerRadius="10" Background="{DynamicResource TealSoftBrush}" VerticalAlignment="Top">
+                        <TextBlock Text="🛡️" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
 
-                    <DataTemplate>
-
-                        <Border Padding="8"
-                                BorderBrush="#E5E7EB"
-                                BorderThickness="0,0,0,1">
-
-                            <Grid>
-
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="150"/>
-                                    <ColumnDefinition Width="130"/>
-                                    <ColumnDefinition Width="110"/>
-                                    <ColumnDefinition Width="260"/>
-                                </Grid.ColumnDefinitions>
-
-                                <StackPanel>
-
-                                    <TextBlock Text="{Binding FullName}"
-                                               FontWeight="SemiBold"/>
-
-                                    <TextBlock Text="{Binding Username}"
-                                               Foreground="#777777"
-                                               FontSize="12"/>
-
-                                </StackPanel>
-
-                                <TextBlock Grid.Column="1"
-                                           Text="{Binding RoleName}"
-                                           HorizontalAlignment="Center"/>
-
-                                <TextBlock Grid.Column="2"
-                                           Text="{Binding StatusName}"
-                                           HorizontalAlignment="Center"/>
-
-                                <TextBlock Grid.Column="3"
-                                           Text="{Binding CreatedAt}"
-                                           HorizontalAlignment="Center"
-                                           FontSize="11"/>
-
-                                <StackPanel Grid.Column="4"
-                                            Orientation="Horizontal"
-                                            HorizontalAlignment="Right">
-
-                                    <Button Content="تعديل"
-                                            Width="75"
-                                            Height="34"
-                                            Margin="0,0,6,0"
-                                            Click="EditButton_Click"/>
-
-                                    <Button Content="تغيير كلمة المرور"
-                                            Width="100"
-                                            Height="34"
-                                            Margin="0,0,6,0"
-                                            Click="PasswordButton_Click"/>
-
-                                    <Button Content="حذف"
-                                            Width="65"
-                                            Height="34"
-                                            Click="DeleteButton_Click"/>
-
-                                </StackPanel>
-
-                            </Grid>
-
-                        </Border>
-
-                    </DataTemplate>
-
-                </ListView.ItemTemplate>
-
-            </ListView>
-
+        <!-- Search Bar -->
+        <Border Grid.Row="4" Style="{StaticResource Card}" Padding="10">
+            <TextBox x:Name="SearchInput"
+                     Height="38"
+                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                     Tag="بحث باسم المستخدم أو الاسم الكامل أو الدور..."/>
         </Border>
 
+        <!-- Users Table Card -->
+        <Border Grid.Row="6" Style="{StaticResource Card}" Padding="12,16,12,12">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="8"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="3"
+                <!-- Column Headers -->
+                <Grid Grid.Row="0" Margin="12,0,12,6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="130"/>
+                        <ColumnDefinition Width="110"/>
+                        <ColumnDefinition Width="120"/>
+                        <ColumnDefinition Width="460"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Name="HeaderUser" Text="المستخدم" Style="{StaticResource ColumnHeader}"/>
+                    <TextBlock x:Name="HeaderRole" Grid.Column="1" Text="الدور" Style="{StaticResource ColumnHeader}" HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="HeaderStatus" Grid.Column="2" Text="الحالة" Style="{StaticResource ColumnHeader}" HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="HeaderCreated" Grid.Column="3" Text="تاريخ الإنشاء" Style="{StaticResource ColumnHeader}" HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="HeaderActions" Grid.Column="4" Text="الإجراءات" Style="{StaticResource ColumnHeader}" HorizontalAlignment="Center"/>
+                </Grid>
+
+                <Separator Grid.Row="1" Background="{DynamicResource LineBrush}" Margin="0,0,0,4"/>
+
+                <!-- Users List -->
+                <ListView Grid.Row="2" x:Name="UsersList" ItemsSource="{Binding FilteredUsers}" SelectedValuePath="Id">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Border Padding="10,8" CornerRadius="8">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="130"/>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="460"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Full Name & Username -->
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding FullName, Converter={StaticResource TranslateConverter}}" FontWeight="Bold" FontSize="13" Foreground="{DynamicResource InkBrush}"/>
+                                        <TextBlock Text="{Binding Username}"
+                                                   Foreground="{DynamicResource MutedBrush}"
+                                                   FontSize="12"
+                                                   Margin="0,2,0,0"/>
+                                    </StackPanel>
+
+                                    <!-- Role Pill -->
+                                    <Border Grid.Column="1"
+                                            Background="#F1F5F9"
+                                            BorderBrush="#E2E8F0"
+                                            BorderThickness="1"
+                                            CornerRadius="6"
+                                            Padding="8,3"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Role, Converter={StaticResource RoleToTextConverter}}"
+                                                   FontSize="12"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource InkBrush}"/>
+                                    </Border>
+
+                                    <!-- Status Badge -->
+                                    <TextBlock Grid.Column="2"
+                                               Text="{Binding IsActive, Converter={StaticResource BoolToStatusConverter}}"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               FontWeight="Bold"
+                                               FontSize="12"/>
+
+                                    <!-- Date -->
+                                    <TextBlock Grid.Column="3"
+                                               Text="{Binding CreatedAt, StringFormat=yyyy-MM-dd}"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               FontSize="12"
+                                               Foreground="{DynamicResource MutedBrush}"/>
+
+                                    <!-- Action Buttons -->
+                                    <StackPanel Grid.Column="4" Orientation="Horizontal" HorizontalAlignment="Right">
+                                        <Button Content="الصلاحيات"
+                                                Style="{StaticResource SecondaryButton}"
+                                                MinWidth="115"
+                                                MinHeight="36"
+                                                Margin="0,0,6,0"
+                                                Click="PermissionsButton_Click"/>
+
+                                        <Button Content="تعديل"
+                                                Style="{StaticResource SecondaryButton}"
+                                                MinWidth="85"
+                                                MinHeight="36"
+                                                Margin="0,0,6,0"
+                                                Click="EditButton_Click"/>
+
+                                        <Button Content="كلمة المرور"
+                                                Style="{StaticResource SecondaryButton}"
+                                                MinWidth="125"
+                                                MinHeight="36"
+                                                Margin="0,0,6,0"
+                                                Click="PasswordButton_Click"/>
+
+                                        <Button Content="حذف"
+                                                Style="{StaticResource DangerButton}"
+                                                MinWidth="85"
+                                                MinHeight="36"
+                                                Click="DeleteButton_Click"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Grid>
+        </Border>
+
+        <!-- Status Bar -->
+        <TextBlock Grid.Row="7"
                    x:Name="StatusText"
-                   Foreground="#666666"
-                   Margin="5,10"/>
-
+                   Text="{Binding StatusMessage}"
+                   Foreground="{DynamicResource MutedBrush}"
+                   FontSize="12"
+                   Margin="4,10,4,0"/>
     </Grid>
-
 </UserControl>

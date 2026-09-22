@@ -7,53 +7,47 @@ namespace EsmatPlastic.API.Services;
 
 public class ReportService : IReportService
 {
-    private readonly AppDbContext _db;
+    private readonly IResilientDbExecutor _executor;
 
-    public ReportService(AppDbContext db)
+    public ReportService(IResilientDbExecutor executor)
     {
-        _db = db;
+        _executor = executor;
     }
 
     public async Task<List<StockReportResponse>> GetStockReportAsync()
     {
-        var variants = await _db.ProductVariants
-            .AsNoTracking()
-            .Where(x =>
-                x.IsActive &&
-                x.Product.IsActive)
-            .Select(x => new StockReportResponse
-            {
-                ProductVariantId = x.Id,
-                ProductId = x.ProductId,
-                ProductName = x.Product.Name,
-                VariantName = x.Name,
-                Size = x.Size,
-                Color = x.Color,
-                CapType = x.CapType,
-                Material = x.Material,
-
-                TotalIn = _db.StockTransactions
-                    .Where(t =>
-                        t.ProductVariantId == x.Id &&
-                        t.Type == StockTransactionType.In)
-                    .Sum(t => (decimal?)t.Quantity) ?? 0,
-
-                TotalOut = _db.StockTransactions
-                    .Where(t =>
-                        t.ProductVariantId == x.Id &&
-                        t.Type == StockTransactionType.Out)
-                    .Sum(t => (decimal?)t.Quantity) ?? 0
-            })
-            .OrderBy(x => x.ProductName)
-            .ThenBy(x => x.VariantName)
-            .ToListAsync();
-
-        foreach (var item in variants)
+        return await _executor.ExecuteAsync(async db =>
         {
-            item.CurrentQuantity =
-                item.TotalIn - item.TotalOut;
-        }
+            var variants = await db.ProductVariants
+                .AsNoTracking()
+                .Where(x => x.IsActive && x.Product.IsActive)
+                .Select(x => new StockReportResponse
+                {
+                    ProductVariantId = x.Id,
+                    ProductId = x.ProductId,
+                    ProductName = x.Product.Name,
+                    VariantName = x.Name,
+                    Size = x.Size,
+                    Color = x.Color,
+                    CapType = x.CapType,
+                    Material = x.Material,
+                    TotalIn = db.StockTransactions
+                        .Where(t => t.ProductVariantId == x.Id && t.Type == StockTransactionType.In)
+                        .Sum(t => (decimal?)t.Quantity) ?? 0,
+                    TotalOut = db.StockTransactions
+                        .Where(t => t.ProductVariantId == x.Id && t.Type == StockTransactionType.Out)
+                        .Sum(t => (decimal?)t.Quantity) ?? 0
+                })
+                .OrderBy(x => x.ProductName)
+                .ThenBy(x => x.VariantName)
+                .ToListAsync();
 
-        return variants;
+            foreach (var item in variants)
+            {
+                item.CurrentQuantity = item.TotalIn - item.TotalOut;
+            }
+
+            return variants;
+        });
     }
 }

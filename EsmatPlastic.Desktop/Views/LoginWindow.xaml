@@ -2,69 +2,110 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Esmat Plastic"
-        Width="450"
-        Height="550"
+        Width="920"
+        Height="580"
+        MinWidth="760"
+        MinHeight="520"
         WindowStartupLocation="CenterScreen"
-        ResizeMode="NoResize">
+        ResizeMode="CanMinimize">
 
-    <Grid Margin="40">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1.05*"/>
+            <ColumnDefinition Width="1*"/>
+        </Grid.ColumnDefinitions>
 
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="30"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="15"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="15"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="25"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="25"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+        <Border Grid.Column="0" Background="{DynamicResource SidebarBrush}">
+            <Grid Margin="48">
+                <StackPanel VerticalAlignment="Center">
+                    <Border Width="56" Height="56" CornerRadius="16" Background="#1C5A63" Margin="0,0,0,22">
+                        <TextBlock Text="EP"
+                                   Foreground="White"
+                                   FontWeight="Bold"
+                                   FontSize="20"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"/>
+                    </Border>
 
-        <StackPanel Grid.Row="0">
-            <TextBlock Text="إسمت بلاستيك"
-                       FontSize="30"
-                       FontWeight="Bold"
-                       HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="BrandTitle"
+                               Text="إسمت بلاستيك"
+                               FontSize="32"
+                               FontWeight="SemiBold"
+                               Foreground="White"/>
 
-            <TextBlock Text="نظام إدارة المخزون"
-                       FontSize="16"
-                       HorizontalAlignment="Center"
-                       Margin="0,8,0,0"/>
-        </StackPanel>
+                    <TextBlock x:Name="BrandSubtitle"
+                               Text="نظام إدارة المخزون"
+                               FontSize="16"
+                               Foreground="#C5D9DD"
+                               Margin="0,10,0,0"/>
 
-        <TextBlock Grid.Row="2"
-                   Text="اسم المستخدم"
-                   FontSize="14"
-                   FontWeight="SemiBold"/>
+                    <TextBlock x:Name="BrandDesc"
+                               Text="لوحة تحكم بسيطة لإدارة مخزون البلاستيك."
+                               FontSize="14"
+                               Foreground="#9BB4B9"
+                               TextWrapping="Wrap"
+                               Margin="0,28,0,0"/>
+                </StackPanel>
+            </Grid>
+        </Border>
 
-        <TextBox Grid.Row="4"
-                 Height="40"
-                 FontSize="16"
-                 Padding="10"
-                 Text="{Binding Username,
-                                UpdateSourceTrigger=PropertyChanged}"/>
+        <Grid Grid.Column="1" Background="{DynamicResource CanvasBrush}">
+            <Grid Margin="48,36">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="6"
-                   Text="كلمة المرور"
-                   FontSize="14"
-                   FontWeight="SemiBold"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button x:Name="ArabicLangButton"
+                            Content="العربية"
+                            Style="{StaticResource LangButton}"
+                            Margin="0,0,8,0"
+                            Click="ArabicLangButton_Click"/>
+                    <Button x:Name="EnglishLangButton"
+                            Content="English"
+                            Style="{StaticResource LangButton}"
+                            Click="EnglishLangButton_Click"/>
+                </StackPanel>
 
-        <PasswordBox x:Name="PasswordInput"
-                     Grid.Row="8"
-                     Height="40"
-                     FontSize="16"
-                     Padding="10"
-                     PasswordChanged="PasswordInput_OnPasswordChanged"/>
+                <StackPanel Grid.Row="1" VerticalAlignment="Center" MaxWidth="360" HorizontalAlignment="Stretch">
+                    <TextBlock x:Name="TitleText"
+                               Text="تسجيل الدخول"
+                               Style="{StaticResource PageTitle}"/>
+                    <TextBlock x:Name="SubtitleText"
+                               Text="اختر اللغة ثم سجّل الدخول للمتابعة."
+                               Style="{StaticResource PageSubtitle}"
+                               Margin="0,8,0,28"/>
 
-        <Button Grid.Row="10"
-                Height="45"
-                Content="تسجيل الدخول"
-                FontSize="16"
-                FontWeight="SemiBold"
-                Command="{Binding LoginCommand}"/>
+                    <TextBlock x:Name="UsernameLabel"
+                               Text="اسم المستخدم"
+                               Style="{StaticResource FieldLabel}"/>
+                    <TextBox x:Name="UsernameInput"
+                             Height="44"
+                             Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"/>
 
+                    <TextBlock x:Name="PasswordLabel"
+                               Text="كلمة المرور"
+                               Style="{StaticResource FieldLabel}"
+                               Margin="0,16,0,8"/>
+                    <PasswordBox x:Name="PasswordInput"
+                                 Height="44"
+                                 PasswordChanged="PasswordInput_OnPasswordChanged"/>
+
+                    <TextBlock Text="{Binding ErrorMessage}"
+                               Foreground="{DynamicResource DangerBrush}"
+                               TextWrapping="Wrap"
+                               MinHeight="22"
+                               Margin="0,14,0,0"/>
+
+                    <Button x:Name="LoginButton"
+                            Height="46"
+                            Margin="0,10,0,0"
+                            Content="تسجيل الدخول"
+                            IsDefault="True"
+                            Command="{Binding LoginCommand}"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
     </Grid>
 </Window>

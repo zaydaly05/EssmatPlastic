@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Controls;
 using EsmatPlastic.Desktop.Services;
 using EsmatPlastic.Desktop.Services.Products;
 using EsmatPlastic.Desktop.Services.ProductVariants;
@@ -18,16 +19,16 @@ public partial class App : Application
 {
     public static IServiceProvider ServiceProvider { get; private set; } = null!;
 
-    protected override void OnStartup(StartupEventArgs e)
+    protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
 
+        // Ensure local API backend server is active (starts background process if not already running)
+        await LocalApiLauncher.EnsureApiRunningAsync();
+
         var services = new ServiceCollection();
-
         ConfigureServices(services);
-
-        ServiceProvider =
-            services.BuildServiceProvider();
+        ServiceProvider = services.BuildServiceProvider();
 
         var settingsService =
             ServiceProvider.GetRequiredService<SettingsService>();
@@ -43,28 +44,52 @@ public partial class App : Application
         EventManager.RegisterClassHandler(
             typeof(Window),
             FrameworkElement.LoadedEvent,
-            new RoutedEventHandler(Window_Loaded));
+            new RoutedEventHandler(Localizable_Loaded));
+
+        EventManager.RegisterClassHandler(
+            typeof(UserControl),
+            FrameworkElement.LoadedEvent,
+            new RoutedEventHandler(Localizable_Loaded));
 
         var loginWindow =
-            ServiceProvider
-                .GetRequiredService<LoginWindow>();
+            ServiceProvider.GetRequiredService<LoginWindow>();
 
         MainWindow = loginWindow;
-
         loginWindow.Show();
     }
 
-    private static void Window_Loaded(
+    private static void Localizable_Loaded(
         object sender,
         RoutedEventArgs e)
     {
-        if (sender is Window window &&
-            e.OriginalSource is Window)
+        if (sender is not FrameworkElement element ||
+            e.OriginalSource != sender)
         {
-            ServiceProvider
-                .GetRequiredService<LocalizationService>()
-                .ApplyTo(window);
+            return;
         }
+
+        ServiceProvider
+            .GetRequiredService<LocalizationService>()
+            .ApplyTo(element);
+    }
+
+    public static void ChangeLanguage(string language)
+    {
+        var localizationService =
+            ServiceProvider.GetRequiredService<LocalizationService>();
+
+        var settingsService =
+            ServiceProvider.GetRequiredService<SettingsService>();
+
+        localizationService.SetLanguage(language);
+        settingsService.Current.Language = localizationService.Language;
+
+        if (settingsService.Current.RememberLanguage)
+        {
+            settingsService.Save();
+        }
+
+        ApplyLanguage();
     }
 
     public static void ApplyLanguage()
@@ -84,25 +109,21 @@ public partial class App : Application
         services.AddSingleton<ApiClient>();
         services.AddSingleton<AppSession>();
         services.AddSingleton<AuthService>();
-
         services.AddSingleton<ProductService>();
         services.AddSingleton<ProductVariantService>();
         services.AddSingleton<StockService>();
         services.AddSingleton<ReportService>();
+        services.AddSingleton<ReportExportService>();
         services.AddSingleton<UserService>();
         services.AddSingleton<PermissionService>();
         services.AddSingleton<SettingsService>();
         services.AddSingleton<LocalizationService>();
-
         services.AddTransient<LoginWindow>();
-
         services.AddSingleton<EsmatPlastic.Desktop.Views.MainWindow>();
-
         services.AddTransient<AddProductWindow>();
     }
 
-    protected override void OnExit(
-        ExitEventArgs e)
+    protected override void OnExit(ExitEventArgs e)
     {
         if (ServiceProvider is IDisposable disposable)
         {
@@ -112,6 +133,3 @@ public partial class App : Application
         base.OnExit(e);
     }
 }
-
-
-

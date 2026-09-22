@@ -1,18 +1,19 @@
 using System.Collections.ObjectModel;
 using System.Windows;
 using EsmatPlastic.Desktop.Models.Stock;
+using EsmatPlastic.Desktop.Services.Localization;
 using EsmatPlastic.Desktop.Services.Stock;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EsmatPlastic.Desktop.Views.Warehouse;
 
 public partial class StockHistoryWindow : Window
 {
     private readonly StockService _stockService;
-
     private readonly StockBalanceResponse _stock;
+    private readonly LocalizationService _loc;
 
-    public ObservableCollection<StockTransactionResponse>
-        Transactions { get; } = new();
+    public ObservableCollection<StockTransactionResponse> Transactions { get; } = new();
 
     public StockHistoryWindow(
         StockService stockService,
@@ -21,13 +22,12 @@ public partial class StockHistoryWindow : Window
         InitializeComponent();
 
         _stockService = stockService;
-
         _stock = stock;
+        _loc = App.ServiceProvider.GetRequiredService<LocalizationService>();
 
         DataContext = this;
 
-        VariantText.Text =
-            $"{stock.ProductName} - {stock.VariantName}";
+        VariantText.Text = $"{stock.ProductName} - {stock.VariantName}";
     }
 
     private async void Window_Loaded(
@@ -41,10 +41,7 @@ public partial class StockHistoryWindow : Window
     {
         try
         {
-            var result =
-                await _stockService
-                    .GetTransactionsAsync(
-                        _stock.ProductVariantId);
+            var result = await _stockService.GetTransactionsAsync(_stock.ProductVariantId);
 
             Transactions.Clear();
 
@@ -57,9 +54,15 @@ public partial class StockHistoryWindow : Window
         {
             MessageBox.Show(
                 ex.Message,
-                "تعذر تحميل سجل الحركات",
+                _loc.T("تعذر تحميل سجل الحركات"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
     }
+
+    private void CloseButton_Click(object sender, RoutedEventArgs e)
+    {
+        Close();
+    }
 }
+

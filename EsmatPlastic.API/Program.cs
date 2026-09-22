@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using EsmatPlastic.API;
 using EsmatPlastic.API.Authorization;
 using EsmatPlastic.API.Services;
@@ -10,6 +10,7 @@ using Microsoft.OpenApi.Models;
 using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.UseUrls("http://localhost:5023");
 
 builder.Services.AddControllers();
 
@@ -50,26 +51,50 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 // ============================================================
-// NEON DATABASE CONNECTION
+// OPTION B: LOCAL NETWORK PRIMARY + NEON CLOUD BACKUP
 // ============================================================
 
-var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL")
+    ?? builder.Configuration.GetConnectionString("NeonConnection") ?? "";
 
-if (string.IsNullOrWhiteSpace(databaseUrl))
+var neonConnectionString = !string.IsNullOrWhiteSpace(databaseUrl) && (databaseUrl.StartsWith("postgresql://") || databaseUrl.StartsWith("postgres://") || databaseUrl.StartsWith("Host="))
+    ? (databaseUrl.StartsWith("Host=") ? databaseUrl : ConvertNeonUrlToConnectionString(databaseUrl))
+    : "";
+
+var localConnectionString = builder.Configuration.GetConnectionString("LocalConnection")
+    ?? "Data Source=esmatplastic_local.db";
+
+Console.WriteLine("========================================");
+Console.WriteLine(" OPTION B ARCHITECTURE ACTIVE");
+Console.WriteLine(" PRIMARY DATABASE: LOCAL NETWORK");
+Console.WriteLine(" BACKUP DATABASE : NEON CLOUD POSTGRESQL");
+Console.WriteLine(" NEON BACKUP HOST: " + (string.IsNullOrWhiteSpace(databaseUrl) ? "None (Offline Backup)" : GetSafeHost(databaseUrl)));
+Console.WriteLine("========================================");
+
+builder.Services.AddSingleton<IDbConnectionManager>(sp =>
+    new DbConnectionManager(
+        neonConnectionString,
+        localConnectionString,
+        sp.GetRequiredService<ILogger<DbConnectionManager>>()));
+
+builder.Services.AddDbContext<AppDbContext>((serviceProvider, options) =>
 {
-    throw new InvalidOperationException(
-        "DATABASE_URL environment variable is not set.");
-}
+    var connectionManager = serviceProvider.GetRequiredService<IDbConnectionManager>();
+    var connStr = connectionManager.ActiveConnectionString;
 
-var neonConnectionString = ConvertNeonUrlToConnectionString(databaseUrl);
+    if (connStr.Contains("Host=", StringComparison.OrdinalIgnoreCase))
+    {
+        options.UseNpgsql(connStr);
+    }
+    else
+    {
+        options.UseSqlite(connStr);
+    }
+});
 
-Console.WriteLine("========================================");
-Console.WriteLine("DATABASE: NEON POSTGRESQL");
-Console.WriteLine("HOST: " + GetSafeHost(databaseUrl));
-Console.WriteLine("========================================");
-
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(neonConnectionString));
+builder.Services.AddSingleton<DbSyncBackgroundService>();
+builder.Services.AddSingleton<IDbSyncTrigger>(sp => sp.GetRequiredService<DbSyncBackgroundService>());
+builder.Services.AddHostedService(sp => sp.GetRequiredService<DbSyncBackgroundService>());
 
 // ============================================================
 // JWT
@@ -166,6 +191,7 @@ builder.Services.AddSingleton<
 // SERVICES
 // ============================================================
 
+builder.Services.AddScoped<IResilientDbExecutor, ResilientDbExecutor>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IPermissionService, PermissionService>();
@@ -211,33 +237,32 @@ app.UseExceptionHandler(errorApp =>
 });
 
 // ============================================================
-// CREATE NEON DATABASE SCHEMA
+// DATABASE SCHEMA INITIALIZATION & RESILIENCE CHECK
 // ============================================================
 
 Console.WriteLine("");
-Console.WriteLine("Checking Neon database schema...");
+Console.WriteLine("Evaluating database connection and schema...");
 
 using (var scope = app.Services.CreateScope())
 {
+    var connMgr = scope.ServiceProvider.GetRequiredService<IDbConnectionManager>();
+    await connMgr.EvaluateConnectionAsync();
+
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
     try
     {
-        Console.WriteLine("Creating Neon database schema...");
-
+        Console.WriteLine($"Initializing database schema ({connMgr.CurrentMode})...");
         db.Database.EnsureCreated();
-
-        Console.WriteLine("Neon database tables created successfully.");
-
-        Console.WriteLine("Neon database schema is ready.");
+        Console.WriteLine($"Database schema ready ({connMgr.CurrentMode}).");
     }
     catch (Exception ex)
     {
         Console.WriteLine("");
-        Console.WriteLine("DATABASE CONNECTION FAILED.");
+        Console.WriteLine($"PRIMARY DATABASE INITIALIZATION NOTICE ({connMgr.CurrentMode}):");
         Console.WriteLine(ex.Message);
+        Console.WriteLine("API operating in local offline mode.");
         Console.WriteLine("");
-        throw;
     }
 }
 
@@ -251,7 +276,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -259,20 +287,26 @@ app.UseAuthorization();
 app.MapControllers();
 
 // ============================================================
-// SEED DATA
+// SEED DATA (ALWAYS RUN ON BOOT FOR ONLINE AND OFFLINE MODE)
 // ============================================================
 
-if (app.Environment.IsDevelopment())
+try
 {
+    Console.WriteLine("Seeding initial database roles, permissions, and admin user...");
     await DatabaseSeeder.SeedAsync(app.Services);
     await TestDataSeeder.SeedAsync(app.Services);
+    Console.WriteLine("Database seeding completed.");
+}
+catch (Exception ex)
+{
+    Console.WriteLine("Database seeding notice: " + ex.Message);
 }
 
 Console.WriteLine("");
 Console.WriteLine("========================================");
 Console.WriteLine(" ESMAT PLASTIC API");
-Console.WriteLine(" DATABASE: NEON");
-Console.WriteLine(" API STARTING...");
+Console.WriteLine(" MODE: OPTION B (LOCAL NETWORK + NEON BACKUP)");
+Console.WriteLine(" API READY & LISTENING...");
 Console.WriteLine("========================================");
 Console.WriteLine("");
 

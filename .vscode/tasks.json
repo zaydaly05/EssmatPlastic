@@ -1,0 +1,73 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "EsmatPlastic: Start API",
+            "type": "shell",
+            "command": "$apiConnections = Get-NetTCPConnection -LocalPort 5023 -ErrorAction SilentlyContinue; if ($apiConnections) { $apiConnections | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue } }; $envFile = '.env.local'; Get-Content $envFile | ForEach-Object { if ($_ -match '^(.*?)=(.*)$') { $name = $matches[1].Trim(); $value = $matches[2].Trim('\\\"'); [Environment]::SetEnvironmentVariable($name, $value, 'Process') } }; dotnet run --project 'EsmatPlastic.API/EsmatPlastic.API.csproj'",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "isBackground": true,
+            "problemMatcher": {
+                "owner": "esmatplastic-api",
+                "pattern": {
+                    "regexp": "^$"
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": ".*Building.*",
+                    "endsPattern": ".*Now listening on: http://localhost:5023.*"
+                }
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "focus": false
+            }
+        },
+        {
+            "label": "EsmatPlastic: Start Desktop",
+            "type": "shell",
+            "command": "$desktopProcesses = Get-Process -Name 'EsmatPlastic.Desktop' -ErrorAction SilentlyContinue; if ($desktopProcesses) { $desktopProcesses | Stop-Process -Force }; dotnet run --project 'EsmatPlastic.Desktop/EsmatPlastic.Desktop.csproj'",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "isBackground": true,
+            "problemMatcher": {
+                "owner": "esmatplastic-desktop",
+                "pattern": {
+                    "regexp": "^$"
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": ".*Build|.*Starting.*",
+                    "endsPattern": "^__ESMATPLASTIC_DESKTOP_READY__$"
+                }
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "focus": false
+            }
+        },
+        {
+            "label": "EsmatPlastic: Start Full Stack",
+            "dependsOn": [
+                "EsmatPlastic: Start API",
+                "EsmatPlastic: Start Desktop"
+            ],
+            "dependsOrder": "parallel",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "focus": false
+            }
+        }
+    ]
+}

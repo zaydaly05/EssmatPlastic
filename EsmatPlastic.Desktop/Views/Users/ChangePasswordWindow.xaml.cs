@@ -1,6 +1,8 @@
 using System.Windows;
 using EsmatPlastic.Desktop.Models.Users;
+using EsmatPlastic.Desktop.Services.Localization;
 using EsmatPlastic.Desktop.Services.Users;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EsmatPlastic.Desktop.Views.Users;
 
@@ -8,6 +10,7 @@ public partial class ChangePasswordWindow : Window
 {
     private readonly UserService _userService;
     private readonly UserResponse _user;
+    private readonly LocalizationService _loc;
 
     public ChangePasswordWindow(
         UserService userService,
@@ -17,9 +20,12 @@ public partial class ChangePasswordWindow : Window
 
         _userService = userService;
         _user = user;
+        _loc = App.ServiceProvider.GetRequiredService<LocalizationService>();
 
         UsernameText.Text = user.Username;
         FullNameText.Text = user.FullName;
+
+        Loaded += (_, _) => NewPasswordBox.Focus();
     }
 
     private async void SaveButton_Click(
@@ -28,31 +34,28 @@ public partial class ChangePasswordWindow : Window
     {
         ErrorText.Text = string.Empty;
 
-        if (string.IsNullOrWhiteSpace(
-                NewPasswordBox.Password))
+        if (string.IsNullOrWhiteSpace(NewPasswordBox.Password))
         {
-            ErrorText.Text =
-                "يرجى إدخال كلمة المرور الجديدة.";
-
+            ErrorText.Text = _loc.T("يرجى إدخال كلمة المرور الجديدة.");
+            NewPasswordBox.Focus();
             return;
         }
 
         if (NewPasswordBox.Password.Length < 6)
         {
-            ErrorText.Text =
-                "يجب أن تتكون كلمة المرور من 6 أحرف على الأقل.";
-
+            ErrorText.Text = _loc.T("يجب أن تتكون كلمة المرور من 6 أحرف على الأقل.");
+            NewPasswordBox.Focus();
             return;
         }
 
-        if (NewPasswordBox.Password !=
-            ConfirmPasswordBox.Password)
+        if (NewPasswordBox.Password != ConfirmPasswordBox.Password)
         {
-            ErrorText.Text =
-                "كلمتا المرور غير متطابقتين.";
-
+            ErrorText.Text = _loc.T("كلمتا المرور غير متطابقتين.");
+            ConfirmPasswordBox.Focus();
             return;
         }
+
+        SaveButton.IsEnabled = false;
 
         try
         {
@@ -61,8 +64,8 @@ public partial class ChangePasswordWindow : Window
                 NewPasswordBox.Password);
 
             MessageBox.Show(
-                "تم تغيير كلمة المرور بنجاح.",
-                "تم",
+                _loc.T("تم تغيير كلمة المرور بنجاح."),
+                _loc.T("تم"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
 
@@ -73,13 +76,19 @@ public partial class ChangePasswordWindow : Window
         {
             ErrorText.Text = ex.Message;
         }
+        finally
+        {
+            SaveButton.IsEnabled = true;
+        }
     }
 
     private void CancelButton_Click(
         object sender,
         RoutedEventArgs e)
     {
+        DialogResult = false;
         Close();
     }
 }
+
 

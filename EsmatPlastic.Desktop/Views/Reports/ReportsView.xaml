@@ -3,202 +3,224 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <Grid>
-
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="20"/>
+            <RowDefinition Height="16"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="20"/>
+            <RowDefinition Height="14"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="14"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
+        <!-- Header Bar -->
         <Grid Grid.Row="0">
-
             <StackPanel>
-
-                <TextBlock Text="التقارير"
-                           FontSize="28"
-                           FontWeight="Bold"/>
-
-                <TextBlock Text="تقارير حركة المخزون"
-                           Foreground="#666666"
-                           Margin="0,5,0,0"/>
-
+                <TextBlock x:Name="PageTitleText" Text="التقارير" Style="{StaticResource PageTitle}"/>
+                <TextBlock x:Name="PageSubtitleText" Text="تقارير شاملة لحركة ورصيد المخزون" Style="{StaticResource PageSubtitle}"/>
             </StackPanel>
 
-                <Button x:Name="RefreshButton"
-                    Content="⟳  تحديث"
-                    Width="110"
-                    Height="40"
-                    HorizontalAlignment="Right"
-                    Click="RefreshButton_Click"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="ExportButton"
+                        Content="📥  تصدير CSV"
+                        Style="{StaticResource SecondaryButton}"
+                        MinWidth="130"
+                        MinHeight="40"
+                        Margin="0,0,10,0"
+                        Click="ExportButton_Click"/>
 
+                <Button x:Name="PrintButton"
+                        Content="🖨️  طباعة التقارير"
+                        Style="{StaticResource PrimaryButton}"
+                        MinWidth="150"
+                        MinHeight="40"
+                        Margin="0,0,10,0"
+                        Click="PrintButton_Click"/>
+
+                <Button x:Name="RefreshButton"
+                        Content="⟳  تحديث"
+                        Style="{StaticResource SecondaryButton}"
+                        MinWidth="115"
+                        MinHeight="40"
+                        Click="RefreshButton_Click"/>
+            </StackPanel>
         </Grid>
 
-
-        <!-- Statistics -->
-
-        <UniformGrid Grid.Row="2"
-                     Columns="4"
-                     Margin="0">
-
-            <Border Background="White"
-                    CornerRadius="10"
-                    Padding="20"
-                    Margin="0,0,8,0">
-
-                <StackPanel>
-                    <TextBlock Text="اسم المنتج"
-                               Foreground="#666666"/>
-
-                    <TextBlock Text="{Binding TotalIn}"
-                               FontSize="25"
-                               FontWeight="Bold"
-                               Margin="0,8,0,0"/>
-                </StackPanel>
-
+        <!-- Summary Statistics Cards -->
+        <UniformGrid Grid.Row="2" Columns="4">
+            <Border Style="{StaticResource StatCard}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <TextBlock x:Name="StatTotalInLabel" Text="إجمالي الوارد" Style="{StaticResource ColumnHeader}"/>
+                        <TextBlock Text="{Binding TotalIn, StringFormat={}{0:N0}}" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource SuccessBrush}" Margin="0,4,0,0"/>
+                    </StackPanel>
+                    <Border Grid.Column="1" Width="36" Height="36" CornerRadius="8" Background="{DynamicResource SuccessSoftBrush}">
+                        <TextBlock Text="📥" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                </Grid>
             </Border>
 
-            <Border Background="White"
-                    CornerRadius="10"
-                    Padding="20"
-                    Margin="8,0">
-
-                <StackPanel>
-                    <TextBlock Text="الرصيد الحالي"
-                               Foreground="#666666"/>
-
-                    <TextBlock Text="{Binding TotalOut}"
-                               FontSize="25"
-                               FontWeight="Bold"
-                               Margin="0,8,0,0"/>
-                </StackPanel>
-
+            <Border Style="{StaticResource StatCard}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <TextBlock x:Name="StatTotalOutLabel" Text="إجمالي الصادر" Style="{StaticResource ColumnHeader}"/>
+                        <TextBlock Text="{Binding TotalOut, StringFormat={}{0:N0}}" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource DangerBrush}" Margin="0,4,0,0"/>
+                    </StackPanel>
+                    <Border Grid.Column="1" Width="36" Height="36" CornerRadius="8" Background="{DynamicResource DangerSoftBrush}">
+                        <TextBlock Text="📤" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                </Grid>
             </Border>
 
-            <Border Background="White"
-                    CornerRadius="10"
-                    Padding="20"
-                    Margin="8,0">
-
-                <StackPanel>
-                    <TextBlock Text="إجمالي الوارد"
-                               Foreground="#666666"/>
-
-                    <TextBlock Text="{Binding CurrentStock}"
-                               FontSize="25"
-                               FontWeight="Bold"
-                               Margin="0,8,0,0"/>
-                </StackPanel>
-
+            <Border Style="{StaticResource StatCard}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <TextBlock x:Name="StatStockLabel" Text="الرصيد الحالي" Style="{StaticResource ColumnHeader}"/>
+                        <TextBlock Text="{Binding CurrentStock, StringFormat={}{0:N0}}" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource TealBrush}" Margin="0,4,0,0"/>
+                    </StackPanel>
+                    <Border Grid.Column="1" Width="36" Height="36" CornerRadius="8" Background="{DynamicResource TealSoftBrush}">
+                        <TextBlock Text="📊" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                </Grid>
             </Border>
 
-            <Border Background="White"
-                    CornerRadius="10"
-                    Padding="20"
-                    Margin="8,0,0,0">
-
-                <StackPanel>
-                    <TextBlock Text="إجمالي الصادر"
-                               Foreground="#666666"/>
-
-                    <TextBlock Text="{Binding VariantCount}"
-                               FontSize="25"
-                               FontWeight="Bold"
-                               Margin="0,8,0,0"/>
-                </StackPanel>
-
+            <Border Style="{StaticResource StatCard}" Margin="0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <TextBlock x:Name="StatVariantsLabel" Text="الأصناف" Style="{StaticResource ColumnHeader}"/>
+                        <TextBlock Text="{Binding VariantCount}" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource InkBrush}" Margin="0,4,0,0"/>
+                    </StackPanel>
+                    <Border Grid.Column="1" Width="36" Height="36" CornerRadius="8" Background="#F1F5F9">
+                        <TextBlock Text="🏷️" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                </Grid>
             </Border>
-
         </UniformGrid>
 
-
-        <!-- Search -->
-
-        <TextBox Grid.Row="3"
-                 Height="40"
-                 Padding="10"
-                 FontSize="14"
-                 Text="{Binding SearchText,
-                                UpdateSourceTrigger=PropertyChanged}"/>
-
-
-        <!-- Report -->
-
-        <Border Grid.Row="4"
-                Background="White"
-                CornerRadius="10"
-                Padding="15">
-
-            <ListView ItemsSource="{Binding FilteredItems}"
-                      BorderThickness="0">
-
-                <ListView.ItemTemplate>
-
-                    <DataTemplate>
-
-                        <Border Padding="8"
-                                BorderBrush="#E5E7EB"
-                                BorderThickness="0,0,0,1">
-
-                            <Grid>
-
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="110"/>
-                                    <ColumnDefinition Width="110"/>
-                                    <ColumnDefinition Width="110"/>
-                                    <ColumnDefinition Width="110"/>
-                                </Grid.ColumnDefinitions>
-
-                                <StackPanel>
-
-                                    <TextBlock Text="{Binding ProductName}"
-                                               FontWeight="SemiBold"/>
-
-                                    <TextBlock Text="{Binding VariantName}"
-                                               Foreground="#777777"
-                                               FontSize="12"
-                                               Margin="0,3,0,0"/>
-
-                                </StackPanel>
-
-                                <TextBlock Grid.Column="1"
-                                           Text="{Binding Size}"
-                                           HorizontalAlignment="Center"/>
-
-                                <TextBlock Grid.Column="2"
-                                           Text="{Binding TotalIn}"
-                                           HorizontalAlignment="Center"/>
-
-                                <TextBlock Grid.Column="3"
-                                           Text="{Binding TotalOut}"
-                                           HorizontalAlignment="Center"/>
-
-                                <TextBlock Grid.Column="4"
-                                           Text="{Binding CurrentQuantity}"
-                                           FontWeight="Bold"
-                                           HorizontalAlignment="Center"/>
-
-                            </Grid>
-
-                        </Border>
-
-                    </DataTemplate>
-
-                </ListView.ItemTemplate>
-
-            </ListView>
-
+        <!-- Search Bar -->
+        <Border Grid.Row="4" Style="{StaticResource Card}" Padding="10">
+            <TextBox x:Name="SearchInput"
+                     Height="38"
+                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                     Tag="بحث باسم المنتج أو الصنف أو المقاس..."/>
         </Border>
 
+        <!-- Main Report Data Table -->
+        <Border Grid.Row="6" Style="{StaticResource Card}" Padding="12,16,12,12">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="8"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="5"
+                <!-- Table Headers -->
+                <Grid Grid.Row="0" Margin="12,0,12,6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="120"/>
+                        <ColumnDefinition Width="120"/>
+                        <ColumnDefinition Width="120"/>
+                        <ColumnDefinition Width="130"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Name="HeaderProduct" Text="المنتج والصنف" Style="{StaticResource ColumnHeader}"/>
+                    <TextBlock x:Name="HeaderSize" Grid.Column="1" Text="المقاس" Style="{StaticResource ColumnHeader}" HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="HeaderTotalIn" Grid.Column="2" Text="الوارد الإجمالي" Style="{StaticResource ColumnHeader}" HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="HeaderTotalOut" Grid.Column="3" Text="الصادر الإجمالي" Style="{StaticResource ColumnHeader}" HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="HeaderCurrentStock" Grid.Column="4" Text="المخزون المتاح" Style="{StaticResource ColumnHeader}" HorizontalAlignment="Center"/>
+                </Grid>
+
+                <Separator Grid.Row="1" Background="{DynamicResource LineBrush}" Margin="0,0,0,4"/>
+
+                <!-- Items List -->
+                <ListView Grid.Row="2" ItemsSource="{Binding FilteredItems}">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Border Padding="10,8" CornerRadius="8">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="130"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Product Name & Variant -->
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding ProductName, Converter={StaticResource TranslateConverter}}" FontWeight="Bold" FontSize="13" Foreground="{DynamicResource InkBrush}"/>
+                                        <TextBlock Text="{Binding VariantName, Converter={StaticResource TranslateConverter}}"
+                                                   Foreground="{DynamicResource MutedBrush}"
+                                                   FontSize="12"
+                                                   Margin="0,2,0,0"/>
+                                    </StackPanel>
+
+                                    <!-- Size -->
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding Size, Converter={StaticResource TranslateConverter}}"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               FontSize="12"
+                                               Foreground="{DynamicResource InkBrush}"/>
+
+                                    <!-- Total In -->
+                                    <TextBlock Grid.Column="2"
+                                               Text="{Binding TotalIn, StringFormat={}{0:N0}}"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource SuccessBrush}"/>
+
+                                    <!-- Total Out -->
+                                    <TextBlock Grid.Column="3"
+                                               Text="{Binding TotalOut, StringFormat={}{0:N0}}"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource DangerBrush}"/>
+
+                                    <!-- Current Quantity Badge -->
+                                    <Border Grid.Column="4"
+                                            Background="{DynamicResource TealSoftBrush}"
+                                            CornerRadius="10"
+                                            Padding="12,4"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding CurrentQuantity, StringFormat={}{0:N0}}"
+                                                   FontWeight="Bold"
+                                                   FontSize="12"
+                                                   Foreground="{DynamicResource TealDarkBrush}"/>
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Grid>
+        </Border>
+
+        <!-- Status Bar Text -->
+        <TextBlock Grid.Row="7"
                    Text="{Binding StatusMessage}"
-                   Foreground="#666666"
-                   Margin="5,10"/>
-
+                   Foreground="{DynamicResource MutedBrush}"
+                   FontSize="12"
+                   Margin="4,10,4,0"/>
     </Grid>
-
 </UserControl>

@@ -1,20 +1,18 @@
 using System.Windows;
 using EsmatPlastic.Desktop.Models.ProductVariants;
+using EsmatPlastic.Desktop.Services.Localization;
 using EsmatPlastic.Desktop.Services.ProductVariants;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EsmatPlastic.Desktop.Views.ProductVariants;
 
 public partial class EditProductVariantWindow : Window
 {
     private readonly ProductVariantService _variantService;
-
     private readonly ProductVariantResponse _variant;
+    private readonly LocalizationService _loc;
 
-    public ProductVariantResponse? UpdatedVariant
-    {
-        get;
-        private set;
-    }
+    public ProductVariantResponse? UpdatedVariant { get; private set; }
 
     public EditProductVariantWindow(
         ProductVariantService variantService,
@@ -24,80 +22,56 @@ public partial class EditProductVariantWindow : Window
 
         _variantService = variantService;
         _variant = variant;
+        _loc = App.ServiceProvider.GetRequiredService<LocalizationService>();
 
-        NameInput.Text =
-            variant.Name;
+        NameInput.Text = variant.Name;
+        SizeInput.Text = variant.Size ?? string.Empty;
+        ColorInput.Text = variant.Color ?? string.Empty;
+        CapTypeInput.Text = variant.CapType ?? string.Empty;
+        MaterialInput.Text = variant.Material ?? string.Empty;
+        ActiveInput.IsChecked = variant.IsActive;
 
-        SizeInput.Text =
-            variant.Size ?? string.Empty;
-
-        ColorInput.Text =
-            variant.Color ?? string.Empty;
-
-        CapTypeInput.Text =
-            variant.CapType ?? string.Empty;
-
-        MaterialInput.Text =
-            variant.Material ?? string.Empty;
-
-        ActiveInput.IsChecked =
-            variant.IsActive;
+        Loaded += (_, _) => NameInput.Focus();
     }
 
     private async void SaveButton_Click(
         object sender,
         RoutedEventArgs e)
     {
-        if (string.IsNullOrWhiteSpace(
-            NameInput.Text))
+        if (string.IsNullOrWhiteSpace(NameInput.Text))
         {
             MessageBox.Show(
-                "يرجى إدخال اسم الصنف.",
-                "تنبيه",
+                _loc.T("يرجى إدخال اسم الصنف."),
+                _loc.T("تنبيه"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
 
+            NameInput.Focus();
             return;
         }
 
+        SaveButton.IsEnabled = false;
+
         try
         {
-            var request =
-                new UpdateProductVariantRequest
-                {
-                    Name =
-                        NameInput.Text.Trim(),
+            var request = new UpdateProductVariantRequest
+            {
+                Name = NameInput.Text.Trim(),
+                Size = EmptyToNull(SizeInput.Text),
+                Color = EmptyToNull(ColorInput.Text),
+                CapType = EmptyToNull(CapTypeInput.Text),
+                Material = EmptyToNull(MaterialInput.Text),
+                ImagePath = _variant.ImagePath,
+                IsActive = ActiveInput.IsChecked == true
+            };
 
-                    Size =
-                        EmptyToNull(SizeInput.Text),
-
-                    Color =
-                        EmptyToNull(ColorInput.Text),
-
-                    CapType =
-                        EmptyToNull(CapTypeInput.Text),
-
-                    Material =
-                        EmptyToNull(MaterialInput.Text),
-
-                    ImagePath =
-                        _variant.ImagePath,
-
-                    IsActive =
-                        ActiveInput.IsChecked == true
-                };
-
-            UpdatedVariant =
-                await _variantService
-                    .UpdateAsync(
-                        _variant.Id,
-                        request);
+            UpdatedVariant = await _variantService.UpdateAsync(_variant.Id, request);
 
             if (UpdatedVariant is null)
             {
                 MessageBox.Show(
-                    "تعذر تحديث الصنف.",
-                    "خطأ",
+                    _loc.T("تعذر تحديث الصنف."),
+                    _loc.T("خطأ"),
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
 
@@ -111,14 +85,17 @@ public partial class EditProductVariantWindow : Window
         {
             MessageBox.Show(
                 ex.Message,
-                "خطأ في تحديث الصنف",
+                _loc.T("خطأ في تحديث الصنف"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
+        finally
+        {
+            SaveButton.IsEnabled = true;
+        }
     }
 
-    private static string? EmptyToNull(
-        string value)
+    private static string? EmptyToNull(string value)
     {
         return string.IsNullOrWhiteSpace(value)
             ? null
@@ -133,3 +110,4 @@ public partial class EditProductVariantWindow : Window
         Close();
     }
 }
+

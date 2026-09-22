@@ -1,4 +1,4 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using EsmatPlastic.API.DTOs.Auth;
@@ -12,112 +12,100 @@ namespace EsmatPlastic.API.Services;
 
 public class AuthService : IAuthService
 {
-    private readonly AppDbContext _db;
+    private readonly IResilientDbExecutor _executor;
     private readonly IConfiguration _configuration;
     private readonly PasswordHasher<User> _passwordHasher;
 
     public AuthService(
-        AppDbContext db,
+        IResilientDbExecutor executor,
         IConfiguration configuration)
     {
-        _db = db;
+        _executor = executor;
         _configuration = configuration;
         _passwordHasher = new PasswordHasher<User>();
     }
 
     public async Task<LoginResponse?> LoginAsync(LoginRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.Username) ||
-            string.IsNullOrWhiteSpace(request.Password))
+        if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
         {
             return null;
         }
 
         var username = request.Username.Trim();
 
-        var user = await _db.Users
-            .Include(x => x.UserPermissions)
-            .ThenInclude(x => x.Permission)
-            .FirstOrDefaultAsync(x =>
-                x.Username == username &&
-                x.IsActive);
-
-        if (user is null)
+        return await _executor.ExecuteAsync(async db =>
         {
-            return null;
-        }
+            var user = await db.Users
+                .Include(x => x.UserPermissions)
+                .ThenInclude(x => x.Permission)
+                .FirstOrDefaultAsync(x => x.Username == username && x.IsActive);
 
-        var passwordResult = _passwordHasher.VerifyHashedPassword(
-            user,
-            user.PasswordHash,
-            request.Password);
+            if (user is null) return null;
 
-        if (passwordResult == PasswordVerificationResult.Failed)
-        {
-            return null;
-        }
+            var passwordResult = _passwordHasher.VerifyHashedPassword(
+                user,
+                user.PasswordHash,
+                request.Password);
 
-        var permissions = user.UserPermissions
-            .Where(x => x.Permission.IsActive)
-            .Select(x => x.Permission.Name)
-            .ToList();
+            if (passwordResult == PasswordVerificationResult.Failed) return null;
 
-        var jwtSettings = _configuration.GetSection("Jwt");
+            var permissions = user.UserPermissions
+                .Where(x => x.Permission != null && x.Permission.IsActive)
+                .Select(x => x.Permission.Name)
+                .ToList();
 
-        var key = jwtSettings["Key"]
-            ?? throw new InvalidOperationException("JWT Key is not configured.");
+            if (user.Role == Domain.Enums.UserRole.Admin)
+            {
+                var allPerms = await db.Permissions
+                    .Where(x => x.IsActive)
+                    .Select(x => x.Name)
+                    .ToListAsync();
+                permissions = permissions.Union(allPerms).ToList();
+            }
 
-        var issuer = jwtSettings["Issuer"]
-            ?? throw new InvalidOperationException("JWT Issuer is not configured.");
+            var jwtSettings = _configuration.GetSection("Jwt");
+            var key = jwtSettings["Key"] ?? throw new InvalidOperationException("JWT Key is not configured.");
+            var issuer = jwtSettings["Issuer"] ?? throw new InvalidOperationException("JWT Issuer is not configured.");
+            var audience = jwtSettings["Audience"] ?? throw new InvalidOperationException("JWT Audience is not configured.");
 
-        var audience = jwtSettings["Audience"]
-            ?? throw new InvalidOperationException("JWT Audience is not configured.");
+            var expirationMinutes = int.TryParse(jwtSettings["ExpirationMinutes"], out var minutes) ? minutes : 480;
+            var expiresAt = DateTime.UtcNow.AddMinutes(expirationMinutes);
 
-        var expirationMinutes = int.TryParse(
-            jwtSettings["ExpirationMinutes"],
-            out var minutes)
-            ? minutes
-            : 480;
+            var claims = new List<Claim>
+            {
+                new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new(JwtRegisteredClaimNames.UniqueName, user.Username),
+                new(ClaimTypes.Name, user.Username),
+                new(ClaimTypes.Role, user.Role.ToString()),
+                new("FullName", user.FullName)
+            };
 
-        var expiresAt = DateTime.UtcNow.AddMinutes(expirationMinutes);
+            foreach (var permission in permissions)
+            {
+                claims.Add(new Claim("Permission", permission));
+            }
 
-        var claims = new List<Claim>
-        {
-            new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new(JwtRegisteredClaimNames.UniqueName, user.Username),
-            new(ClaimTypes.Name, user.Username),
-            new(ClaimTypes.Role, user.Role.ToString()),
-            new("FullName", user.FullName)
-        };
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-        foreach (var permission in permissions)
-        {
-            claims.Add(new Claim("Permission", permission));
-        }
+            var token = new JwtSecurityToken(
+                issuer: issuer,
+                audience: audience,
+                claims: claims,
+                expires: expiresAt,
+                signingCredentials: credentials);
 
-        var securityKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(key));
-
-        var credentials = new SigningCredentials(
-            securityKey,
-            SecurityAlgorithms.HmacSha256);
-
-        var token = new JwtSecurityToken(
-            issuer: issuer,
-            audience: audience,
-            claims: claims,
-            expires: expiresAt,
-            signingCredentials: credentials);
-
-        return new LoginResponse
-        {
-            Token = new JwtSecurityTokenHandler().WriteToken(token),
-            ExpiresAt = expiresAt,
-            UserId = user.Id,
-            Username = user.Username,
-            FullName = user.FullName,
-            Role = user.Role.ToString(),
-            Permissions = permissions
-        };
+            return new LoginResponse
+            {
+                Token = new JwtSecurityTokenHandler().WriteToken(token),
+                ExpiresAt = expiresAt,
+                UserId = user.Id,
+                Username = user.Username,
+                FullName = user.FullName,
+                Role = user.Role.ToString(),
+                Permissions = permissions
+            };
+        });
     }
 }
