@@ -1,5 +1,4 @@
 using System.Windows;
-using EsmatPlastic.Desktop.Services;
 using EsmatPlastic.Desktop.Services.Localization;
 using Microsoft.Extensions.DependencyInjection;
 using EsmatPlastic.Desktop.Services.Settings;
@@ -17,9 +16,6 @@ public partial class SettingsWindow : Window
 
         _settingsService =
             settingsService;
-
-        ApiInput.Text =
-            _settingsService.Current.ApiBaseUrl;
 
         LanguageInput.SelectedIndex =
             _settingsService.Current.Language
@@ -44,17 +40,10 @@ public partial class SettingsWindow : Window
                 language.Tag?.ToString() ?? "ar";
         }
 
-        _settingsService.Current.ApiBaseUrl =
-            ApiInput.Text.Trim();
-
         _settingsService.Current.RememberLanguage =
             RememberLanguageInput.IsChecked == true;
 
         _settingsService.Save();
-
-        App.ServiceProvider
-            .GetRequiredService<ApiClient>()
-            .UpdateBaseUrl(_settingsService.Current.ApiBaseUrl);
 
         App.ServiceProvider
             .GetRequiredService<LocalizationService>()

@@ -21,7 +21,7 @@
                        FontSize="28"
                        FontWeight="Bold"
                        Foreground="{DynamicResource InkBrush}"/>
-            <TextBlock Text="Configure the application language and connection."
+            <TextBlock Text="Configure the application language and preferences."
                        Style="{StaticResource PageSubtitle}"
                        Margin="0,5,0,0"/>
         </StackPanel>
@@ -46,25 +46,6 @@
                                   IsChecked="True"
                                   Margin="0,16,0,0"
                                   FontSize="14"/>
-                    </StackPanel>
-                </Border>
-
-                <Border Style="{StaticResource Card}" Padding="20" Margin="0,0,0,14">
-                    <StackPanel>
-                        <TextBlock Text="Connection"
-                                   FontSize="16"
-                                   FontWeight="SemiBold"
-                                   Margin="0,0,0,16"/>
-                        <TextBlock Text="API Base URL" Style="{StaticResource FieldLabel}"/>
-                        <TextBox x:Name="ApiInput"
-                                 Height="44"
-                                 FlowDirection="LeftToRight"
-                                 ToolTip="Enter the API server address"/>
-                        <TextBlock Text="This address is used by the desktop app to reach the API."
-                                   FontSize="12"
-                                   Foreground="{DynamicResource MutedBrush}"
-                                   Margin="0,8,0,0"
-                                   TextWrapping="Wrap"/>
                     </StackPanel>
                 </Border>
 
