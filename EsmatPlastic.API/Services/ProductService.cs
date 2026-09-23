@@ -119,6 +119,7 @@ public class ProductService : IProductService
             product.Description = request.Description?.Trim();
             product.ImagePath = request.ImagePath?.Trim();
             product.IsActive = request.IsActive;
+            product.CreatedAt = DateTime.UtcNow;
 
             await db.SaveChangesAsync();
             _syncTrigger.TriggerSync();
@@ -152,6 +153,12 @@ public class ProductService : IProductService
             }
 
             db.Products.Remove(product);
+            db.DeletedRecords.Add(new DeletedRecord
+            {
+                EntityType = "Product",
+                RecordKey = product.Name.Trim().ToLowerInvariant(),
+                DeletedAt = DateTime.UtcNow
+            });
             await db.SaveChangesAsync();
             _syncTrigger.TriggerSync();
             return true;

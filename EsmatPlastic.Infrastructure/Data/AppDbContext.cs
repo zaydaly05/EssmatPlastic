@@ -22,6 +22,8 @@ public class AppDbContext : DbContext
 
     public DbSet<UserPermission> UserPermissions => Set<UserPermission>();
 
+    public DbSet<DeletedRecord> DeletedRecords => Set<DeletedRecord>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -142,6 +144,14 @@ public class AppDbContext : DbContext
                 .WithMany(x => x.UserPermissions)
                 .HasForeignKey(x => x.PermissionId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<DeletedRecord>(entity =>
+        {
+            entity.HasKey(x => new { x.EntityType, x.RecordKey });
+            entity.Property(x => x.EntityType).HasMaxLength(100).IsRequired();
+            entity.Property(x => x.RecordKey).HasMaxLength(500).IsRequired();
+            entity.Property(x => x.DeletedAt).IsRequired();
         });
     }
 }

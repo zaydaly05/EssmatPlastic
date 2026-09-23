@@ -44,3 +44,5 @@ neon-schema-error.txt
 
 # Logs
 *.log
+# Packaged demo archives
+EsmatPlastic-Demo-Windows-x64.zip

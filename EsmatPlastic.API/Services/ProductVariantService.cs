@@ -154,6 +154,7 @@ public class ProductVariantService : IProductVariantService
             variant.Material = request.Material?.Trim();
             variant.ImagePath = request.ImagePath?.Trim();
             variant.IsActive = request.IsActive;
+            variant.CreatedAt = DateTime.UtcNow;
 
             await db.SaveChangesAsync();
             _syncTrigger.TriggerSync();
@@ -192,7 +193,18 @@ public class ProductVariantService : IProductVariantService
                 throw new InvalidOperationException("Cannot delete a variant that has stock transactions.");
             }
 
+            var productName = await db.Products
+                .Where(x => x.Id == variant.ProductId)
+                .Select(x => x.Name)
+                .FirstAsync();
+
             db.ProductVariants.Remove(variant);
+            db.DeletedRecords.Add(new DeletedRecord
+            {
+                EntityType = "ProductVariant",
+                RecordKey = $"{productName.Trim().ToLowerInvariant()}|{variant.Name.Trim().ToLowerInvariant()}",
+                DeletedAt = DateTime.UtcNow
+            });
             await db.SaveChangesAsync();
             _syncTrigger.TriggerSync();
             return true;

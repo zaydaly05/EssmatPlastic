@@ -22,11 +22,11 @@ public class HealthController : ControllerBase
         return Ok(new
         {
             status = "Healthy",
-            architecture = "Option B (Local Network Primary + Neon Cloud Backup)",
+            architecture = "Neon primary with automatic local SQLite fallback",
             mode = mode.ToString(),
             isOnline = true,
             isNeonBackupOnline = _dbConnectionManager.IsNeonBackupAvailable,
-            primaryDatabase = _dbConnectionManager.ActiveConnectionString.Contains("Host=") ? "Local PostgreSQL (LAN)" : "Local SQLite (LAN)",
+            primaryDatabase = _dbConnectionManager.ActiveConnectionString.Contains("Host=") ? "Neon PostgreSQL" : "Local SQLite",
             lastSyncUtc = _dbConnectionManager.LastSyncTimeUtc,
             timestampUtc = DateTime.UtcNow
         });

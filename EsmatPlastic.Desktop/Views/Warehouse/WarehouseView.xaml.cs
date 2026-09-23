@@ -13,7 +13,6 @@ public partial class WarehouseView : UserControl
     private readonly WarehouseViewModel _viewModel;
 
     private readonly AppSession _appSession;
-    private readonly EsmatPlastic.Desktop.Services.Localization.LocalizationService _loc;
 
     public WarehouseView()
     {
@@ -29,8 +28,6 @@ public partial class WarehouseView : UserControl
         _appSession =
             provider
                 .GetRequiredService<AppSession>();
-
-        _loc = provider.GetRequiredService<EsmatPlastic.Desktop.Services.Localization.LocalizationService>();
 
         _viewModel =
             new WarehouseViewModel(
@@ -71,7 +68,7 @@ public partial class WarehouseView : UserControl
         RoutedEventArgs e)
     {
         RefreshButton.IsEnabled = false;
-        RefreshButton.Content = _loc.T("جاري التحديث...");
+        RefreshButton.Content = "جاري التحديث...";
 
         try
         {
@@ -80,7 +77,7 @@ public partial class WarehouseView : UserControl
         finally
         {
             RefreshButton.IsEnabled = true;
-            RefreshButton.Content = _loc.T("⟳  تحديث");
+            RefreshButton.Content = "⟳  تحديث";
         }
     }
 
@@ -109,8 +106,8 @@ public partial class WarehouseView : UserControl
         if (_viewModel.SelectedStock is null)
         {
             MessageBox.Show(
-                _loc.T("يرجى اختيار صنف أولاً."),
-                _loc.T("تنبيه"),
+                "يرجى اختيار صنف أولاً.",
+                "تنبيه",
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
 
@@ -147,8 +144,8 @@ public partial class WarehouseView : UserControl
         if (_viewModel.SelectedStock is null)
         {
             MessageBox.Show(
-                _loc.T("يرجى اختيار صنف أولاً."),
-                _loc.T("تنبيه"),
+                "يرجى اختيار صنف أولاً.",
+                "تنبيه",
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
 

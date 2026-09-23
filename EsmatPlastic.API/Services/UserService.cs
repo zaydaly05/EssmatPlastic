@@ -183,6 +183,7 @@ public class UserService : IUserService
             user.FullName = request.FullName.Trim();
             user.Role = request.Role;
             user.IsActive = request.IsActive;
+            user.CreatedAt = DateTime.UtcNow;
 
             db.UserPermissions.RemoveRange(user.UserPermissions);
 
@@ -232,6 +233,12 @@ public class UserService : IUserService
             }
 
             db.Users.Remove(user);
+            db.DeletedRecords.Add(new DeletedRecord
+            {
+                EntityType = "User",
+                RecordKey = user.Username.Trim().ToLowerInvariant(),
+                DeletedAt = DateTime.UtcNow
+            });
             await db.SaveChangesAsync();
             _syncTrigger.TriggerSync();
             return true;
@@ -251,6 +258,7 @@ public class UserService : IUserService
             if (user is null) return false;
 
             user.PasswordHash = _passwordHasher.HashPassword(user, newPassword);
+            user.CreatedAt = DateTime.UtcNow;
             await db.SaveChangesAsync();
             _syncTrigger.TriggerSync();
             return true;

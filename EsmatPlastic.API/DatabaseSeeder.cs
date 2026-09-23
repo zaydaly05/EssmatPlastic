@@ -18,6 +18,14 @@ public static class DatabaseSeeder
         var configuration = scope.ServiceProvider
             .GetRequiredService<IConfiguration>();
 
+        await SeedAsync(db, configuration);
+    }
+
+    public static async Task SeedAsync(
+        AppDbContext db,
+        IConfiguration configuration)
+    {
+
         var passwordHasher = new PasswordHasher<User>();
 
         var adminUsername =

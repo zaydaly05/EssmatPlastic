@@ -3,135 +3,148 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <Grid>
+
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="16"/>
+            <RowDefinition Height="20"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="16"/>
+            <RowDefinition Height="30"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Header -->
+
         <Grid Grid.Row="0">
+
             <StackPanel>
-                <TextBlock x:Name="TitleText" Text="لوحة التحكم" Style="{StaticResource PageTitle}"/>
-                <TextBlock x:Name="SubtitleText" Text="نظرة عامة ومباشرة على بيانات المنتجات والحركات المخزنية" Style="{StaticResource PageSubtitle}"/>
+
+                <TextBlock Text="لوحة التحكم"
+                           FontSize="30"
+                           FontWeight="Bold"/>
+
+                <TextBlock Text="نظرة عامة على بيانات النظام"
+                           Foreground="#666666"
+                           Margin="0,6,0,0"/>
+
             </StackPanel>
 
-            <Button x:Name="RefreshButton"
+                <Button x:Name="RefreshButton"
                     Content="⟳  تحديث"
-                    Style="{StaticResource SecondaryButton}"
                     Width="110"
-                    Height="38"
+                    Height="40"
                     HorizontalAlignment="Right"
                     Click="Refresh_Click"/>
+
         </Grid>
 
-        <!-- Top Stat Cards -->
-        <UniformGrid Grid.Row="2" Columns="5">
-            <!-- Products Card -->
-            <Border x:Name="ProductsCard" Style="{StaticResource StatCard}">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <StackPanel>
-                        <TextBlock Text="المنتجات" Style="{StaticResource ColumnHeader}"/>
-                        <TextBlock Text="{Binding ProductCount}" FontSize="26" FontWeight="Bold" Foreground="{DynamicResource TealBrush}" Margin="0,4,0,0"/>
-                        <TextBlock Text="إجمالي المنتجات" FontSize="12" Foreground="{DynamicResource MutedBrush}"/>
-                    </StackPanel>
-                    <Border Grid.Column="1" Width="38" Height="38" CornerRadius="10" Background="{DynamicResource TealSoftBrush}" VerticalAlignment="Top">
-                        <TextBlock Text="📦" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                </Grid>
+
+        <UniformGrid Grid.Row="2"
+                     Columns="5">
+
+                <Border x:Name="ProductsCard"
+                    Background="#E8F6F6"
+                    CornerRadius="10"
+                    Padding="18"
+                    Margin="0,0,6,0">
+
+                <StackPanel>
+                    <TextBlock Text="المنتجات"
+                               Foreground="#666666"/>
+
+                    <TextBlock Text="{Binding ProductCount}"
+                               FontSize="26"
+                               FontWeight="Bold"
+                               Margin="0,8,0,0"/>
+                </StackPanel>
+
             </Border>
 
-            <!-- Variants Card -->
-            <Border x:Name="VariantsCard" Style="{StaticResource StatCard}">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <StackPanel>
-                        <TextBlock Text="الأصناف" Style="{StaticResource ColumnHeader}"/>
-                        <TextBlock Text="{Binding VariantCount}" FontSize="26" FontWeight="Bold" Foreground="{DynamicResource InkBrush}" Margin="0,4,0,0"/>
-                        <TextBlock Text="الأصناف والمواصفات" FontSize="12" Foreground="{DynamicResource MutedBrush}"/>
-                    </StackPanel>
-                    <Border Grid.Column="1" Width="38" Height="38" CornerRadius="10" Background="#F1F5F9" VerticalAlignment="Top">
-                        <TextBlock Text="🏷️" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                </Grid>
+                <Border x:Name="VariantsCard"
+                    Background="#FFF1EC"
+                    CornerRadius="10"
+                    Padding="18"
+                    Margin="6,0">
+
+                <StackPanel>
+                    <TextBlock Text="الأصناف"
+                               Foreground="#666666"/>
+
+                    <TextBlock Text="{Binding VariantCount}"
+                               FontSize="26"
+                               FontWeight="Bold"
+                               Margin="0,8,0,0"/>
+                </StackPanel>
+
             </Border>
 
-            <!-- Stock Card -->
-            <Border x:Name="StockCard" Style="{StaticResource StatCard}">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <StackPanel>
-                        <TextBlock Text="المخزون الحالي" Style="{StaticResource ColumnHeader}"/>
-                        <TextBlock Text="{Binding CurrentStock, StringFormat={}{0:N0}}" FontSize="26" FontWeight="Bold" Foreground="{DynamicResource TealDarkBrush}" Margin="0,4,0,0"/>
-                        <TextBlock Text="إجمالي القطع المخزنة" FontSize="12" Foreground="{DynamicResource MutedBrush}"/>
-                    </StackPanel>
-                    <Border Grid.Column="1" Width="38" Height="38" CornerRadius="10" Background="{DynamicResource TealSoftBrush}" VerticalAlignment="Top">
-                        <TextBlock Text="📊" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                </Grid>
+                <Border x:Name="StockCard"
+                    Background="#EEF1FF"
+                    CornerRadius="10"
+                    Padding="18"
+                    Margin="6,0">
+
+                <StackPanel>
+                    <TextBlock Text="المخزون الحالي"
+                               Foreground="#666666"/>
+
+                    <TextBlock Text="{Binding CurrentStock}"
+                               FontSize="26"
+                               FontWeight="Bold"
+                               Margin="0,8,0,0"/>
+                </StackPanel>
+
             </Border>
 
-            <!-- Total In Card -->
-            <Border x:Name="TotalInCard" Style="{StaticResource StatCard}">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <StackPanel>
-                        <TextBlock Text="إجمالي الوارد" Style="{StaticResource ColumnHeader}"/>
-                        <TextBlock Text="{Binding TotalIn, StringFormat={}{0:N0}}" FontSize="26" FontWeight="Bold" Foreground="{DynamicResource SuccessBrush}" Margin="0,4,0,0"/>
-                        <TextBlock Text="الواردات الإجمالية" FontSize="12" Foreground="{DynamicResource MutedBrush}"/>
-                    </StackPanel>
-                    <Border Grid.Column="1" Width="38" Height="38" CornerRadius="10" Background="{DynamicResource SuccessSoftBrush}" VerticalAlignment="Top">
-                        <TextBlock Text="📥" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                </Grid>
+                <Border x:Name="TotalInCard"
+                    Background="#F2F8E9"
+                    CornerRadius="10"
+                    Padding="18"
+                    Margin="6,0">
+
+                <StackPanel>
+                    <TextBlock Text="إجمالي الوارد"
+                               Foreground="#666666"/>
+
+                    <TextBlock Text="{Binding TotalIn}"
+                               FontSize="26"
+                               FontWeight="Bold"
+                               Margin="0,8,0,0"/>
+                </StackPanel>
+
             </Border>
 
-            <!-- Total Out Card -->
-            <Border x:Name="TotalOutCard" Style="{StaticResource StatCard}" Margin="0">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <StackPanel>
-                        <TextBlock Text="إجمالي الصادر" Style="{StaticResource ColumnHeader}"/>
-                        <TextBlock Text="{Binding TotalOut, StringFormat={}{0:N0}}" FontSize="26" FontWeight="Bold" Foreground="{DynamicResource DangerBrush}" Margin="0,4,0,0"/>
-                        <TextBlock Text="الصادرات الإجمالية" FontSize="12" Foreground="{DynamicResource MutedBrush}"/>
-                    </StackPanel>
-                    <Border Grid.Column="1" Width="38" Height="38" CornerRadius="10" Background="{DynamicResource DangerSoftBrush}" VerticalAlignment="Top">
-                        <TextBlock Text="📤" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                </Grid>
+                <Border x:Name="TotalOutCard"
+                    Background="#FFF7DE"
+                    CornerRadius="10"
+                    Padding="18"
+                    Margin="6,0,0,0">
+
+                <StackPanel>
+                    <TextBlock Text="إجمالي الصادر"
+                               Foreground="#666666"/>
+
+                    <TextBlock Text="{Binding TotalOut}"
+                               FontSize="26"
+                               FontWeight="Bold"
+                               Margin="0,8,0,0"/>
+                </StackPanel>
+
             </Border>
+
         </UniformGrid>
 
-        <!-- No Permissions Warning Panel -->
         <Border x:Name="NoPermissionsPanel"
                 Grid.Row="2"
-                Background="#FFF6E0"
-                CornerRadius="14"
+                Background="#FFF7DE"
+                CornerRadius="12"
                 Padding="24"
                 Visibility="Collapsed">
+
             <StackPanel>
                 <TextBlock Text="لا توجد صلاحيات مرتبطة بهذا المستخدم"
-                           FontSize="17"
+                           FontSize="18"
                            FontWeight="SemiBold"
                            Foreground="#8A5A00"/>
+
                 <TextBlock Text="يرجى تسجيل الخروج والتواصل مع مدير النظام لمنح الصلاحيات المناسبة."
                            Margin="0,8,0,0"
                            Foreground="#8A5A00"
@@ -139,157 +152,34 @@
             </StackPanel>
         </Border>
 
-        <!-- Main Dashboard Widgets Body -->
-        <Grid Grid.Row="4">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="16"/>
-                <ColumnDefinition Width="340"/>
-            </Grid.ColumnDefinitions>
 
-            <!-- Left Main Widget: Recent Transactions Table -->
-            <Border Grid.Column="0" Style="{StaticResource Card}" Padding="16">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="12"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
+        <Border Grid.Row="4"
+                Background="White"
+                CornerRadius="10"
+                Padding="25">
 
-                    <!-- Section Header -->
-                    <Grid Grid.Row="0">
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <TextBlock Text="📋" FontSize="18" Margin="0,0,8,0"/>
-                            <TextBlock Text="آخر الحركات المخزنية" FontSize="16" FontWeight="Bold"/>
-                        </StackPanel>
-                        <TextBlock Text="أحدث العمليات التي تم تسجيلها" FontSize="12" Foreground="{DynamicResource MutedBrush}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                    </Grid>
+            <StackPanel>
 
-                    <!-- Transactions List -->
-                    <ListView Grid.Row="2" ItemsSource="{Binding RecentTransactions}">
-                        <ListView.ItemTemplate>
-                            <DataTemplate>
-                                <Border Padding="10,8" CornerRadius="8" Margin="0,2" Background="#FAFAFA">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="70"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="100"/>
-                                            <ColumnDefinition Width="110"/>
-                                            <ColumnDefinition Width="110"/>
-                                        </Grid.ColumnDefinitions>
+                <TextBlock Text="ملخص النظام"
+                           FontSize="20"
+                           FontWeight="Bold"/>
 
-                                        <!-- Type Badge -->
-                                        <Border Grid.Column="0"
-                                                Background="{Binding TransactionTypeBg}"
-                                                CornerRadius="12"
-                                                Padding="8,3"
-                                                HorizontalAlignment="Center"
-                                                VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding TransactionTypeText}"
-                                                       Foreground="{Binding TransactionTypeColor}"
-                                                       FontSize="12"
-                                                       FontWeight="Bold"/>
-                                        </Border>
+                <TextBlock Text="يتم تحميل بيانات المنتجات والمخزون من واجهة API الخاصة بالنظام."
+                           Margin="0,12,0,0"
+                           Foreground="#666666"/>
 
-                                        <!-- Product & Variant -->
-                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0">
-                                            <TextBlock Text="{Binding ProductName}" FontWeight="SemiBold" FontSize="13"/>
-                                            <TextBlock Text="{Binding VariantName}" FontSize="12" Foreground="{DynamicResource MutedBrush}"/>
-                                        </StackPanel>
+                <TextBlock Text="يمكنك مراجعة الكميات والحركات من خلال الأقسام المتاحة."
+                           Margin="0,8,0,0"
+                           Foreground="#666666"/>
 
-                                        <!-- Quantity -->
-                                        <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center">
-                                            <TextBlock Text="{Binding Quantity, Converter={StaticResource UnitFormatConverter}, ConverterParameter=Piece}" FontWeight="Bold" FontSize="12"/>
-                                        </StackPanel>
+                <TextBlock Text="ستظهر الإحصاءات هنا بعد تحميل البيانات."
+                           Margin="0,8,0,0"
+                           Foreground="#666666"/>
 
-                                        <!-- User -->
-                                        <StackPanel Grid.Column="3" VerticalAlignment="Center" HorizontalAlignment="Center">
-                                            <TextBlock Text="{Binding UserFullName}" FontSize="12" Foreground="{DynamicResource InkBrush}"/>
-                                        </StackPanel>
-
-                                        <!-- Created Date -->
-                                        <TextBlock Grid.Column="4"
-                                                   Text="{Binding CreatedAt, StringFormat=yyyy-MM-dd HH:mm}"
-                                                   FontSize="12"
-                                                   Foreground="{DynamicResource MutedBrush}"
-                                                   HorizontalAlignment="Right"
-                                                   VerticalAlignment="Center"/>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
-                </Grid>
-            </Border>
-
-            <!-- Right Column Widgets -->
-            <StackPanel Grid.Column="2">
-                <!-- Low Stock Alert Card -->
-                <Border Style="{StaticResource Card}" Padding="16" Margin="0,0,0,16">
-                    <StackPanel>
-                        <Grid>
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Text="⚠️" FontSize="18" Margin="0,0,8,0"/>
-                                <TextBlock Text="تنبيهات المخزون المنخفض" FontSize="15" FontWeight="Bold"/>
-                            </StackPanel>
-                            <Border Background="{DynamicResource DangerSoftBrush}" CornerRadius="10" Padding="8,2" HorizontalAlignment="Right">
-                                <TextBlock Text="{Binding LowStockCount, Converter={StaticResource UnitFormatConverter}, ConverterParameter=Variant}" Foreground="{DynamicResource DangerBrush}" FontSize="12" FontWeight="Bold"/>
-                            </Border>
-                        </Grid>
-
-                        <Separator Background="{DynamicResource LineBrush}" Margin="0,10,0,10"/>
-
-                        <!-- Items needing reorder -->
-                        <ItemsControl ItemsSource="{Binding LowStockItems}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border Padding="8,6" Margin="0,3" CornerRadius="6" Background="#FEF2F2">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-
-                                            <StackPanel>
-                                                <TextBlock Text="{Binding ProductName}" FontWeight="SemiBold" FontSize="12" Foreground="#991B1B"/>
-                                                <TextBlock Text="{Binding VariantName}" FontSize="12" Foreground="{DynamicResource MutedBrush}"/>
-                                            </StackPanel>
-
-                                            <Border Grid.Column="1" Background="{DynamicResource DangerBrush}" CornerRadius="6" Padding="6,2" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding CurrentQuantity, StringFormat={}{0:N0}}" Foreground="White" FontSize="12" FontWeight="Bold"/>
-                                            </Border>
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </StackPanel>
-                </Border>
-
-                <!-- Quick Summary Insights Card -->
-                <Border Style="{StaticResource Card}" Padding="16">
-                    <StackPanel>
-                        <TextBlock Text="💡 ملخص وعمليات النظام" FontSize="15" FontWeight="Bold" Margin="0,0,0,8"/>
-                        <TextBlock Text="يتم تحديث جميع بيانات المنتجات والمخزون بشكل فوري ومباشر مع خادم النظام."
-                                   FontSize="12"
-                                   Foreground="{DynamicResource MutedBrush}"
-                                   TextWrapping="Wrap"/>
-
-                        <Separator Background="{DynamicResource LineBrush}" Margin="0,12,0,12"/>
-
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                            <TextBlock Text="• حالة الاتصالبالواجهة:" FontSize="12" Foreground="{DynamicResource MutedBrush}"/>
-                            <TextBlock Text=" متصل بنجاح" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource SuccessBrush}" Margin="4,0,0,0"/>
-                        </StackPanel>
-
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="• آخر تحديث:" FontSize="12" Foreground="{DynamicResource MutedBrush}"/>
-                            <TextBlock Text=" الآن" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}" Margin="4,0,0,0"/>
-                        </StackPanel>
-                    </StackPanel>
-                </Border>
             </StackPanel>
-        </Grid>
+
+        </Border>
+
     </Grid>
+
 </UserControl>

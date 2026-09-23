@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using EsmatPlastic.Desktop.Services;
-using EsmatPlastic.Desktop.Services.Localization;
 using EsmatPlastic.Desktop.Services.Products;
 using EsmatPlastic.Desktop.Services.Stock;
 using EsmatPlastic.Desktop.ViewModels.Dashboard;
@@ -12,38 +11,38 @@ namespace EsmatPlastic.Desktop.Views;
 public partial class DashboardView : UserControl
 {
     private readonly DashboardViewModel _viewModel;
-    private readonly LocalizationService _localization;
 
     public DashboardView()
     {
         InitializeComponent();
 
-        _localization = App.ServiceProvider.GetRequiredService<LocalizationService>();
+        _viewModel =
+            new DashboardViewModel(
+                App.ServiceProvider
+                    .GetRequiredService<ProductService>(),
 
-        _viewModel = new DashboardViewModel(
-            App.ServiceProvider.GetRequiredService<ProductService>(),
-            App.ServiceProvider.GetRequiredService<StockService>(),
-            App.ServiceProvider.GetRequiredService<AppSession>(),
-            _localization);
+                App.ServiceProvider
+                        .GetRequiredService<StockService>(),
 
-        DataContext = _viewModel;
+                    App.ServiceProvider
+                        .GetRequiredService<AppSession>());
+
+        DataContext =
+            _viewModel;
+
         ApplyPermissions();
-        ApplyLocalization();
 
         Loaded += DashboardView_Loaded;
     }
 
-    private void ApplyLocalization()
-    {
-        TitleText.Text = _localization.T("لوحة التحكم");
-        SubtitleText.Text = _localization.T("نظرة عامة ومباشرة على بيانات المنتجات والحركات المخزنية");
-        RefreshButton.Content = _localization.T("⟳  تحديث");
-    }
-
-    private async void DashboardView_Loaded(object sender, RoutedEventArgs e)
+    private async void DashboardView_Loaded(
+        object sender,
+        RoutedEventArgs e)
     {
         Loaded -= DashboardView_Loaded;
+
         ApplyPermissions();
+
         await LoadAsync();
     }
 
@@ -57,7 +56,7 @@ public partial class DashboardView : UserControl
         {
             MessageBox.Show(
                 ex.Message,
-                _localization.T("تعذر تحميل بيانات لوحة التحكم"),
+                "تعذر تحميل بيانات لوحة التحكم",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
@@ -95,10 +94,12 @@ public partial class DashboardView : UserControl
             : Visibility.Collapsed;
     }
 
-    private async void Refresh_Click(object sender, RoutedEventArgs e)
+    private async void Refresh_Click(
+        object sender,
+        RoutedEventArgs e)
     {
         RefreshButton.IsEnabled = false;
-        RefreshButton.Content = _localization.T("جاري التحديث...");
+        RefreshButton.Content = "جاري التحديث...";
 
         try
         {
@@ -107,7 +108,7 @@ public partial class DashboardView : UserControl
         finally
         {
             RefreshButton.IsEnabled = true;
-            RefreshButton.Content = _localization.T("⟳  تحديث");
+            RefreshButton.Content = "⟳  تحديث";
         }
     }
 }

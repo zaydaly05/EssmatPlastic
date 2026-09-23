@@ -7,8 +7,8 @@ namespace EsmatPlastic.API.Services;
 
 public enum DatabaseProviderMode
 {
-    LocalNetworkPrimary,
-    CloudNeonBackup
+    LocalSqlite,
+    CloudNeon
 }
 
 public interface IDbConnectionManager
@@ -18,6 +18,7 @@ public interface IDbConnectionManager
     bool IsNeonBackupAvailable { get; }
     DateTime? LastSyncTimeUtc { get; }
     string ActiveConnectionString { get; }
+    string LocalConnectionString { get; }
     string NeonConnectionString { get; }
     Task<DatabaseProviderMode> EvaluateConnectionAsync(CancellationToken cancellationToken = default);
     void UpdateLastSyncTime();
@@ -29,7 +30,7 @@ public class DbConnectionManager : IDbConnectionManager
     private readonly string _localConnectionString;
     private readonly ILogger<DbConnectionManager> _logger;
 
-    private DatabaseProviderMode _currentMode = DatabaseProviderMode.LocalNetworkPrimary;
+    private DatabaseProviderMode _currentMode = DatabaseProviderMode.LocalSqlite;
     private bool _isOnline = false;
     private DateTime? _lastSyncTimeUtc;
     private readonly object _lock = new();
@@ -53,7 +54,20 @@ public class DbConnectionManager : IDbConnectionManager
         get { lock (_lock) return _lastSyncTimeUtc; }
     }
 
-    public string ActiveConnectionString => _localConnectionString;
+    public string ActiveConnectionString
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return _currentMode == DatabaseProviderMode.CloudNeon
+                    ? _neonConnectionString
+                    : _localConnectionString;
+            }
+        }
+    }
+
+    public string LocalConnectionString => _localConnectionString;
     public string NeonConnectionString => _neonConnectionString;
 
     public DbConnectionManager(
@@ -76,13 +90,12 @@ public class DbConnectionManager : IDbConnectionManager
 
     public async Task<DatabaseProviderMode> EvaluateConnectionAsync(CancellationToken cancellationToken = default)
     {
-        CurrentMode = DatabaseProviderMode.LocalNetworkPrimary;
-
         if (string.IsNullOrWhiteSpace(_neonConnectionString))
         {
             IsOnline = false;
-            _logger.LogInformation("Option B Local LAN Primary Database active. Neon cloud backup is unconfigured.");
-            return DatabaseProviderMode.LocalNetworkPrimary;
+            CurrentMode = DatabaseProviderMode.LocalSqlite;
+            _logger.LogInformation("Local SQLite database active. Neon is unconfigured.");
+            return CurrentMode;
         }
 
         try
@@ -97,14 +110,16 @@ public class DbConnectionManager : IDbConnectionManager
             await cmd.ExecuteScalarAsync(cts.Token);
 
             IsOnline = true;
-            _logger.LogInformation("Option B Local LAN Primary Database active. NEON CLOUD BACKUP IS ONLINE & REACHABLE.");
-            return DatabaseProviderMode.LocalNetworkPrimary;
+            CurrentMode = DatabaseProviderMode.CloudNeon;
+            _logger.LogInformation("Neon database is online and is now the active read/write database.");
+            return CurrentMode;
         }
         catch (Exception ex)
         {
             IsOnline = false;
-            _logger.LogWarning(ex, "Option B Local LAN Primary Database active. Neon cloud backup is currently offline or unreachable.");
-            return DatabaseProviderMode.LocalNetworkPrimary;
+            CurrentMode = DatabaseProviderMode.LocalSqlite;
+            _logger.LogWarning(ex, "Neon is unavailable; using local SQLite for reads and writes.");
+            return CurrentMode;
         }
     }
 }
