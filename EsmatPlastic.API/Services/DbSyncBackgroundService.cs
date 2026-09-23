@@ -1,5 +1,6 @@
 using System.Threading.Channels;
 using System.Globalization;
+using System.Diagnostics;
 using EsmatPlastic.Domain.Entities;
 using EsmatPlastic.Infrastructure.Data;
 using Microsoft.Data.Sqlite;
@@ -52,6 +53,7 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
 
         while (!stoppingToken.IsCancellationRequested)
         {
+            var cycleStartedAt = Stopwatch.GetTimestamp();
             try
             {
                 await _connectionManager.EvaluateConnectionAsync(stoppingToken);
@@ -66,10 +68,14 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
                 _logger.LogError(ex, "Error occurred during background database synchronization cycle.");
             }
 
+            var remaining = TimeSpan.FromSeconds(3) - Stopwatch.GetElapsedTime(cycleStartedAt);
+            if (remaining <= TimeSpan.Zero)
+                continue;
+
             try
             {
                 using var cts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
-                cts.CancelAfter(TimeSpan.FromSeconds(3));
+                cts.CancelAfter(remaining);
                 await _syncChannel.Reader.ReadAsync(cts.Token);
             }
             catch
