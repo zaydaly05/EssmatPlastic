@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using EsmatPlastic.Desktop.Services;
 using EsmatPlastic.Desktop.Services.Products;
 using EsmatPlastic.Desktop.Services.Stock;
+using EsmatPlastic.Desktop.Services.Localization;
 using EsmatPlastic.Desktop.ViewModels.Dashboard;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -25,7 +26,10 @@ public partial class DashboardView : UserControl
                         .GetRequiredService<StockService>(),
 
                     App.ServiceProvider
-                        .GetRequiredService<AppSession>());
+                        .GetRequiredService<AppSession>(),
+
+                    App.ServiceProvider
+                        .GetRequiredService<LocalizationService>());
 
         DataContext =
             _viewModel;
@@ -54,9 +58,10 @@ public partial class DashboardView : UserControl
         }
         catch (Exception ex)
         {
+            var loc = App.ServiceProvider.GetRequiredService<LocalizationService>();
             MessageBox.Show(
                 ex.Message,
-                "تعذر تحميل بيانات لوحة التحكم",
+                loc.T("تعذر تحميل بيانات لوحة التحكم"),
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
@@ -98,8 +103,9 @@ public partial class DashboardView : UserControl
         object sender,
         RoutedEventArgs e)
     {
+        var loc = App.ServiceProvider.GetRequiredService<LocalizationService>();
         RefreshButton.IsEnabled = false;
-        RefreshButton.Content = "جاري التحديث...";
+        RefreshButton.Content = loc.T("جاري التحديث...");
 
         try
         {
@@ -108,7 +114,7 @@ public partial class DashboardView : UserControl
         finally
         {
             RefreshButton.IsEnabled = true;
-            RefreshButton.Content = "⟳  تحديث";
+            RefreshButton.Content = loc.T("⟳  تحديث");
         }
     }
 }

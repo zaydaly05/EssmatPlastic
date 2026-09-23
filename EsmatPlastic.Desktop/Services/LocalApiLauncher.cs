@@ -43,15 +43,24 @@ public static class LocalApiLauncher
 
             if (exePath != null)
             {
+                var exeDirectory = Path.GetDirectoryName(exePath)!;
+                var projectDirectory = Path.GetFullPath(
+                    Path.Combine(exeDirectory, "..", "..", ".."));
+                var workingDirectory = File.Exists(
+                    Path.Combine(projectDirectory, "EsmatPlastic.API.csproj"))
+                    ? projectDirectory
+                    : exeDirectory;
+
                 var psi = new ProcessStartInfo
                 {
                     FileName = exePath,
-                    WorkingDirectory = Path.GetDirectoryName(exePath)!,
+                    WorkingDirectory = workingDirectory,
                     UseShellExecute = false,
                     CreateNoWindow = true,
                     Environment =
                     {
-                        ["ASPNETCORE_URLS"] = baseUrl
+                        ["ASPNETCORE_URLS"] = baseUrl,
+                        ["ASPNETCORE_ENVIRONMENT"] = "Development"
                     }
                 };
 
@@ -67,13 +76,14 @@ public static class LocalApiLauncher
                     var psi = new ProcessStartInfo
                     {
                         FileName = "dotnet",
-                        Arguments = $"run --no-build --urls \"{baseUrl}\"",
+                        Arguments = "run --no-launch-profile",
                         WorkingDirectory = apiProjDir,
                         UseShellExecute = false,
                         CreateNoWindow = true,
                         Environment =
                         {
-                            ["ASPNETCORE_URLS"] = baseUrl
+                            ["ASPNETCORE_URLS"] = baseUrl,
+                            ["ASPNETCORE_ENVIRONMENT"] = "Development"
                         }
                     };
                     _apiProcess = Process.Start(psi);
@@ -117,13 +127,41 @@ public static class LocalApiLauncher
     {
         try
         {
-            using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };
+                    using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
             var response = await client.GetAsync(new Uri(new Uri(baseUrl), "api/Health/status"));
             return response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.Unauthorized;
         }
         catch
         {
             return false;
+        }
+    }
+
+    public static void Stop()
+    {
+        var process = _apiProcess;
+        _apiProcess = null;
+
+        if (process is null)
+        {
+            return;
+        }
+
+        try
+        {
+            if (!process.HasExited)
+            {
+                process.Kill(entireProcessTree: true);
+                process.WaitForExit(5000);
+            }
+        }
+        catch (InvalidOperationException)
+        {
+            // The API process has already exited.
+        }
+        finally
+        {
+            process.Dispose();
         }
     }
 }

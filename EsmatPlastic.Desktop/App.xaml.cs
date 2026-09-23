@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Controls;
 using EsmatPlastic.Desktop.Services;
 using EsmatPlastic.Desktop.Services.Products;
 using EsmatPlastic.Desktop.Services.ProductVariants;
@@ -18,7 +19,7 @@ public partial class App : Application
 {
     public static IServiceProvider ServiceProvider { get; private set; } = null!;
 
-    protected override void OnStartup(StartupEventArgs e)
+    protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
 
@@ -40,10 +41,21 @@ public partial class App : Application
                 ? settingsService.Current.Language
                 : "ar");
 
+        var apiBaseUrl = await LocalApiLauncher.EnsureApiRunningAsync(
+            settingsService.Current.ApiBaseUrl);
+        ServiceProvider
+            .GetRequiredService<ApiClient>()
+            .UpdateBaseUrl(apiBaseUrl);
+
         EventManager.RegisterClassHandler(
             typeof(Window),
             FrameworkElement.LoadedEvent,
             new RoutedEventHandler(Window_Loaded));
+
+        EventManager.RegisterClassHandler(
+            typeof(UserControl),
+            FrameworkElement.LoadedEvent,
+            new RoutedEventHandler(UserControl_Loaded));
 
         var loginWindow =
             ServiceProvider
@@ -78,6 +90,37 @@ public partial class App : Application
         }
     }
 
+    private static void UserControl_Loaded(
+        object sender,
+        RoutedEventArgs e)
+    {
+        if (sender is UserControl view &&
+            ReferenceEquals(e.OriginalSource, view))
+        {
+            ServiceProvider
+                .GetRequiredService<LocalizationService>()
+                .ApplyTo(view);
+        }
+    }
+
+    public static void ChangeLanguage(string language)
+    {
+        var localizationService =
+            ServiceProvider.GetRequiredService<LocalizationService>();
+        var settingsService =
+            ServiceProvider.GetRequiredService<SettingsService>();
+
+        localizationService.SetLanguage(language);
+
+        if (settingsService.Current.RememberLanguage)
+        {
+            settingsService.Current.Language = localizationService.Language;
+            settingsService.Save();
+        }
+
+        ApplyLanguage();
+    }
+
     private static void ConfigureServices(
         IServiceCollection services)
     {
@@ -104,6 +147,8 @@ public partial class App : Application
     protected override void OnExit(
         ExitEventArgs e)
     {
+        LocalApiLauncher.Stop();
+
         if (ServiceProvider is IDisposable disposable)
         {
             disposable.Dispose();

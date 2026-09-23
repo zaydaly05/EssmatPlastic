@@ -123,8 +123,14 @@ public class LoginViewModel : INotifyPropertyChanged
                 this,
                 EventArgs.Empty);
         }
-        catch (HttpRequestException)
+        catch (HttpRequestException ex)
         {
+            if (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                ErrorMessage = ex.Message;
+                return;
+            }
+
             ErrorMessage = _localization.T("تعذر الاتصال بالخادم.");
         }
         catch (Exception)
@@ -178,4 +184,3 @@ public class RelayCommand : ICommand
         remove => CommandManager.RequerySuggested -= value;
     }
 }
-

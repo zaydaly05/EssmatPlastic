@@ -109,13 +109,17 @@ public class ReportsViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(CurrentStock));
             OnPropertyChanged(nameof(VariantCount));
 
-            StatusMessage =
-                $"تم تحميل التقارير: {Items.Count} سجل.";
+            var loc = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<EsmatPlastic.Desktop.Services.Localization.LocalizationService>(App.ServiceProvider);
+            StatusMessage = loc.IsArabic
+                ? $"تم تحميل التقارير: {Items.Count} سجل."
+                : $"Reports loaded: {Items.Count} records.";
         }
         catch (Exception ex)
         {
-            StatusMessage =
-                $"تعذر تحميل التقارير: {ex.Message}";
+            var loc = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<EsmatPlastic.Desktop.Services.Localization.LocalizationService>(App.ServiceProvider);
+            StatusMessage = loc.IsArabic
+                ? $"تعذر تحميل التقارير: {ex.Message}"
+                : $"Failed to load reports: {ex.Message}";
         }
         finally
         {

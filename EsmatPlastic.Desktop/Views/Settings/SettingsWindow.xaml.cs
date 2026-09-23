@@ -1,4 +1,5 @@
 using System.Windows;
+using EsmatPlastic.Desktop.Services;
 using EsmatPlastic.Desktop.Services.Localization;
 using Microsoft.Extensions.DependencyInjection;
 using EsmatPlastic.Desktop.Services.Settings;
@@ -52,18 +53,19 @@ public partial class SettingsWindow : Window
         _settingsService.Save();
 
         App.ServiceProvider
+            .GetRequiredService<ApiClient>()
+            .UpdateBaseUrl(_settingsService.Current.ApiBaseUrl);
+
+        App.ServiceProvider
             .GetRequiredService<LocalizationService>()
             .SetLanguage(_settingsService.Current.Language);
 
         App.ApplyLanguage();
 
+        var loc = App.ServiceProvider.GetRequiredService<LocalizationService>();
         MessageBox.Show(
-            _settingsService.Current.Language == "ar"
-                ? "تم حفظ الإعدادات وتطبيق اللغة."
-                : "Settings saved and language applied.",
-            _settingsService.Current.Language == "ar"
-                ? "تم"
-                : "Done",
+            loc["SettingsSaved"],
+            loc["Done"],
             MessageBoxButton.OK,
             MessageBoxImage.Information);
 

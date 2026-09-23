@@ -10,13 +10,13 @@
     <Grid Background="{DynamicResource CanvasBrush}">
 
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="240"/>
+            <ColumnDefinition Width="242"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
         <!-- Sidebar -->
         <Border Grid.Column="0"
-            Background="#173B44"
+            Background="{DynamicResource SidebarBrush}"
             Padding="14,20">
 
             <Grid>
@@ -30,13 +30,15 @@
                 <StackPanel Grid.Row="0"
                             Margin="8,15,8,30">
 
-                    <TextBlock Text="إسمت بلاستيك"
+                    <TextBlock x:Name="AppNameText"
+                               Text="إسمت بلاستيك"
                                Foreground="White"
                                FontSize="25"
                                FontWeight="Bold"
                                HorizontalAlignment="Center"/>
 
-                    <TextBlock Text="نظام إدارة المخزون"
+                    <TextBlock x:Name="AppTaglineText"
+                               Text="نظام إدارة المخزون"
                                Foreground="#BFC4CA"
                                FontSize="13"
                                HorizontalAlignment="Center"
@@ -84,7 +86,8 @@
 
                 </StackPanel>
 
-                <Button Grid.Row="2"
+                <Button x:Name="LogoutButton"
+                        Grid.Row="2"
                         Content="تسجيل الخروج"
                         Style="{StaticResource NavButton}"
                         Margin="0,15,0,5"
@@ -96,19 +99,21 @@
 
         <!-- Main -->
         <Grid Grid.Column="1"
-              Margin="28">
+              Margin="25,25,22,25">
 
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="20"/>
+                    <RowDefinition Height="18"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
             <!-- User Header -->
             <Border Grid.Row="0"
                     Background="{DynamicResource PanelBrush}"
-                    Padding="26"
-                    CornerRadius="14">
+                    BorderBrush="{DynamicResource LineBrush}"
+                    BorderThickness="1"
+                    Padding="24,20"
+                    CornerRadius="16">
 
                 <Grid>
 
@@ -119,13 +124,14 @@
 
                     <StackPanel Grid.Column="0">
 
-                        <TextBlock Text="مرحباً"
+                        <TextBlock x:Name="WelcomeText"
+                                   Text="مرحباً"
                                    FontSize="16"
                                    Foreground="{DynamicResource MutedBrush}"/>
 
                         <TextBlock x:Name="FullNameText"
                                    Text="المستخدم"
-                                   FontSize="27"
+                                   FontSize="28"
                                    FontWeight="Bold"
                                    Margin="0,5,0,0"/>
 
@@ -134,17 +140,58 @@
                     <StackPanel Grid.Column="1"
                                 HorizontalAlignment="Right">
 
-                        <TextBlock x:Name="RoleText"
-                                   Text="Role"
-                                   FontSize="14"
-                                   FontWeight="SemiBold"
-                                   HorizontalAlignment="Right"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Border x:Name="ConnectionStatusBorder"
+                                    Grid.Column="0"
+                                    Padding="10,6"
+                                    CornerRadius="18"
+                                    Margin="0,0,12,0"
+                                    VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal">
+                                    <Ellipse x:Name="ConnectionStatusDot"
+                                             Width="9" Height="9"
+                                             VerticalAlignment="Center"
+                                             Margin="0,0,7,0"/>
+                                    <TextBlock x:Name="ConnectionStatusText"
+                                               FontSize="12"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <Button x:Name="ArabicLangButton"
+                                        Content="العربية"
+                                        Style="{StaticResource LangButton}"
+                                        Click="ArabicLangButton_Click"
+                                        Margin="0,0,8,0"/>
+                                <Button x:Name="EnglishLangButton"
+                                        Content="English"
+                                        Style="{StaticResource LangButton}"
+                                        Click="EnglishLangButton_Click"/>
+                            </StackPanel>
+                        </Grid>
 
-                        <TextBlock Text="نتمنى لك يوماً سعيداً"
+                        <Border HorizontalAlignment="Right"
+                                Background="{DynamicResource TealSoftBrush}"
+                                CornerRadius="10"
+                                Padding="10,4"
+                                Margin="0,9,0,0">
+                            <TextBlock x:Name="RoleText"
+                                       Text="Role"
+                                       FontSize="13"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TealDarkBrush}"/>
+                        </Border>
+
+                        <TextBlock x:Name="HaveANiceDayText"
+                                   Text="نتمنى لك يوماً سعيداً"
                                    FontSize="12"
                                    Foreground="{DynamicResource MutedBrush}"
                                    HorizontalAlignment="Right"
-                                   Margin="0,5,0,0"/>
+                                   Margin="0,6,0,0"/>
 
                     </StackPanel>
 

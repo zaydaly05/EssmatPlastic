@@ -188,7 +188,9 @@ public class ApiClient
         }
 
         throw new HttpRequestException(
-            message ?? $"HTTP {(int)response.StatusCode}");
+            message ?? $"HTTP {(int)response.StatusCode}",
+            inner: null,
+            statusCode: response.StatusCode);
     }
 }
 

@@ -4,7 +4,7 @@
         {
             "label": "EsmatPlastic: Start API",
             "type": "shell",
-            "command": "$apiConnections = Get-NetTCPConnection -LocalPort 5023 -ErrorAction SilentlyContinue; if ($apiConnections) { $apiConnections | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue } }; $envFile = '.env.local'; Get-Content $envFile | ForEach-Object { if ($_ -match '^(.*?)=(.*)$') { $name = $matches[1].Trim(); $value = $matches[2].Trim('\\\"'); [Environment]::SetEnvironmentVariable($name, $value, 'Process') } }; dotnet run --project 'EsmatPlastic.API/EsmatPlastic.API.csproj'",
+            "command": "$apiConnections = Get-NetTCPConnection -LocalPort 5023 -ErrorAction SilentlyContinue; if ($apiConnections) { $apiConnections | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue } }; $envFile = '.env.local'; Get-Content $envFile | ForEach-Object { if ($_ -match '^(.*?)=(.*)$') { $name = $matches[1].Trim(); $value = $matches[2].Trim('\\\"'); [Environment]::SetEnvironmentVariable($name, $value, 'Process') } }; dotnet run --project 'EsmatPlastic.API/EsmatPlastic.API.csproj' -p:BaseOutputPath=bin\\VSCodeTask\\",
             "options": {
                 "cwd": "${workspaceFolder}"
             },

@@ -1,4 +1,5 @@
 using System.Threading.Channels;
+using System.Globalization;
 using EsmatPlastic.Domain.Entities;
 using EsmatPlastic.Infrastructure.Data;
 using Microsoft.Data.Sqlite;
@@ -17,7 +18,15 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
     private readonly IServiceProvider _serviceProvider;
     private readonly IDbConnectionManager _connectionManager;
     private readonly ILogger<DbSyncBackgroundService> _logger;
-    private readonly Channel<bool> _syncChannel = Channel.CreateUnbounded<bool>(new UnboundedChannelOptions { SingleReader = true });
+    private readonly Channel<bool> _syncChannel = Channel.CreateBounded<bool>(
+        new BoundedChannelOptions(1)
+        {
+            SingleReader = true,
+            SingleWriter = false,
+            FullMode = BoundedChannelFullMode.DropWrite
+        });
+    private readonly SemaphoreSlim _syncGate = new(1, 1);
+    private bool _schemasEnsured;
 
     public DbSyncBackgroundService(
         IServiceProvider serviceProvider,
@@ -101,21 +110,18 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
 
     public async Task PerformDatabaseSyncAsync(CancellationToken cancellationToken = default)
     {
+        await _syncGate.WaitAsync(cancellationToken);
         try
         {
-            using var scope = _serviceProvider.CreateScope();
-            var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
-            var neonRaw = config.GetConnectionString("NeonConnection")
-                ?? Environment.GetEnvironmentVariable("DATABASE_URL");
+            var neonRaw = _connectionManager.NeonConnectionString;
 
             if (string.IsNullOrWhiteSpace(neonRaw))
             {
                 return;
             }
 
-            var neonFormatted = DbConnectionManagerExtensions.ConvertUrlToConnectionString(neonRaw);
             var neonOptions = new DbContextOptionsBuilder<AppDbContext>()
-                .UseNpgsql(neonFormatted)
+                .UseNpgsql(neonRaw)
                 .Options;
 
             var localConnStr = _connectionManager.LocalConnectionString;
@@ -132,11 +138,15 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
             using var neonDb = new AppDbContext(neonOptions);
             using var localDb = new AppDbContext(localOptionsBuilder.Options);
 
-            // Ensure schema exists on both
-            await neonDb.Database.EnsureCreatedAsync(cancellationToken);
-            await localDb.Database.EnsureCreatedAsync(cancellationToken);
-            await EnsureDeletionTableAsync(neonDb, cancellationToken);
-            await EnsureDeletionTableAsync(localDb, cancellationToken);
+            // Schema checks are expensive against Neon; do them once per process.
+            if (!_schemasEnsured)
+            {
+                await neonDb.Database.EnsureCreatedAsync(cancellationToken);
+                await localDb.Database.EnsureCreatedAsync(cancellationToken);
+                await EnsureDeletionTableAsync(neonDb, cancellationToken);
+                await EnsureDeletionTableAsync(localDb, cancellationToken);
+                _schemasEnsured = true;
+            }
 
             await SyncDeletionTombstonesAsync(localDb, neonDb, cancellationToken);
 
@@ -145,8 +155,9 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
             int pushedProducts = 0;
 
             // 1. Sync Users (Bi-directional by Username)
-            var neonUsers = await neonDb.Users.AsNoTracking().ToListAsync(cancellationToken);
-            var localUsers = await localDb.Users.AsNoTracking().ToListAsync(cancellationToken);
+            var neonUsers = await neonDb.Users.ToListAsync(cancellationToken);
+            var localUsers = await localDb.Users.ToListAsync(cancellationToken);
+            var localUsersSnapshot = localUsers.ToArray();
 
             var localUserMap = localUsers
                 .GroupBy(u => u.Username.Trim().ToLowerInvariant())
@@ -159,9 +170,9 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
             foreach (var user in neonUsers)
             {
                 var key = user.Username.Trim().ToLowerInvariant();
-                if (!localUserMap.ContainsKey(key))
+                if (!localUserMap.TryGetValue(key, out var existing))
                 {
-                    localDb.Users.Add(new User
+                    existing = new User
                     {
                         Username = user.Username,
                         PasswordHash = user.PasswordHash,
@@ -169,28 +180,27 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
                         Role = user.Role,
                         IsActive = user.IsActive,
                         CreatedAt = user.CreatedAt
-                    });
+                    };
+                    localDb.Users.Add(existing);
+                    localUserMap[key] = existing;
                     pulledUsers++;
                 }
-                else
+                else if (EnsureUtc(user.CreatedAt) >= EnsureUtc(existing.CreatedAt))
                 {
-                    var existing = await localDb.Users.FirstOrDefaultAsync(u => u.Username.ToLower() == key, cancellationToken);
-                    if (existing != null && EnsureUtc(user.CreatedAt) > EnsureUtc(existing.CreatedAt))
-                    {
-                        existing.FullName = user.FullName;
-                        existing.PasswordHash = user.PasswordHash;
-                        existing.Role = user.Role;
-                        existing.IsActive = user.IsActive;
-                    }
+                    existing.FullName = user.FullName;
+                    existing.PasswordHash = user.PasswordHash;
+                    existing.Role = user.Role;
+                    existing.IsActive = user.IsActive;
+                    existing.CreatedAt = EnsureUtc(user.CreatedAt);
                 }
             }
 
-            foreach (var user in localUsers)
+            foreach (var user in localUsersSnapshot)
             {
                 var key = user.Username.Trim().ToLowerInvariant();
-                if (!neonUserMap.ContainsKey(key))
+                if (!neonUserMap.TryGetValue(key, out var existing))
                 {
-                    neonDb.Users.Add(new User
+                    existing = new User
                     {
                         Username = user.Username,
                         PasswordHash = user.PasswordHash,
@@ -198,19 +208,18 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
                         Role = user.Role,
                         IsActive = user.IsActive,
                         CreatedAt = EnsureUtc(user.CreatedAt)
-                    });
+                    };
+                    neonDb.Users.Add(existing);
+                    neonUserMap[key] = existing;
                     pushedUsers++;
                 }
-                else
+                else if (EnsureUtc(user.CreatedAt) > EnsureUtc(existing.CreatedAt))
                 {
-                    var existing = await neonDb.Users.FirstOrDefaultAsync(u => u.Username.ToLower() == key, cancellationToken);
-                    if (existing != null && EnsureUtc(user.CreatedAt) > EnsureUtc(existing.CreatedAt))
-                    {
-                        existing.FullName = user.FullName;
-                        existing.PasswordHash = user.PasswordHash;
-                        existing.Role = user.Role;
-                        existing.IsActive = user.IsActive;
-                    }
+                    existing.FullName = user.FullName;
+                    existing.PasswordHash = user.PasswordHash;
+                    existing.Role = user.Role;
+                    existing.IsActive = user.IsActive;
+                    existing.CreatedAt = EnsureUtc(user.CreatedAt);
                 }
             }
 
@@ -218,8 +227,9 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
             await neonDb.SaveChangesAsync(cancellationToken);
 
             // 2. Sync Products (Bi-directional by Name)
-            var neonProducts = await neonDb.Products.AsNoTracking().ToListAsync(cancellationToken);
-            var localProducts = await localDb.Products.AsNoTracking().ToListAsync(cancellationToken);
+            var neonProducts = await neonDb.Products.ToListAsync(cancellationToken);
+            var localProducts = await localDb.Products.ToListAsync(cancellationToken);
+            var localProductsSnapshot = localProducts.ToArray();
 
             var localProdMap = localProducts
                 .GroupBy(p => p.Name.Trim().ToLowerInvariant())
@@ -232,53 +242,51 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
             foreach (var prod in neonProducts)
             {
                 var key = prod.Name.Trim().ToLowerInvariant();
-                if (!localProdMap.ContainsKey(key))
+                if (!localProdMap.TryGetValue(key, out var existing))
                 {
-                    localDb.Products.Add(new Product
+                    existing = new Product
                     {
                         Name = prod.Name,
                         Description = prod.Description,
                         ImagePath = prod.ImagePath,
                         IsActive = prod.IsActive,
                         CreatedAt = prod.CreatedAt
-                    });
+                    };
+                    localDb.Products.Add(existing);
+                    localProdMap[key] = existing;
                 }
-                else
+                else if (EnsureUtc(prod.CreatedAt) >= EnsureUtc(existing.CreatedAt))
                 {
-                    var existing = await localDb.Products.FirstOrDefaultAsync(p => p.Name.ToLower() == key, cancellationToken);
-                    if (existing != null && EnsureUtc(prod.CreatedAt) > EnsureUtc(existing.CreatedAt))
-                    {
-                        existing.Description = prod.Description;
-                        existing.ImagePath = prod.ImagePath;
-                        existing.IsActive = prod.IsActive;
-                    }
+                    existing.Description = prod.Description;
+                    existing.ImagePath = prod.ImagePath;
+                    existing.IsActive = prod.IsActive;
+                    existing.CreatedAt = EnsureUtc(prod.CreatedAt);
                 }
             }
 
-            foreach (var prod in localProducts)
+            foreach (var prod in localProductsSnapshot)
             {
                 var key = prod.Name.Trim().ToLowerInvariant();
-                if (!neonProdMap.ContainsKey(key))
+                if (!neonProdMap.TryGetValue(key, out var existing))
                 {
-                    neonDb.Products.Add(new Product
+                    existing = new Product
                     {
                         Name = prod.Name,
                         Description = prod.Description,
                         ImagePath = prod.ImagePath,
                         IsActive = prod.IsActive,
                         CreatedAt = EnsureUtc(prod.CreatedAt)
-                    });
+                    };
+                    neonDb.Products.Add(existing);
+                    neonProdMap[key] = existing;
                     pushedProducts++;
                 }
-                else
+                else if (EnsureUtc(prod.CreatedAt) > EnsureUtc(existing.CreatedAt))
                 {
-                    var existing = await neonDb.Products.FirstOrDefaultAsync(p => p.Name.ToLower() == key, cancellationToken);
-                    if (existing != null && EnsureUtc(prod.CreatedAt) > EnsureUtc(existing.CreatedAt))
-                    {
-                        existing.Description = prod.Description;
-                        existing.ImagePath = prod.ImagePath;
-                        existing.IsActive = prod.IsActive;
-                    }
+                    existing.Description = prod.Description;
+                    existing.ImagePath = prod.ImagePath;
+                    existing.IsActive = prod.IsActive;
+                    existing.CreatedAt = EnsureUtc(prod.CreatedAt);
                 }
             }
 
@@ -289,22 +297,30 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
             var neonProdIdMap = await neonDb.Products.AsNoTracking().ToDictionaryAsync(p => p.Name.Trim().ToLowerInvariant(), p => p.Id, cancellationToken);
             var localProdIdMap = await localDb.Products.AsNoTracking().ToDictionaryAsync(p => p.Name.Trim().ToLowerInvariant(), p => p.Id, cancellationToken);
 
-            var localVariants = await localDb.ProductVariants.Include(v => v.Product).AsNoTracking().ToListAsync(cancellationToken);
-            var neonVariants = await neonDb.ProductVariants.Include(v => v.Product).AsNoTracking().ToListAsync(cancellationToken);
+            var localVariants = await localDb.ProductVariants.Include(v => v.Product).ToListAsync(cancellationToken);
+            var neonVariants = await neonDb.ProductVariants.Include(v => v.Product).ToListAsync(cancellationToken);
+            var localVariantsSnapshot = localVariants.ToArray();
+            var neonVariantsSnapshot = neonVariants.ToArray();
+            var localVariantMap = localVariants
+                .Where(v => v.Product != null)
+                .GroupBy(v => VariantKey(v.Product.Name, v.Name))
+                .ToDictionary(g => g.Key, g => g.First());
+            var neonVariantMap = neonVariants
+                .Where(v => v.Product != null)
+                .GroupBy(v => VariantKey(v.Product.Name, v.Name))
+                .ToDictionary(g => g.Key, g => g.First());
 
-            foreach (var v in localVariants)
+            foreach (var v in localVariantsSnapshot)
             {
                 if (v.Product == null) continue;
                 var prodNameKey = v.Product.Name.Trim().ToLowerInvariant();
                 if (!neonProdIdMap.TryGetValue(prodNameKey, out var neonProductId)) continue;
 
-                var varKey = v.Name.Trim().ToLowerInvariant();
-                var existing = await neonDb.ProductVariants
-                    .FirstOrDefaultAsync(nv => nv.ProductId == neonProductId && nv.Name.ToLower() == varKey, cancellationToken);
+                var key = VariantKey(v.Product.Name, v.Name);
 
-                if (existing == null)
+                if (!neonVariantMap.TryGetValue(key, out var existing))
                 {
-                    neonDb.ProductVariants.Add(new ProductVariant
+                    existing = new ProductVariant
                     {
                         ProductId = neonProductId,
                         Name = v.Name,
@@ -315,7 +331,9 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
                         ImagePath = v.ImagePath,
                         IsActive = v.IsActive,
                         CreatedAt = EnsureUtc(v.CreatedAt)
-                    });
+                    };
+                    neonDb.ProductVariants.Add(existing);
+                    neonVariantMap[key] = existing;
                 }
                 else if (EnsureUtc(v.CreatedAt) > EnsureUtc(existing.CreatedAt))
                 {
@@ -325,22 +343,21 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
                     existing.Material = v.Material;
                     existing.ImagePath = v.ImagePath;
                     existing.IsActive = v.IsActive;
+                    existing.CreatedAt = EnsureUtc(v.CreatedAt);
                 }
             }
 
-            foreach (var v in neonVariants)
+            foreach (var v in neonVariantsSnapshot)
             {
                 if (v.Product == null) continue;
                 var prodNameKey = v.Product.Name.Trim().ToLowerInvariant();
                 if (!localProdIdMap.TryGetValue(prodNameKey, out var localProductId)) continue;
 
-                var varKey = v.Name.Trim().ToLowerInvariant();
-                var existing = await localDb.ProductVariants
-                    .FirstOrDefaultAsync(lv => lv.ProductId == localProductId && lv.Name.ToLower() == varKey, cancellationToken);
+                var key = VariantKey(v.Product.Name, v.Name);
 
-                if (existing == null)
+                if (!localVariantMap.TryGetValue(key, out var existing))
                 {
-                    localDb.ProductVariants.Add(new ProductVariant
+                    existing = new ProductVariant
                     {
                         ProductId = localProductId,
                         Name = v.Name,
@@ -351,9 +368,11 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
                         ImagePath = v.ImagePath,
                         IsActive = v.IsActive,
                         CreatedAt = v.CreatedAt
-                    });
+                    };
+                    localDb.ProductVariants.Add(existing);
+                    localVariantMap[key] = existing;
                 }
-                else if (EnsureUtc(v.CreatedAt) > EnsureUtc(existing.CreatedAt))
+                else if (EnsureUtc(v.CreatedAt) >= EnsureUtc(existing.CreatedAt))
                 {
                     existing.Size = v.Size;
                     existing.Color = v.Color;
@@ -361,6 +380,7 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
                     existing.Material = v.Material;
                     existing.ImagePath = v.ImagePath;
                     existing.IsActive = v.IsActive;
+                    existing.CreatedAt = EnsureUtc(v.CreatedAt);
                 }
             }
 
@@ -419,12 +439,10 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
             var localUsersWithPermissions = await localDb.Users
                 .Include(u => u.UserPermissions)
                 .ThenInclude(up => up.Permission)
-                .AsNoTracking()
                 .ToListAsync(cancellationToken);
             var neonUsersWithPermissions = await neonDb.Users
                 .Include(u => u.UserPermissions)
                 .ThenInclude(up => up.Permission)
-                .AsNoTracking()
                 .ToListAsync(cancellationToken);
 
             var localUserMapByName = localUsersWithPermissions
@@ -442,30 +460,47 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
             {
                 var localUser = localUserMapByName[userKey];
                 var neonUser = neonUserMapByName[userKey];
-                var localIsNewer = EnsureUtc(localUser.CreatedAt) >= EnsureUtc(neonUser.CreatedAt);
+                var localIsNewer = EnsureUtc(localUser.CreatedAt) > EnsureUtc(neonUser.CreatedAt);
                 var sourceUser = localIsNewer ? localUser : neonUser;
                 var sourcePermissions = sourceUser.UserPermissions
                     .Select(up => up.Permission.Name.Trim().ToLowerInvariant())
                     .ToHashSet();
+                var targetUserWithPermissions = localIsNewer ? neonUser : localUser;
+                var targetPermissions = targetUserWithPermissions.UserPermissions
+                    .Select(up => up.Permission.Name.Trim().ToLowerInvariant())
+                    .ToHashSet();
 
                 var targetDb = localIsNewer ? neonDb : localDb;
-                var targetUserId = localIsNewer ? neonUser.Id : localUser.Id;
-                targetDb.UserPermissions.RemoveRange(
-                    targetDb.UserPermissions.Where(up => up.UserId == targetUserId));
-
-                var targetPermissionMap = localIsNewer
-                    ? neonPermissionMapByName
-                    : localPermissionMapByName;
-
-                foreach (var permissionKey in sourcePermissions)
+                if (EnsureUtc(targetUserWithPermissions.CreatedAt) != EnsureUtc(sourceUser.CreatedAt))
                 {
-                    if (targetPermissionMap.TryGetValue(permissionKey, out var targetPermission))
+                    targetUserWithPermissions.CreatedAt = EnsureUtc(sourceUser.CreatedAt);
+                }
+
+                if (!sourcePermissions.SetEquals(targetPermissions))
+                {
+                    var targetPermissionMap = localIsNewer
+                        ? neonPermissionMapByName
+                        : localPermissionMapByName;
+
+                    var existingAssignments = targetUserWithPermissions.UserPermissions.ToList();
+                    foreach (var assignment in existingAssignments)
                     {
-                        targetDb.UserPermissions.Add(new UserPermission
+                        var permissionKey = assignment.Permission.Name.Trim().ToLowerInvariant();
+                        if (!sourcePermissions.Contains(permissionKey))
+                            targetDb.UserPermissions.Remove(assignment);
+                    }
+
+                    foreach (var permissionKey in sourcePermissions)
+                    {
+                        if (!targetPermissions.Contains(permissionKey) &&
+                            targetPermissionMap.TryGetValue(permissionKey, out var targetPermission))
                         {
-                            UserId = targetUserId,
-                            PermissionId = targetPermission.Id
-                        });
+                            targetDb.UserPermissions.Add(new UserPermission
+                            {
+                                UserId = targetUserWithPermissions.Id,
+                                PermissionId = targetPermission.Id
+                            });
+                        }
                     }
                 }
             }
@@ -480,30 +515,36 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
                 .Include(t => t.User)
                 .AsNoTracking()
                 .ToListAsync(cancellationToken);
-
-            var neonUserUsernameMap = await neonDb.Users.AsNoTracking().ToDictionaryAsync(u => u.Username.Trim().ToLowerInvariant(), u => u.Id, cancellationToken);
-            var neonVarList = await neonDb.ProductVariants.Include(v => v.Product).AsNoTracking().ToListAsync(cancellationToken);
-            var localUserUsernameMap = await localDb.Users.AsNoTracking().ToDictionaryAsync(u => u.Username.Trim().ToLowerInvariant(), u => u.Id, cancellationToken);
-            var localVarList = await localDb.ProductVariants.Include(v => v.Product).AsNoTracking().ToListAsync(cancellationToken);
+            var neonTxs = await neonDb.StockTransactions
+                .Include(t => t.ProductVariant)
+                    .ThenInclude(pv => pv.Product)
+                .Include(t => t.User)
+                .AsNoTracking()
+                .ToListAsync(cancellationToken);
+            var neonUserUsernameMap = neonUserMap.ToDictionary(kv => kv.Key, kv => kv.Value.Id);
+            var localUserUsernameMap = localUserMap.ToDictionary(kv => kv.Key, kv => kv.Value.Id);
+            var neonTransactionKeys = neonTxs
+                .Select(TransactionKey)
+                .Where(key => key.Length > 0)
+                .ToHashSet(StringComparer.Ordinal);
+            var localTransactionKeys = localTxs
+                .Select(TransactionKey)
+                .Where(key => key.Length > 0)
+                .ToHashSet(StringComparer.Ordinal);
 
             foreach (var tx in localTxs)
             {
                 if (tx.ProductVariant?.Product == null || tx.User == null) continue;
 
-                var prodNameKey = tx.ProductVariant.Product.Name.Trim().ToLowerInvariant();
-                var varNameKey = tx.ProductVariant.Name.Trim().ToLowerInvariant();
                 var userKey = tx.User.Username.Trim().ToLowerInvariant();
-
-                var targetNeonVariant = neonVarList.FirstOrDefault(v => v.Product?.Name.Trim().ToLowerInvariant() == prodNameKey && v.Name.Trim().ToLowerInvariant() == varNameKey);
-                if (targetNeonVariant == null) continue;
+                var variantKey = VariantKey(tx.ProductVariant.Product.Name, tx.ProductVariant.Name);
+                if (!neonVariantMap.TryGetValue(variantKey, out var targetNeonVariant)) continue;
 
                 if (!neonUserUsernameMap.TryGetValue(userKey, out var neonUserId)) continue;
 
                 var txUtcTime = EnsureUtc(tx.CreatedAt);
-                var existing = await neonDb.StockTransactions
-                    .FirstOrDefaultAsync(nt => nt.ProductVariantId == targetNeonVariant.Id && nt.CreatedAt == txUtcTime && nt.Quantity == tx.Quantity && nt.Type == tx.Type, cancellationToken);
-
-                if (existing == null)
+                var transactionKey = TransactionKey(tx);
+                if (neonTransactionKeys.Add(transactionKey))
                 {
                     neonDb.StockTransactions.Add(new StockTransaction
                     {
@@ -517,36 +558,18 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
                 }
             }
 
-            var neonTxs = await neonDb.StockTransactions
-                .Include(t => t.ProductVariant)
-                    .ThenInclude(pv => pv.Product)
-                .Include(t => t.User)
-                .AsNoTracking()
-                .ToListAsync(cancellationToken);
-
             foreach (var tx in neonTxs)
             {
                 if (tx.ProductVariant?.Product == null || tx.User == null) continue;
 
-                var prodNameKey = tx.ProductVariant.Product.Name.Trim().ToLowerInvariant();
-                var varNameKey = tx.ProductVariant.Name.Trim().ToLowerInvariant();
                 var userKey = tx.User.Username.Trim().ToLowerInvariant();
-                var targetLocalVariant = localVarList.FirstOrDefault(v =>
-                    v.Product?.Name.Trim().ToLowerInvariant() == prodNameKey &&
-                    v.Name.Trim().ToLowerInvariant() == varNameKey);
+                var variantKey = VariantKey(tx.ProductVariant.Product.Name, tx.ProductVariant.Name);
+                if (!localVariantMap.TryGetValue(variantKey, out var targetLocalVariant)) continue;
 
-                if (targetLocalVariant == null || !localUserUsernameMap.TryGetValue(userKey, out var localUserId)) continue;
+                if (!localUserUsernameMap.TryGetValue(userKey, out var localUserId)) continue;
 
                 var txUtcTime = EnsureUtc(tx.CreatedAt);
-                var exists = await localDb.StockTransactions.AnyAsync(lt =>
-                    lt.ProductVariantId == targetLocalVariant.Id &&
-                    lt.UserId == localUserId &&
-                    lt.CreatedAt == txUtcTime &&
-                    lt.Quantity == tx.Quantity &&
-                    lt.Type == tx.Type,
-                    cancellationToken);
-
-                if (!exists)
+                if (localTransactionKeys.Add(TransactionKey(tx)))
                 {
                     localDb.StockTransactions.Add(new StockTransaction
                     {
@@ -569,6 +592,10 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
         catch (Exception ex)
         {
             _logger.LogError(ex, "Database background sync attempt encountered an error: {Message}", ex.Message);
+        }
+        finally
+        {
+            _syncGate.Release();
         }
     }
 
@@ -638,31 +665,49 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
             .Select(x => x.OrderByDescending(t => t.DeletedAt).First())
             .ToList();
 
+        var localUsers = await localDb.Users.ToListAsync(cancellationToken);
+        var neonUsers = await neonDb.Users.ToListAsync(cancellationToken);
+        var localProducts = await localDb.Products.ToListAsync(cancellationToken);
+        var neonProducts = await neonDb.Products.ToListAsync(cancellationToken);
+        var localVariants = await localDb.ProductVariants.ToListAsync(cancellationToken);
+        var neonVariants = await neonDb.ProductVariants.ToListAsync(cancellationToken);
+
         foreach (var tombstone in allTombstones)
         {
+            var deletedAt = EnsureUtc(tombstone.DeletedAt);
             switch (tombstone.EntityType)
             {
                 case "User":
-                    localDb.Users.RemoveRange(localDb.Users.Where(x => x.Username.ToLower() == tombstone.RecordKey));
-                    neonDb.Users.RemoveRange(neonDb.Users.Where(x => x.Username.ToLower() == tombstone.RecordKey));
+                    localDb.Users.RemoveRange(localUsers.Where(x =>
+                        x.Username.Trim().ToLowerInvariant() == tombstone.RecordKey && x.CreatedAt <= deletedAt));
+                    neonDb.Users.RemoveRange(neonUsers.Where(x =>
+                        x.Username.Trim().ToLowerInvariant() == tombstone.RecordKey && x.CreatedAt <= deletedAt));
                     break;
                 case "Product":
-                    localDb.Products.RemoveRange(localDb.Products.Where(x => x.Name.ToLower() == tombstone.RecordKey));
-                    neonDb.Products.RemoveRange(neonDb.Products.Where(x => x.Name.ToLower() == tombstone.RecordKey));
+                    localDb.Products.RemoveRange(localProducts.Where(x =>
+                        x.Name.Trim().ToLowerInvariant() == tombstone.RecordKey && x.CreatedAt <= deletedAt));
+                    neonDb.Products.RemoveRange(neonProducts.Where(x =>
+                        x.Name.Trim().ToLowerInvariant() == tombstone.RecordKey && x.CreatedAt <= deletedAt));
                     break;
                 case "ProductVariant":
                     var separator = tombstone.RecordKey.IndexOf('|');
                     if (separator <= 0) break;
                     var productKey = tombstone.RecordKey[..separator];
                     var variantKey = tombstone.RecordKey[(separator + 1)..];
-                    var localProductIds = localDb.Products
-                        .Where(x => x.Name.ToLower() == productKey)
+                    var localProductIds = localProducts
+                        .Where(x => x.Name.Trim().ToLowerInvariant() == productKey)
                         .Select(x => x.Id);
-                    var neonProductIds = neonDb.Products
-                        .Where(x => x.Name.ToLower() == productKey)
+                    var neonProductIds = neonProducts
+                        .Where(x => x.Name.Trim().ToLowerInvariant() == productKey)
                         .Select(x => x.Id);
-                    localDb.ProductVariants.RemoveRange(localDb.ProductVariants.Where(x => localProductIds.Contains(x.ProductId) && x.Name.ToLower() == variantKey));
-                    neonDb.ProductVariants.RemoveRange(neonDb.ProductVariants.Where(x => neonProductIds.Contains(x.ProductId) && x.Name.ToLower() == variantKey));
+                    localDb.ProductVariants.RemoveRange(localVariants.Where(x =>
+                        localProductIds.Contains(x.ProductId) &&
+                        x.Name.Trim().ToLowerInvariant() == variantKey &&
+                        x.CreatedAt <= deletedAt));
+                    neonDb.ProductVariants.RemoveRange(neonVariants.Where(x =>
+                        neonProductIds.Contains(x.ProductId) &&
+                        x.Name.Trim().ToLowerInvariant() == variantKey &&
+                        x.CreatedAt <= deletedAt));
                     break;
             }
         }
@@ -675,6 +720,23 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
     {
         if (dt == DateTime.MinValue) return DateTime.UtcNow;
         return dt.Kind == DateTimeKind.Utc ? dt : DateTime.SpecifyKind(dt, DateTimeKind.Utc);
+    }
+
+    private static string VariantKey(string productName, string variantName) =>
+        $"{productName.Trim().ToLowerInvariant()}|{variantName.Trim().ToLowerInvariant()}";
+
+    private static string TransactionKey(StockTransaction transaction)
+    {
+        if (transaction.ProductVariant?.Product == null || transaction.User == null)
+            return string.Empty;
+
+        return string.Join('\u001f',
+            VariantKey(transaction.ProductVariant.Product.Name, transaction.ProductVariant.Name),
+            transaction.User.Username.Trim().ToLowerInvariant(),
+            ((int)transaction.Type).ToString(CultureInfo.InvariantCulture),
+            transaction.Quantity.ToString(CultureInfo.InvariantCulture),
+            EnsureUtc(transaction.CreatedAt).Ticks.ToString(CultureInfo.InvariantCulture),
+            transaction.Notes ?? string.Empty);
     }
 }
 

@@ -21,7 +21,8 @@
             <Button x:Name="RefreshButton"
                     Content="⟳  تحديث"
                     Style="{StaticResource SecondaryButton}"
-                    Width="120"
+                    MinWidth="132"
+                    Padding="14,0"
                     Height="40"
                     HorizontalAlignment="Right"
                     Click="RefreshButton_Click"/>
@@ -122,21 +123,24 @@
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button x:Name="InButton"
                         Content="+ وارد"
-                        Width="118"
+                        MinWidth="136"
+                        Padding="16,0"
                         Height="40"
-                        Margin="0,0,8,0"
+                        Margin="0,0,10,0"
                         Click="InButton_Click"/>
                 <Button x:Name="OutButton"
                         Content="- صادر"
                         Style="{StaticResource DangerButton}"
-                        Width="118"
+                        MinWidth="136"
+                        Padding="16,0"
                         Height="40"
-                        Margin="0,0,8,0"
+                        Margin="0,0,10,0"
                         Click="OutButton_Click"/>
                 <Button x:Name="HistoryButton"
                         Content="سجل الحركات"
                         Style="{StaticResource SecondaryButton}"
-                        Width="130"
+                        MinWidth="185"
+                        Padding="16,0"
                         Height="40"
                         Click="HistoryButton_Click"/>
             </StackPanel>
