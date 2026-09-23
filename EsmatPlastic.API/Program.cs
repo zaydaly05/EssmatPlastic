@@ -50,7 +50,7 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 // ============================================================
-// LOCAL DATABASE WITH OPTIONAL NEON BACKUP
+// NEON PRIMARY DATABASE WITH LOCAL SQLITE OFFLINE MIRROR
 // ============================================================
 
 var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL")
@@ -72,7 +72,7 @@ var localConnectionString =
     ?? "Data Source=esmatplastic_local.db";
 
 Console.WriteLine("========================================");
-Console.WriteLine("OPTION B: LOCAL DATABASE WITH OPTIONAL NEON BACKUP");
+Console.WriteLine("NEON PRIMARY DATABASE WITH LOCAL SQLITE MIRROR");
 Console.WriteLine("NEON BACKUP HOST: " +
     (string.IsNullOrWhiteSpace(databaseUrl) ? "None (offline mode)" : GetSafeHost(databaseUrl)));
 Console.WriteLine("========================================");
@@ -310,7 +310,7 @@ catch (Exception ex)
 Console.WriteLine("");
 Console.WriteLine("========================================");
 Console.WriteLine(" ESMAT PLASTIC API");
-Console.WriteLine(" DATABASE: LOCAL WITH OPTIONAL NEON BACKUP");
+Console.WriteLine(" DATABASE: NEON PRIMARY / LOCAL SQLITE OFFLINE MIRROR");
 Console.WriteLine(" API STARTING...");
 Console.WriteLine("========================================");
 Console.WriteLine("");

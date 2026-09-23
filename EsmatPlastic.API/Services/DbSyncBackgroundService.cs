@@ -46,7 +46,7 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("Database Sync Background Service started (Option B - Local Network + Neon Backup).");
+        _logger.LogInformation("Database synchronization started (Neon primary, local SQLite offline mirror; 3-second target interval).");
 
         // Ensure local primary schema is initialized
         await EnsureLocalSchemaCreatedAsync(stoppingToken);
@@ -117,6 +117,7 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
     public async Task PerformDatabaseSyncAsync(CancellationToken cancellationToken = default)
     {
         await _syncGate.WaitAsync(cancellationToken);
+        var syncStartedAt = Stopwatch.GetTimestamp();
         try
         {
             var neonRaw = _connectionManager.NeonConnectionString;
@@ -159,10 +160,14 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
             int pushedUsers = 0;
             int pulledUsers = 0;
             int pushedProducts = 0;
+            int pulledProducts = 0;
+            int pushedVariants = 0;
+            int pulledVariants = 0;
 
             // 1. Sync Users (Bi-directional by Username)
-            var neonUsers = await neonDb.Users.ToListAsync(cancellationToken);
-            var localUsers = await localDb.Users.ToListAsync(cancellationToken);
+            var (neonUsers, localUsers) = await LoadPairAsync(
+                neonDb.Users.ToListAsync(cancellationToken),
+                localDb.Users.ToListAsync(cancellationToken));
             var localUsersSnapshot = localUsers.ToArray();
 
             var localUserMap = localUsers
@@ -233,8 +238,9 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
             await neonDb.SaveChangesAsync(cancellationToken);
 
             // 2. Sync Products (Bi-directional by Name)
-            var neonProducts = await neonDb.Products.ToListAsync(cancellationToken);
-            var localProducts = await localDb.Products.ToListAsync(cancellationToken);
+            var (neonProducts, localProducts) = await LoadPairAsync(
+                neonDb.Products.ToListAsync(cancellationToken),
+                localDb.Products.ToListAsync(cancellationToken));
             var localProductsSnapshot = localProducts.ToArray();
 
             var localProdMap = localProducts
@@ -260,6 +266,7 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
                     };
                     localDb.Products.Add(existing);
                     localProdMap[key] = existing;
+                    pulledProducts++;
                 }
                 else if (EnsureUtc(prod.CreatedAt) >= EnsureUtc(existing.CreatedAt))
                 {
@@ -300,11 +307,13 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
             await neonDb.SaveChangesAsync(cancellationToken);
 
             // 3. Sync Product Variants with Natural FK Mapping
-            var neonProdIdMap = await neonDb.Products.AsNoTracking().ToDictionaryAsync(p => p.Name.Trim().ToLowerInvariant(), p => p.Id, cancellationToken);
-            var localProdIdMap = await localDb.Products.AsNoTracking().ToDictionaryAsync(p => p.Name.Trim().ToLowerInvariant(), p => p.Id, cancellationToken);
+            // Product maps already include newly inserted rows; SaveChanges above assigned their IDs.
+            var neonProdIdMap = neonProdMap.ToDictionary(kv => kv.Key, kv => kv.Value.Id);
+            var localProdIdMap = localProdMap.ToDictionary(kv => kv.Key, kv => kv.Value.Id);
 
-            var localVariants = await localDb.ProductVariants.Include(v => v.Product).ToListAsync(cancellationToken);
-            var neonVariants = await neonDb.ProductVariants.Include(v => v.Product).ToListAsync(cancellationToken);
+            var (neonVariants, localVariants) = await LoadPairAsync(
+                neonDb.ProductVariants.Include(v => v.Product).ToListAsync(cancellationToken),
+                localDb.ProductVariants.Include(v => v.Product).ToListAsync(cancellationToken));
             var localVariantsSnapshot = localVariants.ToArray();
             var neonVariantsSnapshot = neonVariants.ToArray();
             var localVariantMap = localVariants
@@ -340,6 +349,7 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
                     };
                     neonDb.ProductVariants.Add(existing);
                     neonVariantMap[key] = existing;
+                    pushedVariants++;
                 }
                 else if (EnsureUtc(v.CreatedAt) > EnsureUtc(existing.CreatedAt))
                 {
@@ -377,6 +387,7 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
                     };
                     localDb.ProductVariants.Add(existing);
                     localVariantMap[key] = existing;
+                    pulledVariants++;
                 }
                 else if (EnsureUtc(v.CreatedAt) >= EnsureUtc(existing.CreatedAt))
                 {
@@ -394,12 +405,9 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
             await neonDb.SaveChangesAsync(cancellationToken);
 
             // 4. Sync permissions and user-permission assignments by stable names.
-            var localPermissions = await localDb.Permissions
-                .AsNoTracking()
-                .ToListAsync(cancellationToken);
-            var neonPermissions = await neonDb.Permissions
-                .AsNoTracking()
-                .ToListAsync(cancellationToken);
+            var (neonPermissions, localPermissions) = await LoadPairAsync(
+                neonDb.Permissions.ToListAsync(cancellationToken),
+                localDb.Permissions.ToListAsync(cancellationToken));
 
             var localPermissionMap = localPermissions
                 .GroupBy(p => p.Name.Trim().ToLowerInvariant())
@@ -413,12 +421,14 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
                 var key = permission.Name.Trim().ToLowerInvariant();
                 if (!localPermissionMap.ContainsKey(key))
                 {
-                    localDb.Permissions.Add(new Permission
+                    var addedPermission = new Permission
                     {
                         Name = permission.Name,
                         Description = permission.Description,
                         IsActive = permission.IsActive
-                    });
+                    };
+                    localDb.Permissions.Add(addedPermission);
+                    localPermissionMap[key] = addedPermission;
                 }
             }
 
@@ -427,38 +437,32 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
                 var key = permission.Name.Trim().ToLowerInvariant();
                 if (!neonPermissionMap.ContainsKey(key))
                 {
-                    neonDb.Permissions.Add(new Permission
+                    var addedPermission = new Permission
                     {
                         Name = permission.Name,
                         Description = permission.Description,
                         IsActive = permission.IsActive
-                    });
+                    };
+                    neonDb.Permissions.Add(addedPermission);
+                    neonPermissionMap[key] = addedPermission;
                 }
             }
 
             await localDb.SaveChangesAsync(cancellationToken);
             await neonDb.SaveChangesAsync(cancellationToken);
 
-            localPermissions = await localDb.Permissions.AsNoTracking().ToListAsync(cancellationToken);
-            neonPermissions = await neonDb.Permissions.AsNoTracking().ToListAsync(cancellationToken);
-
-            var localUsersWithPermissions = await localDb.Users
-                .Include(u => u.UserPermissions)
-                .ThenInclude(up => up.Permission)
-                .ToListAsync(cancellationToken);
-            var neonUsersWithPermissions = await neonDb.Users
-                .Include(u => u.UserPermissions)
-                .ThenInclude(up => up.Permission)
-                .ToListAsync(cancellationToken);
+            var (neonUsersWithPermissions, localUsersWithPermissions) = await LoadPairAsync(
+                neonDb.Users.Include(u => u.UserPermissions).ThenInclude(up => up.Permission)
+                    .ToListAsync(cancellationToken),
+                localDb.Users.Include(u => u.UserPermissions).ThenInclude(up => up.Permission)
+                    .ToListAsync(cancellationToken));
 
             var localUserMapByName = localUsersWithPermissions
                 .ToDictionary(u => u.Username.Trim().ToLowerInvariant());
             var neonUserMapByName = neonUsersWithPermissions
                 .ToDictionary(u => u.Username.Trim().ToLowerInvariant());
-            var localPermissionMapByName = localPermissions
-                .ToDictionary(p => p.Name.Trim().ToLowerInvariant());
-            var neonPermissionMapByName = neonPermissions
-                .ToDictionary(p => p.Name.Trim().ToLowerInvariant());
+            var localPermissionMapByName = localPermissionMap;
+            var neonPermissionMapByName = neonPermissionMap;
 
             // The newer user version owns its permission assignment set. This also
             // propagates removals instead of merging them back into both databases.
@@ -515,18 +519,11 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
             await neonDb.SaveChangesAsync(cancellationToken);
 
             // 5. Sync Stock Transactions with Natural FK Mapping via ProductVariant & User
-            var localTxs = await localDb.StockTransactions
-                .Include(t => t.ProductVariant)
-                    .ThenInclude(pv => pv.Product)
-                .Include(t => t.User)
-                .AsNoTracking()
-                .ToListAsync(cancellationToken);
-            var neonTxs = await neonDb.StockTransactions
-                .Include(t => t.ProductVariant)
-                    .ThenInclude(pv => pv.Product)
-                .Include(t => t.User)
-                .AsNoTracking()
-                .ToListAsync(cancellationToken);
+            var (neonTxs, localTxs) = await LoadPairAsync(
+                neonDb.StockTransactions.Include(t => t.ProductVariant).ThenInclude(pv => pv.Product)
+                    .Include(t => t.User).AsNoTracking().ToListAsync(cancellationToken),
+                localDb.StockTransactions.Include(t => t.ProductVariant).ThenInclude(pv => pv.Product)
+                    .Include(t => t.User).AsNoTracking().ToListAsync(cancellationToken));
             var neonUserUsernameMap = neonUserMap.ToDictionary(kv => kv.Key, kv => kv.Value.Id);
             var localUserUsernameMap = localUserMap.ToDictionary(kv => kv.Key, kv => kv.Value.Id);
             var neonTransactionKeys = neonTxs
@@ -593,7 +590,15 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
             await localDb.SaveChangesAsync(cancellationToken);
 
             _connectionManager.UpdateLastSyncTime();
-            _logger.LogInformation("Database sync cycle finished: Pushed {PushedUsers} users, {PushedProducts} products to Neon Cloud.", pushedUsers, pushedProducts);
+            _logger.LogInformation(
+                "Database sync cycle completed in {DurationMs} ms. Neon to local: {PulledUsers} users, {PulledProducts} products, {PulledVariants} variants. Local to Neon: {PushedUsers} users, {PushedProducts} products, {PushedVariants} variants.",
+                Stopwatch.GetElapsedTime(syncStartedAt).TotalMilliseconds,
+                pulledUsers,
+                pulledProducts,
+                pulledVariants,
+                pushedUsers,
+                pushedProducts,
+                pushedVariants);
         }
         catch (Exception ex)
         {
@@ -726,6 +731,12 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
     {
         if (dt == DateTime.MinValue) return DateTime.UtcNow;
         return dt.Kind == DateTimeKind.Utc ? dt : DateTime.SpecifyKind(dt, DateTimeKind.Utc);
+    }
+
+    private static async Task<(T Left, T Right)> LoadPairAsync<T>(Task<T> leftTask, Task<T> rightTask)
+    {
+        await Task.WhenAll(leftTask, rightTask);
+        return (await leftTask, await rightTask);
     }
 
     private static string VariantKey(string productName, string variantName) =>
