@@ -60,23 +60,6 @@ public class ApiClient
         }
     }
 
-    public async Task<bool> TestConnectionAsync(string url)
-    {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(url)) return false;
-            if (!url.EndsWith("/")) url += "/";
-
-            using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(3) };
-            var response = await client.GetAsync(new Uri(new Uri(url), "api/Health/status"));
-            return response.IsSuccessStatusCode || response.StatusCode == System.Net.HttpStatusCode.Unauthorized;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
     public async Task<HealthStatusResponse?> GetHealthStatusAsync()
     {
         try
@@ -101,6 +84,26 @@ public class ApiClient
             IsNeonBackupOnline = false,
             PrimaryDatabase = "Local Offline Cache"
         };
+    }
+
+    public async Task<LatestUpdateResponse?> GetLatestUpdateAsync()
+    {
+        try
+        {
+            using var response = await _httpClient.GetAsync("api/updates/latest");
+            if (!response.IsSuccessStatusCode ||
+                response.StatusCode == System.Net.HttpStatusCode.NoContent)
+            {
+                return null;
+            }
+
+            return await response.Content.ReadFromJsonAsync<LatestUpdateResponse>();
+        }
+        catch
+        {
+            // Update checks must never block normal app startup.
+            return null;
+        }
     }
 
     public async Task<TResponse?> GetAsync<TResponse>(
@@ -203,4 +206,11 @@ public class HealthStatusResponse
     public bool IsNeonBackupOnline { get; set; } = false;
     public string PrimaryDatabase { get; set; } = "";
     public DateTime? LastSyncUtc { get; set; }
+}
+
+public sealed class LatestUpdateResponse
+{
+    public string Version { get; set; } = string.Empty;
+    public string DownloadUrl { get; set; } = string.Empty;
+    public DateTime PublishedAt { get; set; }
 }

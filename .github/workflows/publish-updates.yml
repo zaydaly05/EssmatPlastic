@@ -1,0 +1,78 @@
+name: Publish desktop updates
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    env:
+      NEON_DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Install .NET 9 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Publish desktop and local API
+        shell: pwsh
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:NEON_DATABASE_URL)) {
+            throw 'Configure NEON_DATABASE_URL in the repository Actions secrets before publishing releases.'
+          }
+
+          $publishDirectory = Join-Path $env:RUNNER_TEMP 'esmatplastic-publish'
+          New-Item -ItemType Directory -Path $publishDirectory -Force | Out-Null
+          $version = "1.1.$env:GITHUB_RUN_NUMBER"
+          $assemblyVersion = "$version.0"
+
+          dotnet publish EsmatPlastic.Desktop/EsmatPlastic.Desktop.csproj `
+            --configuration Release --runtime win-x64 --self-contained true `
+            --output $publishDirectory `
+            "-p:Version=$version" "-p:AssemblyVersion=$assemblyVersion" "-p:FileVersion=$assemblyVersion"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+          dotnet publish EsmatPlastic.API/EsmatPlastic.API.csproj `
+            --configuration Release --runtime win-x64 --self-contained true `
+            --output $publishDirectory `
+            "-p:Version=$version" "-p:AssemblyVersion=$assemblyVersion" "-p:FileVersion=$assemblyVersion"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+          # Per-PC API settings stay local and must never be distributed in update archives.
+          Remove-Item (Join-Path $publishDirectory 'appsettings.json') -Force -ErrorAction SilentlyContinue
+          Remove-Item (Join-Path $publishDirectory 'appsettings.Development.json') -Force -ErrorAction SilentlyContinue
+          if ((Test-Path (Join-Path $publishDirectory 'appsettings.json')) -or
+              (Test-Path (Join-Path $publishDirectory 'appsettings.Development.json'))) {
+            throw 'API configuration files must not be included in release archives.'
+          }
+
+          $archive = Join-Path $env:RUNNER_TEMP 'EsmatPlastic-win-x64.zip'
+          Compress-Archive -Path (Join-Path $publishDirectory '*') -DestinationPath $archive -Force
+          "APP_VERSION=$version" >> $env:GITHUB_ENV
+          "APP_ARCHIVE=$archive" >> $env:GITHUB_ENV
+
+      - name: Publish downloadable release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v$env:APP_VERSION" $env:APP_ARCHIVE `
+            --repo $env:GITHUB_REPOSITORY `
+            --title "Esmat Plastic $env:APP_VERSION" `
+            --generate-notes --latest
+
+      - name: Store latest update in Neon
+        shell: pwsh
+        run: |
+          $downloadUrl = "https://github.com/$env:GITHUB_REPOSITORY/releases/download/v$env:APP_VERSION/EsmatPlastic-win-x64.zip"
+          dotnet run --project EsmatPlastic.UpdatePublisher/EsmatPlastic.UpdatePublisher.csproj `
+            --configuration Release -- "$env:APP_VERSION" $downloadUrl
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
