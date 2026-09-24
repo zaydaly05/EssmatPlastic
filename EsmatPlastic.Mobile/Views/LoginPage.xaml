@@ -7,13 +7,13 @@
 
         <Image Source="logo.png" HeightRequest="120" WidthRequest="120" HorizontalOptions="Center" />
 
-        <TextBlock Text="إسمت بلاستيك"
+        <Label Text="إسمت بلاستيك"
                    FontSize="32"
                    FontAttributes="Bold"
                    HorizontalOptions="Center"
                    TextColor="#1E293B"/>
 
-        <TextBlock Text="تسجيل الدخول"
+        <Label Text="تسجيل الدخول"
                    FontSize="18"
                    HorizontalOptions="Center"
                    TextColor="#64748B"/>

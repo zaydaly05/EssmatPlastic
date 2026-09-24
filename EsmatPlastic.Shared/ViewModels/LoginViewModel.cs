@@ -1,14 +1,18 @@
 using EsmatPlastic.Shared.Services;
 using EsmatPlastic.Shared.Models.Auth;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
-namespace EsmatPlastic.Mobile.ViewModels;
+namespace EsmatPlastic.Shared.ViewModels;
 
-public class LoginViewModel : BindableObject
+public class LoginViewModel : INotifyPropertyChanged
 {
     private readonly ApiClient _apiClient;
     private string _username;
     private string _password;
     private string _statusMessage;
+
+    public event PropertyChangedEventHandler PropertyChanged;
 
     public string Username
     {
@@ -63,5 +67,10 @@ public class LoginViewModel : BindableObject
             StatusMessage = "خطأ في الاتصال بالخادم: " + ex.Message;
             return false;
         }
+    }
+
+    protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }

@@ -1,0 +1,9 @@
+{
+    "maui.androidSdkPath": "C:\Users\Dell\AppData\Local\Android\Sdk",
+    "maui.androidNdkPath": "C:\Users\Dell\AppData\Local\Android\Sdk\ndk",
+    "dotnet.dotnetPath": "C:\Program Files\dotnet",
+    "terminal.integrated.env.windows": {
+        "ANDROID_HOME": "C:\Users\Dell\AppData\Local\Android\Sdk",
+        "PATH": "C:\Users\Dell\AppData\Local\Android\Sdk\platform-tools;C:\Users\Dell\AppData\Local\Android\Sdk\emulator;"
+    }
+}

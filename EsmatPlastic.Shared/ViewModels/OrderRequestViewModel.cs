@@ -2,8 +2,9 @@ using System.Collections.ObjectModel;
 using EsmatPlastic.Shared.Services;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Linq;
 
-namespace EsmatPlastic.Mobile.ViewModels;
+namespace EsmatPlastic.Shared.ViewModels;
 
 public class OrderRequestViewModel : INotifyPropertyChanged
 {
