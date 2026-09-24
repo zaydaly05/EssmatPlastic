@@ -18,6 +18,10 @@ public class AppDbContext : DbContext
 
     public DbSet<StockTransaction> StockTransactions => Set<StockTransaction>();
 
+    public DbSet<OrderRequest> OrderRequests => Set<OrderRequest>();
+
+    public DbSet<OrderRequestItem> OrderRequestItems => Set<OrderRequestItem>();
+
     public DbSet<Permission> Permissions => Set<Permission>();
 
     public DbSet<UserPermission> UserPermissions => Set<UserPermission>();
@@ -81,6 +85,9 @@ public class AppDbContext : DbContext
 
             entity.Property(x => x.Material)
                 .HasMaxLength(100);
+
+            entity.Property(x => x.ReservedQuantity)
+                .HasDefaultValue(0);
 
             entity.HasOne(x => x.Product)
                 .WithMany(x => x.Variants)
@@ -152,6 +159,30 @@ public class AppDbContext : DbContext
             entity.Property(x => x.EntityType).HasMaxLength(100).IsRequired();
             entity.Property(x => x.RecordKey).HasMaxLength(500).IsRequired();
             entity.Property(x => x.DeletedAt).IsRequired();
+        });
+
+        modelBuilder.Entity<OrderRequest>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.CustomerName).IsRequired().HasMaxLength(200);
+            entity.Property(x => x.CustomerPhone).HasMaxLength(50);
+            entity.HasOne(x => x.User)
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<OrderRequestItem>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.HasOne(x => x.OrderRequest)
+                .WithMany(x => x.Items)
+                .HasForeignKey(x => x.OrderRequestId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(x => x.ProductVariant)
+                .WithMany()
+                .HasForeignKey(x => x.ProductVariantId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

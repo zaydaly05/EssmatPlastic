@@ -1,4 +1,4 @@
-namespace EsmatPlastic.Domain.Enums;
+namespace EsmatPlastic.Shared.Enums;
 
 public enum UserRole
 {

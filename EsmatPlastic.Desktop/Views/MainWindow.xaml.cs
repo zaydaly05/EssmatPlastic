@@ -4,6 +4,7 @@ using EsmatPlastic.Desktop.Models.Products;
 using EsmatPlastic.Desktop.Services;
 using EsmatPlastic.Desktop.Services.Localization;
 using EsmatPlastic.Desktop.Services.Settings;
+using EsmatPlastic.Desktop.Views.OrderRequests;
 using EsmatPlastic.Desktop.Views.Permissions;
 using EsmatPlastic.Desktop.Views.ProductVariants;
 using EsmatPlastic.Desktop.Views.Products;
@@ -116,6 +117,7 @@ public partial class MainWindow : Window
         WarehouseButton.Content = loc["Warehouse"];
         ProductsButton.Content = loc["Products"];
         ReportsButton.Content = loc["Reports"];
+        OrderRequestsButton.Content = loc["OrderRequests"] ?? "طلبات الحجز";
         PermissionsButton.Content = loc["Permissions"];
         UsersButton.Content = loc["Users"];
         SettingsButton.Content = loc["Settings"];
@@ -152,6 +154,9 @@ public partial class MainWindow : Window
         ReportsButton.Visibility =
             _appSession.HasPermission("Reports.View") ? Visibility.Visible : Visibility.Collapsed;
 
+        OrderRequestsButton.Visibility =
+            (_appSession.Role == "Secretary" || _appSession.Role == "Admin") ? Visibility.Visible : Visibility.Collapsed;
+
         PermissionsButton.Visibility =
             _appSession.HasPermission("Permissions.Manage") ? Visibility.Visible : Visibility.Collapsed;
 
@@ -176,6 +181,7 @@ public partial class MainWindow : Window
                      WarehouseButton,
                      ProductsButton,
                      ReportsButton,
+                     OrderRequestsButton,
                      PermissionsButton,
                      UsersButton,
                      SettingsButton
@@ -217,6 +223,9 @@ public partial class MainWindow : Window
 
     private void ReportsButton_Click(object sender, RoutedEventArgs e) =>
         ShowContent(new ReportsView(), ReportsButton);
+
+    private void OrderRequestsButton_Click(object sender, RoutedEventArgs e) =>
+        ShowContent(new OrderRequestsView(), OrderRequestsButton);
 
     private void UsersButton_Click(object sender, RoutedEventArgs e) =>
         ShowContent(new UsersView(), UsersButton);
@@ -262,6 +271,8 @@ public partial class MainWindow : Window
             ShowContent(new ProductsView(), ProductsButton);
         else if (_selectedNav == ReportsButton)
             ShowContent(new ReportsView(), ReportsButton);
+        else if (_selectedNav == OrderRequestsButton)
+            ShowContent(new OrderRequestsView(), OrderRequestsButton);
         else if (_selectedNav == UsersButton)
             ShowContent(new UsersView(), UsersButton);
         else if (_selectedNav == PermissionsButton)

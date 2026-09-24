@@ -20,6 +20,8 @@ public class ProductVariant
 
     public bool IsActive { get; set; } = true;
 
+    public decimal ReservedQuantity { get; set; } = 0;
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public Product Product { get; set; } = null!;

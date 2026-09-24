@@ -67,6 +67,11 @@
                             Style="{StaticResource NavButton}"
                             Click="ReportsButton_Click"/>
 
+                    <Button x:Name="OrderRequestsButton"
+                            Content="طلبات الحجز"
+                            Style="{StaticResource NavButton}"
+                            Click="OrderRequestsButton_Click"/>
+
                     <Button x:Name="PermissionsButton"
                       Content="الصلاحيات"
                       Click="PermissionsButton_Click"

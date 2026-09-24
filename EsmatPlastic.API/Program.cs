@@ -50,26 +50,12 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 // ============================================================
-// NEON DATABASE CONNECTION
+// DATABASE CONNECTION
 // ============================================================
 
-var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
-
-if (string.IsNullOrWhiteSpace(databaseUrl))
-{
-    throw new InvalidOperationException(
-        "DATABASE_URL environment variable is not set.");
-}
-
-var neonConnectionString = ConvertNeonUrlToConnectionString(databaseUrl);
-
-Console.WriteLine("========================================");
-Console.WriteLine("DATABASE: NEON POSTGRESQL");
-Console.WriteLine("HOST: " + GetSafeHost(databaseUrl));
-Console.WriteLine("========================================");
-
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(neonConnectionString));
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 
 // ============================================================
 // JWT
@@ -211,11 +197,11 @@ app.UseExceptionHandler(errorApp =>
 });
 
 // ============================================================
-// CREATE NEON DATABASE SCHEMA
+// LOCAL DATABASE SCHEMA
 // ============================================================
 
 Console.WriteLine("");
-Console.WriteLine("Checking Neon database schema...");
+Console.WriteLine("Checking local database schema...");
 
 using (var scope = app.Services.CreateScope())
 {
@@ -223,13 +209,11 @@ using (var scope = app.Services.CreateScope())
 
     try
     {
-        Console.WriteLine("Creating Neon database schema...");
+        Console.WriteLine("Ensuring local database schema is created...");
 
         db.Database.EnsureCreated();
 
-        Console.WriteLine("Neon database tables created successfully.");
-
-        Console.WriteLine("Neon database schema is ready.");
+        Console.WriteLine("Local database tables ready.");
     }
     catch (Exception ex)
     {

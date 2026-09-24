@@ -1,0 +1,48 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="EsmatPlastic.Mobile.Views.LoginPage"
+             BackgroundColor="#F1F5F9">
+
+    <VerticalStackLayout Spacing="20" Padding="30" VerticalOptions="Center">
+
+        <Image Source="logo.png" HeightRequest="120" WidthRequest="120" HorizontalOptions="Center" />
+
+        <TextBlock Text="إسمت بلاستيك"
+                   FontSize="32"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center"
+                   TextColor="#1E293B"/>
+
+        <TextBlock Text="تسجيل الدخول"
+                   FontSize="18"
+                   HorizontalOptions="Center"
+                   TextColor="#64748B"/>
+
+        <Frame CornerRadius="10" Padding="0" BorderColor="#E2E8F0">
+            <Entry Text="{Binding Username}"
+                   Placeholder="اسم المستخدم"
+                   Keyboard="Text"
+                   HorizontalTextAlignment="Center" />
+        </Frame>
+
+        <Frame CornerRadius="10" Padding="0" BorderColor="#E2E8F0">
+            <Entry Text="{Binding Password}"
+                   Placeholder="كلمة المرور"
+                   IsPassword="True"
+                   HorizontalTextAlignment="Center" />
+        </Frame>
+
+        <Button Text="دخول"
+                BackgroundColor="#0D9488"
+                TextColor="White"
+                CornerRadius="10"
+                HeightRequest="50"
+                FontAttributes="Bold"
+                Command="{Binding LoginCommand}" />
+
+        <Label Text="{Binding StatusMessage}"
+               HorizontalOptions="Center"
+               TextColor="#EF4444"
+               HorizontalTextAlignment="Center" />
+    </VerticalStackLayout>
+</ContentPage>
