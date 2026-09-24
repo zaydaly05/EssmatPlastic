@@ -150,7 +150,7 @@ public class DashboardViewModel : INotifyPropertyChanged
                     TotalIn = stock.Sum(x => x.TotalIn);
                     TotalOut = stock.Sum(x => x.TotalOut);
 
-                    var transactions = await _stockService.GetTransactionsAsync();
+                    var transactions = await _stockService.GetTransactionsAsync(take: 8);
                     var recent = transactions.OrderByDescending(t => t.CreatedAt).Take(8).ToList();
 
                     RecentTransactions.Clear();

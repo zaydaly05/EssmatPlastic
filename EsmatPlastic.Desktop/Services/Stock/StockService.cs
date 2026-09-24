@@ -32,16 +32,23 @@ public class StockService
 
     public async Task<List<StockTransactionResponse>>
         GetTransactionsAsync(
-            int? productVariantId = null)
+            int? productVariantId = null,
+            int? take = null)
     {
         var endpoint =
             "api/Stock/transactions";
+        var queryParameters = new List<string>();
 
         if (productVariantId.HasValue)
         {
-            endpoint +=
-                $"?productVariantId={productVariantId.Value}";
+            queryParameters.Add($"productVariantId={productVariantId.Value}");
         }
+
+        if (take.HasValue)
+            queryParameters.Add($"take={take.Value}");
+
+        if (queryParameters.Count > 0)
+            endpoint += "?" + string.Join("&", queryParameters);
 
         var result =
             await _apiClient.GetAsync

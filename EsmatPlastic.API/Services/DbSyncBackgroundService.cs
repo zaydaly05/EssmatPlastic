@@ -46,14 +46,13 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("Database synchronization started (Neon primary, local SQLite offline mirror; 3-second target interval).");
+        _logger.LogInformation("Database synchronization started (Neon primary, local SQLite offline mirror; 3-second minimum idle interval).");
 
         // Ensure local primary schema is initialized
         await EnsureLocalSchemaCreatedAsync(stoppingToken);
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            var cycleStartedAt = Stopwatch.GetTimestamp();
             try
             {
                 await _connectionManager.EvaluateConnectionAsync(stoppingToken);
@@ -68,19 +67,15 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
                 _logger.LogError(ex, "Error occurred during background database synchronization cycle.");
             }
 
-            var remaining = TimeSpan.FromSeconds(3) - Stopwatch.GetElapsedTime(cycleStartedAt);
-            if (remaining <= TimeSpan.Zero)
-                continue;
-
             try
             {
                 using var cts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
-                cts.CancelAfter(remaining);
+                cts.CancelAfter(TimeSpan.FromSeconds(3));
                 await _syncChannel.Reader.ReadAsync(cts.Token);
             }
             catch
             {
-                // Timeout or canceled - continue loop
+                // Timeout or cancellation - continue after a three-second idle window.
             }
         }
     }
@@ -104,6 +99,7 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
 
             using var localDb = new AppDbContext(optionsBuilder.Options);
             await localDb.Database.EnsureCreatedAsync(cancellationToken);
+            await EnsureRecentTransactionsIndexAsync(localDb, cancellationToken);
             var configuration = _serviceProvider.GetRequiredService<IConfiguration>();
             await DatabaseSeeder.SeedAsync(localDb, configuration);
             _logger.LogInformation("Local primary database schema verified & ready.");
@@ -152,6 +148,8 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
                 await localDb.Database.EnsureCreatedAsync(cancellationToken);
                 await EnsureDeletionTableAsync(neonDb, cancellationToken);
                 await EnsureDeletionTableAsync(localDb, cancellationToken);
+                await EnsureRecentTransactionsIndexAsync(neonDb, cancellationToken);
+                await EnsureRecentTransactionsIndexAsync(localDb, cancellationToken);
                 _schemasEnsured = true;
             }
 
@@ -626,6 +624,15 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
                 "CREATE TABLE IF NOT EXISTS DeletedRecords (EntityType TEXT NOT NULL, RecordKey TEXT NOT NULL, DeletedAt TEXT NOT NULL, PRIMARY KEY (EntityType, RecordKey));",
                 cancellationToken);
         }
+    }
+
+    private static async Task EnsureRecentTransactionsIndexAsync(
+        AppDbContext db,
+        CancellationToken cancellationToken)
+    {
+        await db.Database.ExecuteSqlRawAsync(
+            "CREATE INDEX IF NOT EXISTS \"IX_StockTransactions_CreatedAt\" ON \"StockTransactions\" (\"CreatedAt\" DESC);",
+            cancellationToken);
     }
 
     private static async Task SyncDeletionTombstonesAsync(

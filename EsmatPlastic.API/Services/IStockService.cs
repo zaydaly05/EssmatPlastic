@@ -9,7 +9,8 @@ public interface IStockService
         CreateStockTransactionRequest request);
 
     Task<List<StockTransactionResponse>> GetTransactionsAsync(
-        int? productVariantId = null);
+        int? productVariantId = null,
+        int? take = null);
 
     Task<List<StockBalanceResponse>> GetCurrentStockAsync();
 

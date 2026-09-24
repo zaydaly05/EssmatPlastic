@@ -84,11 +84,14 @@ public class StockController : ControllerBase
     [HttpGet("transactions")]
     [Authorize(Policy = "Stock.View")]
     public async Task<ActionResult<List<StockTransactionResponse>>>
-        GetTransactions([FromQuery] int? productVariantId = null)
+        GetTransactions(
+            [FromQuery] int? productVariantId = null,
+            [FromQuery] int? take = null)
     {
         var transactions =
             await _stockService.GetTransactionsAsync(
-                productVariantId);
+                productVariantId,
+                take);
 
         return Ok(transactions);
     }

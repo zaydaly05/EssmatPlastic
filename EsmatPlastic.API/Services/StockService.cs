@@ -112,7 +112,9 @@ public class StockService : IStockService
         });
     }
 
-    public async Task<List<StockTransactionResponse>> GetTransactionsAsync(int? productVariantId = null)
+    public async Task<List<StockTransactionResponse>> GetTransactionsAsync(
+        int? productVariantId = null,
+        int? take = null)
     {
         return await _executor.ExecuteAsync(async db =>
         {
@@ -123,8 +125,14 @@ public class StockService : IStockService
                 query = query.Where(x => x.ProductVariantId == productVariantId.Value);
             }
 
-            return await query
-                .OrderByDescending(x => x.CreatedAt)
+            IQueryable<StockTransaction> orderedQuery =
+                query.OrderByDescending(x => x.CreatedAt);
+            if (take.HasValue)
+            {
+                orderedQuery = orderedQuery.Take(Math.Clamp(take.Value, 1, 500));
+            }
+
+            return await orderedQuery
                 .Select(x => new StockTransactionResponse
                 {
                     Id = x.Id,
