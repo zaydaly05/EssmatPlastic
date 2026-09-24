@@ -152,6 +152,18 @@ builder.Services.AddSingleton<
 // SERVICES
 // ============================================================
 
+builder.Services.AddSingleton<IDbConnectionManager>(sp =>
+{
+    var config = sp.GetRequiredService<IConfiguration>();
+    return new DbConnectionManager(
+        config.GetConnectionString("NeonConnection") ?? string.Empty,
+        config.GetConnectionString("DefaultConnection") ?? string.Empty,
+        sp.GetRequiredService<ILogger<DbConnectionManager>>()
+    );
+});
+builder.Services.AddSingleton<IDbSyncTrigger, DbSyncBackgroundService>();
+builder.Services.AddHostedService(sp => (DbSyncBackgroundService)sp.GetRequiredService<IDbSyncTrigger>());
+builder.Services.AddScoped<IResilientDbExecutor, ResilientDbExecutor>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IPermissionService, PermissionService>();
