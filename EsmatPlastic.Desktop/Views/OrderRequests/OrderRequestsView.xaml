@@ -60,23 +60,27 @@
 
             <TextBlock Text="طلبات الحجز الحالية" Style="{StaticResource PageTitle}" Margin="0,0,0,20"/>
 
-            <ListView x:Name="OrdersListView" Grid.Row="1" Style="{StaticResource ListView}">
-                <ListView.View>
-                    <GridView>
-                        <GridViewColumn Header="العميل" DisplayMemberBinding="{Binding CustomerName}" Width="150"/>
-                        <GridViewColumn Header="التاريخ" DisplayMemberBinding="{Binding RequestedAt}" Width="120"/>
-                        <GridViewColumn Header="الحالة" DisplayMemberBinding="{Binding Status}" Width="100"/>
-                        <GridViewColumn Header="إجراءات" Width="120">
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Button Content="إلغاء" Style="{StaticResource DangerButton}"
-                                            Click="CancelRequest_Click" Tag="{Binding Id}"/>
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
-                    </GridView>
-                </ListView.View>
-            </ListView>
+            <DataGrid x:Name="OrdersDataGrid" Grid.Row="1"
+                         AutoGenerateColumns="False"
+                         CanUserAddRows="False"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         RowHeight="40">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="العميل" Binding="{Binding CustomerName}" Width="150"/>
+                    <DataGridTextColumn Header="التاريخ" Binding="{Binding RequestedAt}" Width="120"/>
+                    <DataGridTextColumn Header="الحالة" Binding="{Binding Status}" Width="100"/>
+                    <DataGridTemplateColumn Header="إجراءات" Width="120">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Content="إلغاء" Style="{StaticResource DangerButton}"
+                                        Click="CancelRequest_Click" Tag="{Binding Id}"
+                                        Padding="5,2"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
         </Grid>
     </Grid>
 </UserControl>

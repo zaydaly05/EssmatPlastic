@@ -67,6 +67,14 @@ public partial class App : Application
         }
     }
 
+    public static void ChangeLanguage(string language)
+    {
+        var localizationService =
+            ServiceProvider.GetRequiredService<LocalizationService>();
+        localizationService.SetLanguage(language);
+        ApplyLanguage();
+    }
+
     public static void ApplyLanguage()
     {
         var localizationService =

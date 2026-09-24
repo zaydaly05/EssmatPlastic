@@ -29,26 +29,26 @@ public partial class PermissionsView : UserControl
 
     private void ApplyLocalization()
     {
-        PageTitleText.Text = _loc.T("الصلاحيات");
-        PageSubtitleText.Text = _loc.T("عرض وتصفية جميع صلاحيات النظام وأقسامها");
+        PageTitleText.Text = _loc["الصلاحيات"];
+        PageSubtitleText.Text = _loc["عرض وتصفية جميع صلاحيات النظام وأقسامها"];
 
-        TotalLabel.Text = _loc.T("إجمالي الصلاحيات");
-        TotalSubtext.Text = _loc.T("جميع صلاحيات النظام");
+        TotalLabel.Text = _loc["إجمالي الصلاحيات"];
+        TotalSubtext.Text = _loc["جميع صلاحيات النظام"];
 
-        ActiveLabel.Text = _loc.T("الصلاحيات النشطة");
-        ActiveSubtext.Text = _loc.T("مفعلة ومتاحة للاستخدام");
+        ActiveLabel.Text = _loc["الصلاحيات النشطة"];
+        ActiveSubtext.Text = _loc["مفعلة ومتاحة للاستخدام"];
 
-        CategoriesLabel.Text = _loc.T("أقسام الصلاحيات");
-        CategoriesSubtext.Text = _loc.T("وحدات وأقسام النظام");
+        CategoriesLabel.Text = _loc["أقسام الصلاحيات"];
+        CategoriesSubtext.Text = _loc["وحدات وأقسام النظام"];
 
-        HeaderId.Text = _loc.T("#");
-        HeaderName.Text = _loc.T("اسم الصلاحية");
-        HeaderCategory.Text = _loc.T("القسم");
-        HeaderDescription.Text = _loc.T("الوصف");
-        HeaderStatus.Text = _loc.T("الحالة");
+        HeaderId.Text = _loc["#"];
+        HeaderName.Text = _loc["اسم الصلاحية"];
+        HeaderCategory.Text = _loc["القسم"];
+        HeaderDescription.Text = _loc["الوصف"];
+        HeaderStatus.Text = _loc["الحالة"];
 
-        RefreshButton.Content = _loc.T("تحديث");
-        EmptyStateText.Text = _loc.T("لم يتم العثور على صلاحيات مطابقة لنتائج البحث");
+        RefreshButton.Content = _loc["تحديث"];
+        EmptyStateText.Text = _loc["لم يتم العثور على صلاحيات مطابقة لنتائج البحث"];
     }
 
     private async void PermissionsView_Loaded(object sender, RoutedEventArgs e)
@@ -59,7 +59,7 @@ public partial class PermissionsView : UserControl
     private async Task LoadAsync()
     {
         RefreshButton.IsEnabled = false;
-        StatusText.Text = _loc.T("جاري تحميل الصلاحيات...");
+        StatusText.Text = _loc["جاري تحميل الصلاحيات..."];
 
         try
         {
@@ -73,9 +73,9 @@ public partial class PermissionsView : UserControl
                     Id = p.Id,
                     Name = p.Name,
                     Category = category,
-                    Description = _loc.T(p.Description ?? p.Name),
+                    Description = _loc[p.Description ?? p.Name],
                     IsActive = p.IsActive,
-                    StatusText = p.IsActive ? _loc.T("نشط") : _loc.T("معطل"),
+                    StatusText = p.IsActive ? _loc["نشط"] : _loc["معطل"],
                     StatusBg = p.IsActive ? "#D1FAE5" : "#F1F5F9",
                     StatusFg = p.IsActive ? "#059669" : "#64748B"
                 };
@@ -87,7 +87,7 @@ public partial class PermissionsView : UserControl
         }
         catch (Exception ex)
         {
-            StatusText.Text = $"{_loc.T("تعذر تحميل الصلاحيات")}: {ex.Message}";
+            StatusText.Text = $"{_loc["تعذر تحميل الصلاحيات"]}: {ex.Message}";
         }
         finally
         {
@@ -108,7 +108,7 @@ public partial class PermissionsView : UserControl
     {
         _isInitializing = true;
 
-        var allOption = _loc.T("جميع الأقسام");
+        var allOption = _loc["جميع الأقسام"];
         var categories = new List<string> { allOption };
         categories.AddRange(_allDisplays.Select(d => d.Category).Distinct().OrderBy(c => c));
 
@@ -121,7 +121,7 @@ public partial class PermissionsView : UserControl
     private string DeriveCategory(string permissionName)
     {
         if (string.IsNullOrWhiteSpace(permissionName))
-            return _loc.T("عام");
+            return _loc["عام"];
 
         string prefix = permissionName.Contains('.')
             ? permissionName.Split('.')[0]
@@ -129,13 +129,13 @@ public partial class PermissionsView : UserControl
 
         return prefix.ToLowerInvariant() switch
         {
-            "users" or "user" => _loc.T("المستخدمون"),
-            "products" or "product" => _loc.T("المنتجات"),
-            "stock" or "warehouse" or "inventory" => _loc.T("المخزون"),
-            "reports" or "report" => _loc.T("التقارير"),
-            "settings" or "setting" => _loc.T("الإعدادات"),
-            "permissions" or "permission" => _loc.T("الصلاحيات"),
-            _ => _loc.T(prefix)
+            "users" or "user" => _loc["المستخدمون"],
+            "products" or "product" => _loc["المنتجات"],
+            "stock" or "warehouse" or "inventory" => _loc["المخزون"],
+            "reports" or "report" => _loc["التقارير"],
+            "settings" or "setting" => _loc["الإعدادات"],
+            "permissions" or "permission" => _loc["الصلاحيات"],
+            _ => _loc[prefix]
         };
     }
 
@@ -146,7 +146,7 @@ public partial class PermissionsView : UserControl
 
         var query = SearchInput.Text?.Trim().ToLowerInvariant() ?? string.Empty;
         var selectedCategory = CategoryFilter.SelectedItem as string;
-        var allOption = _loc.T("جميع الأقسام");
+        var allOption = _loc["جميع الأقسام"];
 
         var filtered = _allDisplays.Where(p =>
         {

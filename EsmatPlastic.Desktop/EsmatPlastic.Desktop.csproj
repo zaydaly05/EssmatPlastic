@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.8" />
+    <ProjectReference Include="..\EsmatPlastic.Shared\EsmatPlastic.Shared.csproj" />
   </ItemGroup>
 
 </Project>

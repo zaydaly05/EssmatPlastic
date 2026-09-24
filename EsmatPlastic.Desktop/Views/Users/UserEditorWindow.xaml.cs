@@ -38,8 +38,8 @@ public partial class UserEditorWindow : Window
 
         if (existingUser is not null)
         {
-            Title = _loc.T("تعديل المستخدم");
-            HeaderTitle.Text = _loc.T("تعديل المستخدم");
+            Title = _loc["تعديل المستخدم"];
+            HeaderTitle.Text = _loc["تعديل المستخدم"];
 
             UsernameInput.Text = existingUser.Username;
             UsernameInput.IsEnabled = false;
@@ -53,8 +53,8 @@ public partial class UserEditorWindow : Window
         }
         else
         {
-            Title = _loc.T("إضافة مستخدم");
-            HeaderTitle.Text = _loc.T("بيانات المستخدم");
+            Title = _loc["إضافة مستخدم"];
+            HeaderTitle.Text = _loc["بيانات المستخدم"];
             RoleInput.SelectedItem = UserRole.Warehouse;
             Loaded += (_, _) => UsernameInput.Focus();
         }
@@ -64,15 +64,15 @@ public partial class UserEditorWindow : Window
 
     private void ApplyLocalization()
     {
-        HeaderSubtitle.Text = _loc.T("أدخل بيانات حساب المستخدم والدور والصلاحيات.");
-        UsernameLabel.Text = _loc.T("اسم المستخدم");
-        FullNameLabel.Text = _loc.T("الاسم الكامل");
-        PasswordLabel.Text = _loc.T("كلمة المرور");
-        RoleLabel.Text = _loc.T("الدور");
-        ActiveInput.Content = _loc.T("نشط حالياً");
-        PermissionsLabel.Text = _loc.T("صلاحيات المستخدم");
-        CancelButton.Content = _loc.T("إلغاء");
-        SaveButton.Content = _loc.T("حفظ");
+        HeaderSubtitle.Text = _loc["أدخل بيانات حساب المستخدم والدور والصلاحيات."];
+        UsernameLabel.Text = _loc["اسم المستخدم"];
+        FullNameLabel.Text = _loc["الاسم الكامل"];
+        PasswordLabel.Text = _loc["كلمة المرور"];
+        RoleLabel.Text = _loc["الدور"];
+        ActiveInput.Content = _loc["نشط حالياً"];
+        PermissionsLabel.Text = _loc["صلاحيات المستخدم"];
+        CancelButton.Content = _loc["إلغاء"];
+        SaveButton.Content = _loc["حفظ"];
     }
 
     private async void Window_Loaded(object sender, RoutedEventArgs e)
@@ -124,7 +124,7 @@ public partial class UserEditorWindow : Window
                 {
                     Id = perm.Id,
                     Name = perm.Name,
-                    Description = _loc.T(perm.Description ?? perm.Name),
+                    Description = _loc[perm.Description ?? perm.Name],
                     IsGranted = grantedIds.Contains(perm.Id)
                 });
             }
@@ -138,7 +138,7 @@ public partial class UserEditorWindow : Window
         {
             MessageBox.Show(
                 ex.Message,
-                _loc.T("تعذر تحميل الصلاحيات"),
+                _loc["تعذر تحميل الصلاحيات"],
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
@@ -153,8 +153,8 @@ public partial class UserEditorWindow : Window
             if (string.IsNullOrWhiteSpace(UsernameInput.Text))
             {
                 MessageBox.Show(
-                    _loc.T("يرجى إدخال اسم المستخدم."),
-                    _loc.T("تنبيه"),
+                    _loc["يرجى إدخال اسم المستخدم."],
+                    _loc["تنبيه"],
                     MessageBoxButton.OK,
                     MessageBoxImage.Warning);
 
@@ -165,8 +165,8 @@ public partial class UserEditorWindow : Window
             if (string.IsNullOrWhiteSpace(PasswordInput.Password))
             {
                 MessageBox.Show(
-                    _loc.T("يرجى إدخال كلمة المرور."),
-                    _loc.T("تنبيه"),
+                    _loc["يرجى إدخال كلمة المرور."],
+                    _loc["تنبيه"],
                     MessageBoxButton.OK,
                     MessageBoxImage.Warning);
 
@@ -178,8 +178,8 @@ public partial class UserEditorWindow : Window
         if (string.IsNullOrWhiteSpace(FullNameInput.Text))
         {
             MessageBox.Show(
-                _loc.T("يرجى إدخال الاسم الكامل."),
-                _loc.T("تنبيه"),
+                _loc["يرجى إدخال الاسم الكامل."],
+                _loc["تنبيه"],
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
 
@@ -236,7 +236,7 @@ public partial class UserEditorWindow : Window
         {
             MessageBox.Show(
                 ex.Message,
-                _loc.T("تعذر حفظ المستخدم"),
+                _loc["تعذر حفظ المستخدم"],
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }

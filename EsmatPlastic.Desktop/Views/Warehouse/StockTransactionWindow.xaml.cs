@@ -31,7 +31,7 @@ public partial class StockTransactionWindow : Window
         _allowOut = allowOut;
         _loc = App.ServiceProvider.GetRequiredService<LocalizationService>();
 
-        ProductText.Text = $"{_loc.T("المنتج")}: {stock.ProductName}";
+        ProductText.Text = $"{_loc["المنتج"]}: {stock.ProductName}";
         VariantText.Text = BuildVariantText(stock, _loc);
 
         ApplyLocalization();
@@ -41,16 +41,16 @@ public partial class StockTransactionWindow : Window
 
     private void ApplyLocalization()
     {
-        Title = _loc.T("حركة مخزون");
-        ModalHeaderText.Text = _loc.T("إضافة حركة مخزون");
+        Title = _loc["حركة مخزون"];
+        ModalHeaderText.Text = _loc["إضافة حركة مخزون"];
         ModalSubtitleText.Text = _loc.IsArabic
             ? "سجّل حركة دخول (وارد) أو خروج (صادر) من المخزن."
             : "Record an incoming or outgoing stock transaction.";
-        TransactionTypeLabel.Text = _loc.T("نوع الحركة");
-        QuantityLabel.Text = _loc.T("الكمية");
-        NotesLabel.Text = _loc.T("الملاحظات");
-        CancelBtn.Content = _loc.T("إلغاء");
-        SaveButton.Content = _loc.T("حفظ الحركة");
+        TransactionTypeLabel.Text = _loc["نوع الحركة"];
+        QuantityLabel.Text = _loc["الكمية"];
+        NotesLabel.Text = _loc["الملاحظات"];
+        CancelBtn.Content = _loc["إلغاء"];
+        SaveButton.Content = _loc["حفظ الحركة"];
     }
 
     private void ConfigureTransactionTypes()
@@ -62,7 +62,7 @@ public partial class StockTransactionWindow : Window
             TransactionTypeInput.Items.Add(
                 new System.Windows.Controls.ComboBoxItem
                 {
-                    Content = _loc.T("وارد"),
+                    Content = _loc["وارد"],
                     Tag = StockTransactionType.In
                 });
         }
@@ -72,7 +72,7 @@ public partial class StockTransactionWindow : Window
             TransactionTypeInput.Items.Add(
                 new System.Windows.Controls.ComboBoxItem
                 {
-                    Content = _loc.T("صادر"),
+                    Content = _loc["صادر"],
                     Tag = StockTransactionType.Out
                 });
         }
@@ -90,8 +90,8 @@ public partial class StockTransactionWindow : Window
         if (!decimal.TryParse(QuantityInput.Text.Trim(), out var quantity) || quantity <= 0)
         {
             MessageBox.Show(
-                _loc.T("يرجى إدخال كمية صحيحة أكبر من صفر."),
-                _loc.T("تنبيه"),
+                _loc["يرجى إدخال كمية صحيحة أكبر من صفر."],
+                _loc["تنبيه"],
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
 
@@ -103,8 +103,8 @@ public partial class StockTransactionWindow : Window
             selectedItem.Tag is not StockTransactionType type)
         {
             MessageBox.Show(
-                _loc.T("يرجى اختيار نوع الحركة."),
-                _loc.T("تنبيه"),
+                _loc["يرجى اختيار نوع الحركة."],
+                _loc["تنبيه"],
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
 
@@ -130,8 +130,8 @@ public partial class StockTransactionWindow : Window
             if (CreatedTransaction is null)
             {
                 MessageBox.Show(
-                    _loc.T("تعذر حفظ حركة المخزون."),
-                    _loc.T("خطأ"),
+                    _loc["تعذر حفظ حركة المخزون."],
+                    _loc["خطأ"],
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
 
@@ -140,9 +140,9 @@ public partial class StockTransactionWindow : Window
 
             MessageBox.Show(
                 type == StockTransactionType.In
-                    ? _loc.T("تمت إضافة الحركة الواردة بنجاح.")
-                    : _loc.T("تمت إضافة الحركة الصادرة بنجاح."),
-                _loc.T("تم الحفظ"),
+                    ? _loc["تمت إضافة الحركة الواردة بنجاح."]
+                    : _loc["تمت إضافة الحركة الصادرة بنجاح."],
+                _loc["تم الحفظ"],
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
 
@@ -153,7 +153,7 @@ public partial class StockTransactionWindow : Window
         {
             MessageBox.Show(
                 ex.Message,
-                _loc.T("خطأ في الاتصال بالخادم"),
+                _loc["خطأ في الاتصال بالخادم"],
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
@@ -161,7 +161,7 @@ public partial class StockTransactionWindow : Window
         {
             MessageBox.Show(
                 ex.Message,
-                _loc.T("خطأ"),
+                _loc["خطأ"],
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
@@ -181,16 +181,16 @@ public partial class StockTransactionWindow : Window
             parts.Add(stock.VariantName);
 
         if (!string.IsNullOrWhiteSpace(stock.Size))
-            parts.Add($"{loc.T("المقاس")}: {stock.Size}");
+            parts.Add($"{loc["المقاس"]}: {stock.Size}");
 
         if (!string.IsNullOrWhiteSpace(stock.Color))
-            parts.Add($"{loc.T("اللون")}: {stock.Color}");
+            parts.Add($"{loc["اللون"]}: {stock.Color}");
 
         if (!string.IsNullOrWhiteSpace(stock.CapType))
-            parts.Add($"{loc.T("نوع الغطاء")}: {stock.CapType}");
+            parts.Add($"{loc["نوع الغطاء"]}: {stock.CapType}");
 
         if (!string.IsNullOrWhiteSpace(stock.Material))
-            parts.Add($"{loc.T("المادة")}: {stock.Material}");
+            parts.Add($"{loc["المادة"]}: {stock.Material}");
 
         return string.Join(" | ", parts);
     }

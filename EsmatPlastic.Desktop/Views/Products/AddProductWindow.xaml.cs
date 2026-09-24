@@ -30,25 +30,25 @@ public partial class AddProductWindow : Window
 
     private void ApplyLocalization()
     {
-        Title = _loc.T("إضافة منتج");
-        ModalTitle.Text = _loc.T("إضافة منتج جديد");
-        ModalSubtitle.Text = _loc.T("أدخل معلومات المنتج الأساسية والصورة للحفظ في النظام.");
+        Title = _loc["إضافة منتج"];
+        ModalTitle.Text = _loc["إضافة منتج جديد"];
+        ModalSubtitle.Text = _loc["أدخل معلومات المنتج الأساسية والصورة للحفظ في النظام."];
 
-        PhotoLabel.Text = _loc.T("صورة المنتج");
-        SelectPhotoButton.Content = _loc.T("🖼️  اختيار صورة للمنتج");
-        PhotoPathText.Text = _loc.T("لم يتم اختيار صورة بعد");
+        PhotoLabel.Text = _loc["صورة المنتج"];
+        SelectPhotoButton.Content = _loc["🖼️  اختيار صورة للمنتج"];
+        PhotoPathText.Text = _loc["لم يتم اختيار صورة بعد"];
 
-        NameLabel.Text = _loc.T("اسم المنتج");
-        DescLabel.Text = _loc.T("الوصف");
-        CancelButton.Content = _loc.T("إلغاء");
-        SaveButton.Content = _loc.T("حفظ");
+        NameLabel.Text = _loc["اسم المنتج"];
+        DescLabel.Text = _loc["الوصف"];
+        CancelButton.Content = _loc["إلغاء"];
+        SaveButton.Content = _loc["حفظ"];
     }
 
     private void SelectPhotoButton_Click(object sender, RoutedEventArgs e)
     {
         var dialog = new OpenFileDialog
         {
-            Title = _loc.T("اختيار صورة للمنتج"),
+            Title = _loc["اختيار صورة للمنتج"],
             Filter = "Image Files (*.png;*.jpg;*.jpeg;*.webp)|*.png;*.jpg;*.jpeg;*.webp|All Files (*.*)|*.*"
         };
 
@@ -81,8 +81,8 @@ public partial class AddProductWindow : Window
         if (string.IsNullOrWhiteSpace(NameInput.Text))
         {
             MessageBox.Show(
-                _loc.T("يرجى إدخال اسم المنتج."),
-                _loc.T("تنبيه"),
+                _loc["يرجى إدخال اسم المنتج."],
+                _loc["تنبيه"],
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
 
@@ -108,8 +108,8 @@ public partial class AddProductWindow : Window
             if (CreatedProduct is null)
             {
                 MessageBox.Show(
-                    _loc.T("تعذر حفظ المنتج."),
-                    _loc.T("خطأ"),
+                    _loc["تعذر حفظ المنتج."],
+                    _loc["خطأ"],
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
 
@@ -123,7 +123,7 @@ public partial class AddProductWindow : Window
         {
             MessageBox.Show(
                 ex.Message,
-                _loc.T("خطأ"),
+                _loc["خطأ"],
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }

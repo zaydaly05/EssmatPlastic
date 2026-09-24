@@ -30,13 +30,13 @@
                 <StackPanel Grid.Row="0"
                             Margin="8,15,8,30">
 
-                    <TextBlock Text="إسمت بلاستيك"
+                    <TextBlock x:Name="AppNameText" Text="إسمت بلاستيك"
                                Foreground="White"
                                FontSize="25"
                                FontWeight="Bold"
                                HorizontalAlignment="Center"/>
 
-                    <TextBlock Text="نظام إدارة المخزون"
+                    <TextBlock x:Name="AppTaglineText" Text="نظام إدارة المخزون"
                                Foreground="#BFC4CA"
                                FontSize="13"
                                HorizontalAlignment="Center"
@@ -77,7 +77,7 @@
                       Click="PermissionsButton_Click"
                       Style="{StaticResource NavButton}"/>
 
-            <Button x:Name="UsersButton"
+                    <Button x:Name="UsersButton"
                             Content="المستخدمون"
                             Style="{StaticResource NavButton}"
                             Click="UsersButton_Click"/>
@@ -86,14 +86,23 @@
                         Content="الإعدادات"
                         Style="{StaticResource NavButton}"
                         Click="SettingsButton_Click"/>
-
                 </StackPanel>
 
-                <Button Grid.Row="2"
-                        Content="تسجيل الخروج"
-                        Style="{StaticResource NavButton}"
-                        Margin="0,15,0,5"
-                        Click="LogoutButton_Click"/>
+                <StackPanel Grid.Row="2">
+                    <!-- Language Switcher -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,15">
+                        <Button x:Name="ArabicLangButton" Content="العربية"
+                                Style="{StaticResource NavButton}" Width="80" Margin="5,0"/>
+                        <Button x:Name="EnglishLangButton" Content="English"
+                                Style="{StaticResource NavButton}" Width="80" Margin="5,0"/>
+                    </StackPanel>
+
+                    <Button x:Name="LogoutButton"
+                            Content="تسجيل الخروج"
+                            Style="{StaticResource NavButton}"
+                            Margin="0,15,0,5"
+                            Click="LogoutButton_Click"/>
+                </StackPanel>
 
             </Grid>
 
@@ -124,7 +133,7 @@
 
                     <StackPanel Grid.Column="0">
 
-                        <TextBlock Text="مرحباً"
+                        <TextBlock x:Name="WelcomeText" Text="مرحباً"
                                    FontSize="16"
                                    Foreground="{DynamicResource MutedBrush}"/>
 
@@ -133,7 +142,6 @@
                                    FontSize="27"
                                    FontWeight="Bold"
                                    Margin="0,5,0,0"/>
-
                     </StackPanel>
 
                     <StackPanel Grid.Column="1"
@@ -145,12 +153,30 @@
                                    FontWeight="SemiBold"
                                    HorizontalAlignment="Right"/>
 
-                        <TextBlock Text="نتمنى لك يوماً سعيداً"
+                        <TextBlock x:Name="HaveANiceDayText" Text="نتمنى لك يوماً سعيداً"
                                    FontSize="12"
                                    Foreground="{DynamicResource MutedBrush}"
                                    HorizontalAlignment="Right"
                                    Margin="0,5,0,0"/>
 
+                        <!-- Connection Health Indicator -->
+                        <Border x:Name="ConnectionStatusBorder"
+                                CornerRadius="10"
+                                Padding="8,4"
+                                Margin="0,10,0,0"
+                                Background="#F1F5F9">
+                            <StackPanel Orientation="Horizontal">
+                                <Ellipse x:Name="ConnectionStatusDot"
+                                         Width="8" Height="8"
+                                         Fill="Gray"
+                                         Margin="0,0,6,0"/>
+                                <TextBlock x:Name="ConnectionStatusText"
+                                           Text="جاري التحقق من الاتصال..."
+                                           FontSize="11"
+                                           Foreground="#64748B"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
 
                 </Grid>
@@ -172,4 +198,3 @@
     </Grid>
 
 </Window>
-

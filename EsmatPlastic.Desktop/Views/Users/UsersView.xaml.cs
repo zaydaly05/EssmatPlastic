@@ -31,22 +31,22 @@ public partial class UsersView : UserControl
 
     private void ApplyLocalization()
     {
-        PageTitleText.Text = _loc.T("المستخدمون");
-        PageSubtitleText.Text = _loc.T("إدارة حسابات المستخدمين والدور والصلاحيات");
-        AddButton.Content = _loc.T("+  إضافة مستخدم");
+        PageTitleText.Text = _loc["المستخدمون"];
+        PageSubtitleText.Text = _loc["إدارة حسابات المستخدمين والدور والصلاحيات"];
+        AddButton.Content = _loc["+  إضافة مستخدم"];
 
-        StatTotalUsersLabel.Text = _loc.T("إجمالي المستخدمين");
-        StatTotalUsersSubtext.Text = _loc.T("جميع الحسابات المنسجلة");
-        StatActiveUsersLabel.Text = _loc.T("الحسابات النشطة");
-        StatActiveUsersSubtext.Text = _loc.T("حسابات مفعلة ومتاحة");
-        StatAdminUsersLabel.Text = _loc.T("مديرو النظام");
-        StatAdminUsersSubtext.Text = _loc.T("صلاحيات كاملة بالنظام");
+        StatTotalUsersLabel.Text = _loc["إجمالي المستخدمين"];
+        StatTotalUsersSubtext.Text = _loc["جميع الحسابات المنسجلة"];
+        StatActiveUsersLabel.Text = _loc["الحسابات النشطة"];
+        StatActiveUsersSubtext.Text = _loc["حسابات مفعلة ومتاحة"];
+        StatAdminUsersLabel.Text = _loc["مديرو النظام"];
+        StatAdminUsersSubtext.Text = _loc["صلاحيات كاملة بالنظام"];
 
-        HeaderUser.Text = _loc.T("المستخدم");
-        HeaderRole.Text = _loc.T("الدور");
-        HeaderStatus.Text = _loc.T("الحالة");
-        HeaderCreated.Text = _loc.T("تاريخ الإنشاء");
-        HeaderActions.Text = _loc.T("الإجراءات");
+        HeaderUser.Text = _loc["المستخدم"];
+        HeaderRole.Text = _loc["الدور"];
+        HeaderStatus.Text = _loc["الحالة"];
+        HeaderCreated.Text = _loc["تاريخ الإنشاء"];
+        HeaderActions.Text = _loc["الإجراءات"];
     }
 
     private async void UsersView_Loaded(object sender, RoutedEventArgs e)
@@ -122,8 +122,8 @@ public partial class UsersView : UserControl
             return;
 
         var result = MessageBox.Show(
-            string.Format(_loc.T("هل تريد حذف المستخدم {0}؟"), user.FullName),
-            _loc.T("تأكيد الحذف"),
+            string.Format(_loc["هل تريد حذف المستخدم {0}؟"], user.FullName),
+            _loc["تأكيد الحذف"],
             MessageBoxButton.YesNo,
             MessageBoxImage.Warning);
 
@@ -139,7 +139,7 @@ public partial class UsersView : UserControl
         {
             MessageBox.Show(
                 ex.Message,
-                _loc.T("تعذر حذف المستخدم"),
+                _loc["تعذر حذف المستخدم"],
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }

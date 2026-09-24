@@ -162,7 +162,7 @@ public class DashboardViewModel : INotifyPropertyChanged
                             Id = tx.Id,
                             ProductName = tx.ProductName,
                             VariantName = tx.VariantName,
-                            TransactionTypeText = isIn ? _loc.T("وارد") : _loc.T("صادر"),
+                            TransactionTypeText = isIn ? _loc["وارد"] : _loc["صادر"],
                             TransactionTypeColor = isIn ? "#059669" : "#EF4444",
                             TransactionTypeBg = isIn ? "#D1FAE5" : "#FEE2E2",
                             Quantity = tx.Quantity,

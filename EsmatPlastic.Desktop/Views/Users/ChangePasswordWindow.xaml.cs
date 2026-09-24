@@ -32,15 +32,15 @@ public partial class ChangePasswordWindow : Window
 
     private void ApplyLocalization()
     {
-        Title = _loc.T("تغيير كلمة المرور");
-        HeaderTitle.Text = _loc.T("تغيير كلمة المرور");
-        HeaderSubtitle.Text = _loc.T("أدخل كلمة المرور الجديدة للمستخدم.");
-        UsernameLabel.Text = _loc.T("اسم المستخدم");
-        FullNameLabel.Text = _loc.T("الاسم الكامل");
-        NewPasswordLabel.Text = _loc.T("كلمة المرور الجديدة");
-        ConfirmPasswordLabel.Text = _loc.T("تأكيد كلمة المرور");
-        CancelButton.Content = _loc.T("إلغاء");
-        SaveButton.Content = _loc.T("حفظ");
+        Title = _loc["تغيير كلمة المرور"];
+        HeaderTitle.Text = _loc["تغيير كلمة المرور"];
+        HeaderSubtitle.Text = _loc["أدخل كلمة المرور الجديدة للمستخدم."];
+        UsernameLabel.Text = _loc["اسم المستخدم"];
+        FullNameLabel.Text = _loc["الاسم الكامل"];
+        NewPasswordLabel.Text = _loc["كلمة المرور الجديدة"];
+        ConfirmPasswordLabel.Text = _loc["تأكيد كلمة المرور"];
+        CancelButton.Content = _loc["إلغاء"];
+        SaveButton.Content = _loc["حفظ"];
     }
 
     private async void SaveButton_Click(
@@ -51,21 +51,21 @@ public partial class ChangePasswordWindow : Window
 
         if (string.IsNullOrWhiteSpace(NewPasswordBox.Password))
         {
-            ErrorText.Text = _loc.T("يرجى إدخال كلمة المرور الجديدة.");
+            ErrorText.Text = _loc["يرجى إدخال كلمة المرور الجديدة."];
             NewPasswordBox.Focus();
             return;
         }
 
         if (NewPasswordBox.Password.Length < 6)
         {
-            ErrorText.Text = _loc.T("يجب أن تتكون كلمة المرور من 6 أحرف على الأقل.");
+            ErrorText.Text = _loc["يجب أن تتكون كلمة المرور من 6 أحرف على الأقل."];
             NewPasswordBox.Focus();
             return;
         }
 
         if (NewPasswordBox.Password != ConfirmPasswordBox.Password)
         {
-            ErrorText.Text = _loc.T("كلمتا المرور غير متطابقتين.");
+            ErrorText.Text = _loc["كلمتا المرور غير متطابقتين."];
             ConfirmPasswordBox.Focus();
             return;
         }
@@ -79,8 +79,8 @@ public partial class ChangePasswordWindow : Window
                 NewPasswordBox.Password);
 
             MessageBox.Show(
-                _loc.T("تم تغيير كلمة المرور بنجاح."),
-                _loc.T("تم"),
+                _loc["تم تغيير كلمة المرور بنجاح."],
+                _loc["تم"],
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
 

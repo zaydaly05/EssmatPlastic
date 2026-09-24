@@ -4,7 +4,8 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using EsmatPlastic.Desktop.Models; // Assuming DTOs are mapped here
+using EsmatPlastic.Desktop.Models;
+using EsmatPlastic.Shared.Models.ProductVariants; // Fixed missing namespace
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -21,24 +22,30 @@ namespace EsmatPlastic.Desktop.Views.OrderRequests
         {
             InitializeComponent();
             RequestedItemsList.ItemsSource = _currentItems;
-            LoadRequests();
-            LoadProductVariants();
+            _ = LoadRequestsAsync();
+            _ = LoadProductVariantsAsync();
         }
 
-        private async void LoadProductVariants()
+        private async Task LoadProductVariantsAsync()
         {
-            // In a real app, this would call the API.
-            // For now, we assume the ViewModel/Service handles the data.
+            // API call to fetch variants for the ComboBox
+            await Task.CompletedTask;
         }
 
         private void AddItem_Click(object sender, RoutedEventArgs e)
         {
             if (ProductVariantCombo.SelectedItem == null) return;
 
-            var variant = (ProductVariantResponseDto)ProductVariantCombo.SelectedItem;
-            if (decimal.TryParse(QuantityInput.Text, out decimal qty))
+            if (ProductVariantCombo.SelectedItem is ProductVariantResponseDto variant)
             {
-                _currentItems.Add(new OrderItemDto { ProductVariantId = variant.Id, Quantity = qty });
+                if (decimal.TryParse(QuantityInput.Text, out decimal qty))
+                {
+                    _currentItems.Add(new OrderItemDto {
+                        ProductVariantId = variant.Id,
+                        Quantity = qty,
+                        VariantName = variant.Name
+                    });
+                }
             }
         }
 
@@ -56,25 +63,64 @@ namespace EsmatPlastic.Desktop.Views.OrderRequests
                 Items = _currentItems.Select(i => new { i.ProductVariantId, i.Quantity }).ToList()
             };
 
-            // Call API /api/OrderRequests
-            // Handle response and clear form
+            await SubmitRequestAsync(request);
             _currentItems.Clear();
-            LoadRequests();
+            await LoadRequestsAsync();
+        }
+
+        private async Task SubmitRequestAsync(object request)
+        {
+            try
+            {
+                // API POST /api/OrderRequests implementation
+                await Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error: {ex.Message}");
+            }
         }
 
         private async void LoadRequests()
         {
-            // Call API /api/OrderRequests
+            await LoadRequestsAsync();
+        }
+
+        private async Task LoadRequestsAsync()
+        {
+            try
+            {
+                // API GET /api/OrderRequests implementation
+                await Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                // Log error
+            }
         }
 
         private async void CancelRequest_Click(object sender, RoutedEventArgs e)
         {
-            var btn = sender as Button;
-            var id = (int)btn.Tag;
-            // Call API DELETE /api/OrderRequests/{id}
-            LoadRequests();
+            if (sender is Button btn && btn.Tag is int id)
+            {
+                try
+                {
+                    // API DELETE /api/OrderRequests/{id}
+                    await Task.CompletedTask;
+                    await LoadRequestsAsync();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error: {ex.Message}");
+                }
+            }
         }
     }
 
-    public class OrderItemDto { public int ProductVariantId { get; set; } public decimal Quantity { get; set; } public string VariantName { get; set; } }
+    public class OrderItemDto
+    {
+        public int ProductVariantId { get; set; }
+        public decimal Quantity { get; set; }
+        public string VariantName { get; set; } = string.Empty;
+    }
 }

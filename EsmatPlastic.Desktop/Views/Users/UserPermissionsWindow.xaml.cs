@@ -44,15 +44,15 @@ public partial class UserPermissionsWindow : Window
 
     private void ApplyLocalization()
     {
-        Title = _loc.T("إدارة صلاحيات المستخدم");
-        HeaderTitle.Text = _loc.T("إدارة صلاحيات المستخدم");
-        HeaderSubtitle.Text = _loc.T("حدد الصلاحيات الممنوحة لهذا المستخدم في النظام.");
+        Title = _loc["إدارة صلاحيات المستخدم"];
+        HeaderTitle.Text = _loc["إدارة صلاحيات المستخدم"];
+        HeaderSubtitle.Text = _loc["حدد الصلاحيات الممنوحة لهذا المستخدم في النظام."];
         RoleText.Text = LocalizedRole(_user.Role.ToString(), _loc);
-        PermissionsListLabel.Text = _loc.T("قائمة الصلاحيات");
-        SelectAllButton.Content = _loc.T("تحديد الكل");
-        ClearAllButton.Content = _loc.T("إلغاء التحديد");
-        CancelButton.Content = _loc.T("إلغاء");
-        SaveButton.Content = _loc.T("حفظ الصلاحيات");
+        PermissionsListLabel.Text = _loc["قائمة الصلاحيات"];
+        SelectAllButton.Content = _loc["تحديد الكل"];
+        ClearAllButton.Content = _loc["إلغاء التحديد"];
+        CancelButton.Content = _loc["إلغاء"];
+        SaveButton.Content = _loc["حفظ الصلاحيات"];
     }
 
     private static string LocalizedRole(string role, LocalizationService loc)
@@ -85,7 +85,7 @@ public partial class UserPermissionsWindow : Window
                 {
                     Id = perm.Id,
                     Name = perm.Name,
-                    Description = _loc.T(perm.Description ?? perm.Name),
+                    Description = _loc[perm.Description ?? perm.Name],
                     IsGranted = grantedIds.Contains(perm.Id)
                 });
             }
@@ -94,7 +94,7 @@ public partial class UserPermissionsWindow : Window
         {
             MessageBox.Show(
                 ex.Message,
-                _loc.T("خطأ"),
+                _loc["خطأ"],
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
@@ -140,8 +140,8 @@ public partial class UserPermissionsWindow : Window
             if (updatedUser is null)
             {
                 MessageBox.Show(
-                    _loc.T("تعذر حفظ صلاحيات المستخدم."),
-                    _loc.T("خطأ"),
+                    _loc["تعذر حفظ صلاحيات المستخدم."],
+                    _loc["خطأ"],
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
                 return;
@@ -149,7 +149,7 @@ public partial class UserPermissionsWindow : Window
 
             MessageBox.Show(
                 _loc.IsArabic ? $"تم حفظ صلاحيات المستخدم {_user.FullName} بنجاح." : $"Permissions for {_user.FullName} updated successfully.",
-                _loc.T("تم الحفظ"),
+                _loc["تم الحفظ"],
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
 
@@ -160,7 +160,7 @@ public partial class UserPermissionsWindow : Window
         {
             MessageBox.Show(
                 ex.Message,
-                _loc.T("خطأ"),
+                _loc["خطأ"],
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }

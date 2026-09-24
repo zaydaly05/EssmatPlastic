@@ -43,7 +43,7 @@ public partial class ProductVariantsView : UserControl
             _viewModel;
 
         var loc = App.ServiceProvider.GetRequiredService<LocalizationService>();
-        ProductNameText.Text = $"{loc.T("المنتج")}: {productName}";
+        ProductNameText.Text = $"{loc["المنتج"]}: {productName}";
 
         UpdatePermissionVisibility();
 
@@ -107,8 +107,8 @@ public partial class ProductVariantsView : UserControl
         {
             var loc = App.ServiceProvider.GetRequiredService<LocalizationService>();
             MessageBox.Show(
-                loc.T("يرجى اختيار صنف أولاً."),
-                loc.T("تنبيه"),
+                loc["يرجى اختيار صنف أولاً."],
+                loc["تنبيه"],
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
 
@@ -141,8 +141,8 @@ public partial class ProductVariantsView : UserControl
         {
             var loc = App.ServiceProvider.GetRequiredService<LocalizationService>();
             MessageBox.Show(
-                loc.T("يرجى اختيار صنف أولاً."),
-                loc.T("تنبيه"),
+                loc["يرجى اختيار صنف أولاً."],
+                loc["تنبيه"],
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
 
@@ -158,7 +158,7 @@ public partial class ProductVariantsView : UserControl
                 locConfirm.IsArabic
                     ? $"هل تريد حذف الصنف:\n\n{variant.Name}؟"
                     : $"Delete this variant?\n\n{variant.Name}",
-                locConfirm.T("تأكيد الحذف"),
+                locConfirm["تأكيد الحذف"],
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning);
 

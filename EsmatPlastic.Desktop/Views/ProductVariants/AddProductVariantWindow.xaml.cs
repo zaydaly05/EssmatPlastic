@@ -31,16 +31,16 @@ public partial class AddProductVariantWindow : Window
 
     private void ApplyLocalization()
     {
-        Title = _loc.T("إضافة صنف / عبوة");
-        HeaderTitle.Text = _loc.T("إضافة صنف / عبوة جديدة");
-        HeaderSubtitle.Text = _loc.T("أدخل تفاصيل ومواصفات العبوة أو الصنف للمنتج.");
-        NameLabel.Text = _loc.T("اسم الصنف");
-        SizeLabel.Text = _loc.T("المقاس");
-        ColorLabel.Text = _loc.T("اللون");
-        CapTypeLabel.Text = _loc.T("نوع الغطاء");
-        MaterialLabel.Text = _loc.T("المادة");
-        CancelButton.Content = _loc.T("إلغاء");
-        SaveButton.Content = _loc.T("حفظ");
+        Title = _loc["إضافة صنف / عبوة"];
+        HeaderTitle.Text = _loc["إضافة صنف / عبوة جديدة"];
+        HeaderSubtitle.Text = _loc["أدخل تفاصيل ومواصفات العبوة أو الصنف للمنتج."];
+        NameLabel.Text = _loc["اسم الصنف"];
+        SizeLabel.Text = _loc["المقاس"];
+        ColorLabel.Text = _loc["اللون"];
+        CapTypeLabel.Text = _loc["نوع الغطاء"];
+        MaterialLabel.Text = _loc["المادة"];
+        CancelButton.Content = _loc["إلغاء"];
+        SaveButton.Content = _loc["حفظ"];
     }
 
     private async void SaveButton_Click(
@@ -50,8 +50,8 @@ public partial class AddProductVariantWindow : Window
         if (string.IsNullOrWhiteSpace(NameInput.Text))
         {
             MessageBox.Show(
-                _loc.T("يرجى إدخال اسم الصنف."),
-                _loc.T("تنبيه"),
+                _loc["يرجى إدخال اسم الصنف."],
+                _loc["تنبيه"],
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
 
@@ -78,8 +78,8 @@ public partial class AddProductVariantWindow : Window
             if (CreatedVariant is null)
             {
                 MessageBox.Show(
-                    _loc.T("تعذر حفظ الصنف."),
-                    _loc.T("خطأ"),
+                    _loc["تعذر حفظ الصنف."],
+                    _loc["خطأ"],
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
 
@@ -93,7 +93,7 @@ public partial class AddProductVariantWindow : Window
         {
             MessageBox.Show(
                 ex.Message,
-                _loc.T("خطأ في حفظ الصنف"),
+                _loc["خطأ في حفظ الصنف"],
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }

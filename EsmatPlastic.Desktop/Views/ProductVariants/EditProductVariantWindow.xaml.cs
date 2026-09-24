@@ -38,17 +38,17 @@ public partial class EditProductVariantWindow : Window
 
     private void ApplyLocalization()
     {
-        Title = _loc.T("تعديل الصنف");
-        HeaderTitle.Text = _loc.T("تعديل الصنف");
-        HeaderSubtitle.Text = _loc.T("تعديل بيانات العبوة أو تعديل حالة التفعيل.");
-        NameLabel.Text = _loc.T("اسم الصنف");
-        SizeLabel.Text = _loc.T("المقاس");
-        ColorLabel.Text = _loc.T("اللون");
-        CapTypeLabel.Text = _loc.T("نوع الغطاء");
-        MaterialLabel.Text = _loc.T("المادة");
-        ActiveInput.Content = _loc.T("نشط حالياً");
-        CancelButton.Content = _loc.T("إلغاء");
-        SaveButton.Content = _loc.T("حفظ");
+        Title = _loc["تعديل الصنف"];
+        HeaderTitle.Text = _loc["تعديل الصنف"];
+        HeaderSubtitle.Text = _loc["تعديل بيانات العبوة أو تعديل حالة التفعيل."];
+        NameLabel.Text = _loc["اسم الصنف"];
+        SizeLabel.Text = _loc["المقاس"];
+        ColorLabel.Text = _loc["اللون"];
+        CapTypeLabel.Text = _loc["نوع الغطاء"];
+        MaterialLabel.Text = _loc["المادة"];
+        ActiveInput.Content = _loc["نشط حالياً"];
+        CancelButton.Content = _loc["إلغاء"];
+        SaveButton.Content = _loc["حفظ"];
     }
 
     private async void SaveButton_Click(
@@ -58,8 +58,8 @@ public partial class EditProductVariantWindow : Window
         if (string.IsNullOrWhiteSpace(NameInput.Text))
         {
             MessageBox.Show(
-                _loc.T("يرجى إدخال اسم الصنف."),
-                _loc.T("تنبيه"),
+                _loc["يرجى إدخال اسم الصنف."],
+                _loc["تنبيه"],
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
 
@@ -87,8 +87,8 @@ public partial class EditProductVariantWindow : Window
             if (UpdatedVariant is null)
             {
                 MessageBox.Show(
-                    _loc.T("تعذر تحديث الصنف."),
-                    _loc.T("خطأ"),
+                    _loc["تعذر تحديث الصنف."],
+                    _loc["خطأ"],
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
 
@@ -102,7 +102,7 @@ public partial class EditProductVariantWindow : Window
         {
             MessageBox.Show(
                 ex.Message,
-                _loc.T("خطأ في تحديث الصنف"),
+                _loc["خطأ في تحديث الصنف"],
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }

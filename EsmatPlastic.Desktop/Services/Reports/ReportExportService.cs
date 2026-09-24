@@ -66,12 +66,12 @@ public class ReportExportService
         {
             PagePadding = new Thickness(40),
             ColumnWidth = printDialog.PrintableAreaWidth,
-            FlowDirection = loc.FlowDirection,
+            FlowDirection = loc.IsArabic ? FlowDirection.RightToLeft : FlowDirection.LeftToRight,
             FontFamily = new FontFamily("Segoe UI, Tahoma")
         };
 
         // Header Title
-        var headerPara = new Paragraph(new Run(loc.T("تقرير حركة ورصيد المخزون")))
+        var headerPara = new Paragraph(new Run(loc["تقرير حركة ورصيد المخزون"]))
         {
             FontSize = 22,
             FontWeight = FontWeights.Bold,
@@ -105,10 +105,10 @@ public class ReportExportService
         var summaryGroup = new TableRowGroup();
         var summaryRow = new TableRow();
 
-        summaryRow.Cells.Add(CreateStatCell(loc.T("إجمالي الوارد"), totalIn.ToString("N0")));
-        summaryRow.Cells.Add(CreateStatCell(loc.T("إجمالي الصادر"), totalOut.ToString("N0")));
-        summaryRow.Cells.Add(CreateStatCell(loc.T("المخزون المتاح"), currentStock.ToString("N0")));
-        summaryRow.Cells.Add(CreateStatCell(loc.T("عدد الأصناف"), variantCount.ToString()));
+        summaryRow.Cells.Add(CreateStatCell(loc["إجمالي الوارد"], totalIn.ToString("N0")));
+        summaryRow.Cells.Add(CreateStatCell(loc["إجمالي الصادر"], totalOut.ToString("N0")));
+        summaryRow.Cells.Add(CreateStatCell(loc["المخزون المتاح"], currentStock.ToString("N0")));
+        summaryRow.Cells.Add(CreateStatCell(loc["عدد الأصناف"], variantCount.ToString()));
 
         summaryGroup.Rows.Add(summaryRow);
         summaryTable.RowGroups.Add(summaryGroup);
@@ -129,12 +129,12 @@ public class ReportExportService
         var headerGroup = new TableRowGroup();
         var headerRow = new TableRow { Background = new SolidColorBrush(Color.FromRgb(241, 245, 249)) };
 
-        headerRow.Cells.Add(CreateHeaderCell(loc.T("المنتج")));
-        headerRow.Cells.Add(CreateHeaderCell(loc.T("الصنف")));
-        headerRow.Cells.Add(CreateHeaderCell(loc.T("المقاس")));
-        headerRow.Cells.Add(CreateHeaderCell(loc.T("الوارد")));
-        headerRow.Cells.Add(CreateHeaderCell(loc.T("الصادر")));
-        headerRow.Cells.Add(CreateHeaderCell(loc.T("المتاح")));
+        headerRow.Cells.Add(CreateHeaderCell(loc["المنتج"]));
+        headerRow.Cells.Add(CreateHeaderCell(loc["الصنف"]));
+        headerRow.Cells.Add(CreateHeaderCell(loc["المقاس"]));
+        headerRow.Cells.Add(CreateHeaderCell(loc["الوارد"]));
+        headerRow.Cells.Add(CreateHeaderCell(loc["الصادر"]));
+        headerRow.Cells.Add(CreateHeaderCell(loc["المتاح"]));
 
         headerGroup.Rows.Add(headerRow);
         table.RowGroups.Add(headerGroup);
@@ -165,7 +165,7 @@ public class ReportExportService
 
         // Print Document
         IDocumentPaginatorSource paginator = doc;
-        printDialog.PrintDocument(paginator.DocumentPaginator, loc.T("تقرير حركة المخزون"));
+        printDialog.PrintDocument(paginator.DocumentPaginator, loc["تقرير حركة المخزون"]);
     }
 
     private TableCell CreateStatCell(string title, string value)

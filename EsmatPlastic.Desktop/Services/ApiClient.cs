@@ -2,20 +2,25 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using EsmatPlastic.Desktop.Services.Settings;
 
 namespace EsmatPlastic.Desktop.Services;
 
 public class ApiClient
 {
     private HttpClient _httpClient;
+    private readonly SettingsService _settingsService;
 
-    public ApiClient()
+    public ApiClient(SettingsService settingsService)
     {
-        _httpClient = CreateHttpClient();
+        _settingsService = settingsService;
+        _httpClient = CreateHttpClient(settingsService.Current.ApiBaseUrl);
     }
 
-    private static HttpClient CreateHttpClient()
+    private static HttpClient CreateHttpClient(string baseUrl)
     {
+        if (!baseUrl.EndsWith("/")) baseUrl += "/";
+
         var handler = new SocketsHttpHandler
         {
             PooledConnectionLifetime = TimeSpan.FromMinutes(15),
@@ -25,7 +30,7 @@ public class ApiClient
 
         return new HttpClient(handler, disposeHandler: true)
         {
-            BaseAddress = new Uri("http://localhost:5023/"),
+            BaseAddress = new Uri(baseUrl),
             Timeout = TimeSpan.FromSeconds(15)
         };
     }
@@ -44,6 +49,11 @@ public class ApiClient
     public void UpdateBaseUrl(string url)
     {
         if (string.IsNullOrWhiteSpace(url)) return;
+
+        // Update the settings service first so it persists
+        _settingsService.Current.ApiBaseUrl = url;
+        _settingsService.Save();
+
         if (!url.EndsWith("/")) url += "/";
         if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
         {
@@ -51,8 +61,7 @@ public class ApiClient
                 return;
 
             var previousClient = _httpClient;
-            var replacementClient = CreateHttpClient();
-            replacementClient.BaseAddress = uri;
+            var replacementClient = CreateHttpClient(url);
             replacementClient.DefaultRequestHeaders.Authorization =
                 previousClient.DefaultRequestHeaders.Authorization;
             _httpClient = replacementClient;

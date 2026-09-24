@@ -38,18 +38,18 @@ public partial class ProductsView : UserControl
 
     private void ApplyLocalization()
     {
-        PageTitleText.Text = _loc.T("المنتجات");
-        PageSubtitleText.Text = _loc.T("إدارة المنتجات والأصناف والبطاقات");
+        PageTitleText.Text = _loc["المنتجات"];
+        PageSubtitleText.Text = _loc["إدارة المنتجات والأصناف والبطاقات"];
 
-        AddButton.Content = _loc.T("+  إضافة منتج");
-        HeaderPhoto.Text = _loc.T("الصورة");
-        HeaderProduct.Text = _loc.T("المنتج والوصف");
-        HeaderVariants.Text = _loc.T("عدد الأصناف");
-        HeaderStatus.Text = _loc.T("الحالة");
-        HeaderActions.Text = _loc.T("الإجراءات");
+        AddButton.Content = _loc["+  إضافة منتج"];
+        HeaderPhoto.Text = _loc["الصورة"];
+        HeaderProduct.Text = _loc["المنتج والوصف"];
+        HeaderVariants.Text = _loc["عدد الأصناف"];
+        HeaderStatus.Text = _loc["الحالة"];
+        HeaderActions.Text = _loc["الإجراءات"];
 
-        EditButton.Content = _loc.T("تعديل المنتج");
-        DeleteButton.Content = _loc.T("حذف المنتج");
+        EditButton.Content = _loc["تعديل المنتج"];
+        DeleteButton.Content = _loc["حذف المنتج"];
     }
 
     private async void ProductsView_Loaded(object sender, RoutedEventArgs e)
@@ -74,8 +74,8 @@ public partial class ProductsView : UserControl
         if (!_appSession.IsAdmin() && !_viewModel.CanCreate)
         {
             MessageBox.Show(
-                _loc.T("عفواً، ميزة إضافة المنتجات ورفع الصور مقتصرة على مدير النظام فقط."),
-                _loc.T("تنبيه الصلاحيات"),
+                _loc["عفواً، ميزة إضافة المنتجات ورفع الصور مقتصرة على مدير النظام فقط."],
+                _loc["تنبيه الصلاحيات"],
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
             return;
@@ -97,8 +97,8 @@ public partial class ProductsView : UserControl
             if (!_appSession.IsAdmin() && !_viewModel.CanEdit)
             {
                 MessageBox.Show(
-                    _loc.T("عفواً، ميزة تعديل المنتجات ورفع الصور مقتصرة على مدير النظام فقط."),
-                    _loc.T("تنبيه الصلاحيات"),
+                    _loc["عفواً، ميزة تعديل المنتجات ورفع الصور مقتصرة على مدير النظام فقط."],
+                    _loc["تنبيه الصلاحيات"],
                     MessageBoxButton.OK,
                     MessageBoxImage.Warning);
                 return;
@@ -122,8 +122,8 @@ public partial class ProductsView : UserControl
         if (!_appSession.IsAdmin() && !_viewModel.CanEdit)
         {
             MessageBox.Show(
-                _loc.T("عفواً، ميزة تعديل المنتجات مقتصرة على مدير النظام فقط."),
-                _loc.T("تنبيه الصلاحيات"),
+                _loc["عفواً، ميزة تعديل المنتجات مقتصرة على مدير النظام فقط."],
+                _loc["تنبيه الصلاحيات"],
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
             return;
@@ -134,8 +134,8 @@ public partial class ProductsView : UserControl
         if (_viewModel.SelectedProduct is null)
         {
             MessageBox.Show(
-                _loc.T("يرجى اختيار منتج أولاً."),
-                _loc.T("تنبيه"),
+                _loc["يرجى اختيار منتج أولاً."],
+                _loc["تنبيه"],
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
             return;
@@ -158,8 +158,8 @@ public partial class ProductsView : UserControl
         if (!_appSession.IsAdmin() && !_viewModel.CanDelete)
         {
             MessageBox.Show(
-                _loc.T("عفواً، ميزة حذف المنتجات مقتصرة على مدير النظام فقط."),
-                _loc.T("تنبيه الصلاحيات"),
+                _loc["عفواً، ميزة حذف المنتجات مقتصرة على مدير النظام فقط."],
+                _loc["تنبيه الصلاحيات"],
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
             return;
@@ -168,8 +168,8 @@ public partial class ProductsView : UserControl
         if (_viewModel.SelectedProduct is null)
         {
             MessageBox.Show(
-                _loc.T("يرجى اختيار منتج أولاً."),
-                _loc.T("تنبيه"),
+                _loc["يرجى اختيار منتج أولاً."],
+                _loc["تنبيه"],
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
             return;
@@ -181,7 +181,7 @@ public partial class ProductsView : UserControl
             _loc.IsArabic
                 ? $"هل تريد حذف المنتج:\n\n{product.Name}\n\nسيتم حذف البيانات المرتبطة به."
                 : $"Delete this product?\n\n{product.Name}\n\nRelated data will also be removed.",
-            _loc.T("تأكيد الحذف"),
+            _loc["تأكيد الحذف"],
             MessageBoxButton.YesNo,
             MessageBoxImage.Warning);
 

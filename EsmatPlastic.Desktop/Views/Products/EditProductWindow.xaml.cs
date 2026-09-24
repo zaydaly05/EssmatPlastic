@@ -43,30 +43,30 @@ public partial class EditProductWindow : Window
 
     private void ApplyLocalization()
     {
-        Title = _loc.T("تعديل المنتج");
-        ModalTitle.Text = _loc.T("تعديل بيانات المنتج");
-        ModalSubtitle.Text = _loc.T("قم بتحديث معلومات المنتج أو صورته أو حالته.");
+        Title = _loc["تعديل المنتج"];
+        ModalTitle.Text = _loc["تعديل بيانات المنتج"];
+        ModalSubtitle.Text = _loc["قم بتحديث معلومات المنتج أو صورته أو حالته."];
 
-        PhotoLabel.Text = _loc.T("صورة المنتج");
-        SelectPhotoButton.Content = _loc.T("🖼️  تغيير صورة المنتج");
+        PhotoLabel.Text = _loc["صورة المنتج"];
+        SelectPhotoButton.Content = _loc["🖼️  تغيير صورة المنتج"];
         if (string.IsNullOrWhiteSpace(_selectedImagePath))
         {
-            PhotoPathText.Text = _loc.T("لم يتم اختيار صورة بعد");
+            PhotoPathText.Text = _loc["لم يتم اختيار صورة بعد"];
         }
 
-        NameLabel.Text = _loc.T("اسم المنتج");
-        DescLabel.Text = _loc.T("الوصف");
-        ActiveInput.Content = _loc.T("نشط حالياً");
+        NameLabel.Text = _loc["اسم المنتج"];
+        DescLabel.Text = _loc["الوصف"];
+        ActiveInput.Content = _loc["نشط حالياً"];
 
-        CancelButton.Content = _loc.T("إلغاء");
-        SaveButton.Content = _loc.T("حفظ");
+        CancelButton.Content = _loc["إلغاء"];
+        SaveButton.Content = _loc["حفظ"];
     }
 
     private void SelectPhotoButton_Click(object sender, RoutedEventArgs e)
     {
         var dialog = new OpenFileDialog
         {
-            Title = _loc.T("اختيار صورة للمنتج"),
+            Title = _loc["اختيار صورة للمنتج"],
             Filter = "Image Files (*.png;*.jpg;*.jpeg;*.webp)|*.png;*.jpg;*.jpeg;*.webp|All Files (*.*)|*.*"
         };
 
@@ -106,8 +106,8 @@ public partial class EditProductWindow : Window
         if (string.IsNullOrWhiteSpace(NameInput.Text))
         {
             MessageBox.Show(
-                _loc.T("يرجى إدخال اسم المنتج."),
-                _loc.T("تنبيه"),
+                _loc["يرجى إدخال اسم المنتج."],
+                _loc["تنبيه"],
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
 
@@ -134,8 +134,8 @@ public partial class EditProductWindow : Window
             if (UpdatedProduct is null)
             {
                 MessageBox.Show(
-                    _loc.T("تعذر تحديث المنتج."),
-                    _loc.T("خطأ"),
+                    _loc["تعذر تحديث المنتج."],
+                    _loc["خطأ"],
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
 
@@ -149,7 +149,7 @@ public partial class EditProductWindow : Window
         {
             MessageBox.Show(
                 ex.Message,
-                _loc.T("خطأ في تحديث المنتج"),
+                _loc["خطأ في تحديث المنتج"],
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }

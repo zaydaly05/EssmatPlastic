@@ -34,14 +34,14 @@ public partial class StockHistoryWindow : Window
 
     private void ApplyLocalization()
     {
-        Title = _loc.T("سجل حركات المخزون");
-        WindowTitleText.Text = _loc.T("سجل حركات المخزون");
-        HeaderDate.Text = _loc.T("التاريخ");
-        HeaderType.Text = _loc.T("النوع");
-        HeaderQty.Text = _loc.T("الكمية");
-        HeaderUser.Text = _loc.T("المستخدم");
-        HeaderNotes.Text = _loc.T("الملاحظات");
-        CloseBtn.Content = _loc.T("إغلاق");
+        Title = _loc["سجل حركات المخزون"];
+        WindowTitleText.Text = _loc["سجل حركات المخزون"];
+        HeaderDate.Text = _loc["التاريخ"];
+        HeaderType.Text = _loc["النوع"];
+        HeaderQty.Text = _loc["الكمية"];
+        HeaderUser.Text = _loc["المستخدم"];
+        HeaderNotes.Text = _loc["الملاحظات"];
+        CloseBtn.Content = _loc["إغلاق"];
     }
 
     private async void Window_Loaded(
@@ -68,7 +68,7 @@ public partial class StockHistoryWindow : Window
         {
             MessageBox.Show(
                 ex.Message,
-                _loc.T("تعذر تحميل سجل الحركات"),
+                _loc["تعذر تحميل سجل الحركات"],
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
