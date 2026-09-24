@@ -24,6 +24,7 @@ public class OrderRequestItem
     public int Id { get; set; }
 
     public int OrderRequestId { get; set; }
+    public OrderRequest OrderRequest { get; set; } = null!;
 
     public int ProductVariantId { get; set; }
 
