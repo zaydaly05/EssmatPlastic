@@ -1,6 +1,5 @@
 using System.Collections.ObjectModel;
 using EsmatPlastic.Shared.Services;
-using EsmatPlastic.Shared.Models.OrderRequests; // Based on our Domain entities
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
