@@ -19,6 +19,16 @@ public class ApiClient
 
     private static HttpClient CreateHttpClient(string baseUrl)
     {
+        if (string.IsNullOrWhiteSpace(baseUrl))
+        {
+            baseUrl = "http://localhost:5023/";
+        }
+
+        if (!baseUrl.StartsWith("http://") && !baseUrl.StartsWith("https://"))
+        {
+            baseUrl = "http://" + baseUrl;
+        }
+
         if (!baseUrl.EndsWith("/")) baseUrl += "/";
 
         var handler = new SocketsHttpHandler
