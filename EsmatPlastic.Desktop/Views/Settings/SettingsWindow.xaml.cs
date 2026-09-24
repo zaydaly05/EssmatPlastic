@@ -17,6 +17,9 @@ public partial class SettingsWindow : Window
         _settingsService =
             settingsService;
 
+        ApiInput.Text =
+            _settingsService.Current.ApiBaseUrl;
+
         LanguageInput.SelectedIndex =
             _settingsService.Current.Language
                 .Equals(
@@ -40,6 +43,9 @@ public partial class SettingsWindow : Window
                 language.Tag?.ToString() ?? "ar";
         }
 
+        _settingsService.Current.ApiBaseUrl =
+            ApiInput.Text.Trim();
+
         _settingsService.Current.RememberLanguage =
             RememberLanguageInput.IsChecked == true;
 
@@ -51,10 +57,13 @@ public partial class SettingsWindow : Window
 
         App.ApplyLanguage();
 
-        var loc = App.ServiceProvider.GetRequiredService<LocalizationService>();
         MessageBox.Show(
-            loc["SettingsSaved"],
-            loc["Done"],
+            _settingsService.Current.Language == "ar"
+                ? "تم حفظ الإعدادات وتطبيق اللغة."
+                : "Settings saved and language applied.",
+            _settingsService.Current.Language == "ar"
+                ? "تم"
+                : "Done",
             MessageBoxButton.OK,
             MessageBoxImage.Information);
 

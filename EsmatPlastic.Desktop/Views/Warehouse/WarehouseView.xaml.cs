@@ -2,7 +2,6 @@ using System.Windows;
 using System.Windows.Controls;
 using EsmatPlastic.Desktop.Models.Stock;
 using EsmatPlastic.Desktop.Services;
-using EsmatPlastic.Desktop.Services.Localization;
 using EsmatPlastic.Desktop.Services.Stock;
 using EsmatPlastic.Desktop.ViewModels.Warehouse;
 using Microsoft.Extensions.DependencyInjection;
@@ -68,9 +67,8 @@ public partial class WarehouseView : UserControl
         object sender,
         RoutedEventArgs e)
     {
-        var loc = App.ServiceProvider.GetRequiredService<LocalizationService>();
         RefreshButton.IsEnabled = false;
-        RefreshButton.Content = loc.T("جاري التحديث...");
+        RefreshButton.Content = "جاري التحديث...";
 
         try
         {
@@ -79,7 +77,7 @@ public partial class WarehouseView : UserControl
         finally
         {
             RefreshButton.IsEnabled = true;
-            RefreshButton.Content = loc.T("⟳  تحديث");
+            RefreshButton.Content = "⟳  تحديث";
         }
     }
 
@@ -107,10 +105,9 @@ public partial class WarehouseView : UserControl
     {
         if (_viewModel.SelectedStock is null)
         {
-            var loc = App.ServiceProvider.GetRequiredService<LocalizationService>();
             MessageBox.Show(
-                loc.T("يرجى اختيار صنف أولاً."),
-                loc.T("تنبيه"),
+                "يرجى اختيار صنف أولاً.",
+                "تنبيه",
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
 
@@ -146,10 +143,9 @@ public partial class WarehouseView : UserControl
     {
         if (_viewModel.SelectedStock is null)
         {
-            var loc = App.ServiceProvider.GetRequiredService<LocalizationService>();
             MessageBox.Show(
-                loc.T("يرجى اختيار صنف أولاً."),
-                loc.T("تنبيه"),
+                "يرجى اختيار صنف أولاً.",
+                "تنبيه",
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
 

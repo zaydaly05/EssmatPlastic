@@ -1,7 +1,5 @@
 using System.Windows;
 using System.Windows.Controls;
-using Microsoft.Win32;
-using EsmatPlastic.Desktop.Services.Localization;
 using EsmatPlastic.Desktop.Services.Reports;
 using EsmatPlastic.Desktop.ViewModels.Reports;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,8 +14,6 @@ public partial class ReportsView : UserControl
     {
         InitializeComponent();
 
-        ApplyButtonLocalization();
-
         _viewModel =
             new ReportsViewModel(
                 App.ServiceProvider
@@ -26,14 +22,6 @@ public partial class ReportsView : UserControl
         DataContext = _viewModel;
 
         Loaded += ReportsView_Loaded;
-    }
-
-    private void ApplyButtonLocalization()
-    {
-        var loc = App.ServiceProvider.GetRequiredService<LocalizationService>();
-        ExportCsvButton.Content = "▣  " + loc["ExportCsv"];
-        PrintReportButton.Content = "▧  " + loc["PrintReport"];
-        RefreshButton.Content = loc["RefreshBtn"];
     }
 
     private async void ReportsView_Loaded(
@@ -49,9 +37,8 @@ public partial class ReportsView : UserControl
         object sender,
         RoutedEventArgs e)
     {
-        var loc = App.ServiceProvider.GetRequiredService<LocalizationService>();
         RefreshButton.IsEnabled = false;
-        RefreshButton.Content = loc["Updating"];
+        RefreshButton.Content = "جاري التحديث...";
 
         try
         {
@@ -60,35 +47,7 @@ public partial class ReportsView : UserControl
         finally
         {
             RefreshButton.IsEnabled = true;
-            RefreshButton.Content = loc["RefreshBtn"];
+            RefreshButton.Content = "⟳  تحديث";
         }
-    }
-
-    private void ExportCsv_Click(object sender, RoutedEventArgs e)
-    {
-        var dialog = new SaveFileDialog
-        {
-            AddExtension = true,
-            DefaultExt = ".csv",
-            FileName = "EsmatPlastic-Stock-Report.csv",
-            Filter = "CSV files (*.csv)|*.csv"
-        };
-
-        if (dialog.ShowDialog(Window.GetWindow(this)) != true)
-        {
-            return;
-        }
-
-        new ReportExportService().ExportToCsv(_viewModel.Items, dialog.FileName);
-    }
-
-    private void PrintReport_Click(object sender, RoutedEventArgs e)
-    {
-        new ReportExportService().PrintReport(
-            _viewModel.Items,
-            _viewModel.TotalIn,
-            _viewModel.TotalOut,
-            _viewModel.CurrentStock,
-            _viewModel.VariantCount);
     }
 }

@@ -50,59 +50,26 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 // ============================================================
-// NEON PRIMARY DATABASE WITH LOCAL SQLITE OFFLINE MIRROR
+// NEON DATABASE CONNECTION
 // ============================================================
 
-var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL")
-    ?? builder.Configuration.GetConnectionString("NeonConnection")
-    ?? "";
+var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
 
-var neonConnectionString =
-    !string.IsNullOrWhiteSpace(databaseUrl) &&
-    (databaseUrl.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase) ||
-     databaseUrl.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) ||
-     databaseUrl.StartsWith("Host=", StringComparison.OrdinalIgnoreCase))
-        ? databaseUrl.StartsWith("Host=", StringComparison.OrdinalIgnoreCase)
-            ? databaseUrl
-            : ConvertNeonUrlToConnectionString(databaseUrl)
-        : "";
-
-var localConnectionString =
-    builder.Configuration.GetConnectionString("LocalConnection")
-    ?? "Data Source=esmatplastic_local.db";
-
-Console.WriteLine("========================================");
-Console.WriteLine("NEON PRIMARY DATABASE WITH LOCAL SQLITE MIRROR");
-Console.WriteLine("NEON BACKUP HOST: " +
-    (string.IsNullOrWhiteSpace(databaseUrl) ? "None (offline mode)" : GetSafeHost(databaseUrl)));
-Console.WriteLine("========================================");
-
-builder.Services.AddSingleton<IDbConnectionManager>(sp =>
-    new DbConnectionManager(
-        neonConnectionString,
-        localConnectionString,
-        sp.GetRequiredService<ILogger<DbConnectionManager>>()));
-
-builder.Services.AddDbContext<AppDbContext>((serviceProvider, options) =>
+if (string.IsNullOrWhiteSpace(databaseUrl))
 {
-    var connectionManager = serviceProvider.GetRequiredService<IDbConnectionManager>();
-    var connectionString = connectionManager.ActiveConnectionString;
+    throw new InvalidOperationException(
+        "DATABASE_URL environment variable is not set.");
+}
 
-    if (connectionString.Contains("Host=", StringComparison.OrdinalIgnoreCase))
-    {
-        options.UseNpgsql(connectionString);
-    }
-    else
-    {
-        options.UseSqlite(connectionString);
-    }
-});
+var neonConnectionString = ConvertNeonUrlToConnectionString(databaseUrl);
 
-builder.Services.AddSingleton<DbSyncBackgroundService>();
-builder.Services.AddSingleton<IDbSyncTrigger>(sp =>
-    sp.GetRequiredService<DbSyncBackgroundService>());
-builder.Services.AddHostedService(sp =>
-    sp.GetRequiredService<DbSyncBackgroundService>());
+Console.WriteLine("========================================");
+Console.WriteLine("DATABASE: NEON POSTGRESQL");
+Console.WriteLine("HOST: " + GetSafeHost(databaseUrl));
+Console.WriteLine("========================================");
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(neonConnectionString));
 
 // ============================================================
 // JWT
@@ -199,7 +166,6 @@ builder.Services.AddSingleton<
 // SERVICES
 // ============================================================
 
-builder.Services.AddScoped<IResilientDbExecutor, ResilientDbExecutor>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IPermissionService, PermissionService>();
@@ -245,31 +211,33 @@ app.UseExceptionHandler(errorApp =>
 });
 
 // ============================================================
-// INITIALIZE THE ACTIVE DATABASE
+// CREATE NEON DATABASE SCHEMA
 // ============================================================
 
 Console.WriteLine("");
-Console.WriteLine("Checking database connection and schema...");
+Console.WriteLine("Checking Neon database schema...");
 
 using (var scope = app.Services.CreateScope())
 {
-    var connectionManager = scope.ServiceProvider.GetRequiredService<IDbConnectionManager>();
-    await connectionManager.EvaluateConnectionAsync();
-
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
     try
     {
-        Console.WriteLine($"Initializing database schema ({connectionManager.CurrentMode})...");
+        Console.WriteLine("Creating Neon database schema...");
+
         db.Database.EnsureCreated();
-        Console.WriteLine($"Database schema ready ({connectionManager.CurrentMode}).");
+
+        Console.WriteLine("Neon database tables created successfully.");
+
+        Console.WriteLine("Neon database schema is ready.");
     }
     catch (Exception ex)
     {
         Console.WriteLine("");
-        Console.WriteLine($"Database initialization notice ({connectionManager.CurrentMode}):");
+        Console.WriteLine("DATABASE CONNECTION FAILED.");
         Console.WriteLine(ex.Message);
-        Console.WriteLine("The API will continue in local mode.");
+        Console.WriteLine("");
+        throw;
     }
 }
 
@@ -283,10 +251,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-if (!app.Environment.IsDevelopment())
-{
-    app.UseHttpsRedirection();
-}
+app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -297,20 +262,16 @@ app.MapControllers();
 // SEED DATA
 // ============================================================
 
-try
+if (app.Environment.IsDevelopment())
 {
     await DatabaseSeeder.SeedAsync(app.Services);
     await TestDataSeeder.SeedAsync(app.Services);
-}
-catch (Exception ex)
-{
-    app.Logger.LogWarning(ex, "Database seeding could not complete during startup.");
 }
 
 Console.WriteLine("");
 Console.WriteLine("========================================");
 Console.WriteLine(" ESMAT PLASTIC API");
-Console.WriteLine(" DATABASE: NEON PRIMARY / LOCAL SQLITE OFFLINE MIRROR");
+Console.WriteLine(" DATABASE: NEON");
 Console.WriteLine(" API STARTING...");
 Console.WriteLine("========================================");
 Console.WriteLine("");

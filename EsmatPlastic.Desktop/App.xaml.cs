@@ -1,6 +1,4 @@
 using System.Windows;
-using System.Windows.Controls;
-using System.IO;
 using EsmatPlastic.Desktop.Services;
 using EsmatPlastic.Desktop.Services.Products;
 using EsmatPlastic.Desktop.Services.ProductVariants;
@@ -20,7 +18,7 @@ public partial class App : Application
 {
     public static IServiceProvider ServiceProvider { get; private set; } = null!;
 
-    protected override async void OnStartup(StartupEventArgs e)
+    protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
 
@@ -42,46 +40,10 @@ public partial class App : Application
                 ? settingsService.Current.Language
                 : "ar");
 
-        var apiBaseUrl = await LocalApiLauncher.EnsureApiRunningAsync(
-            settingsService.Current.ApiBaseUrl);
-        var apiClient = ServiceProvider.GetRequiredService<ApiClient>();
-        apiClient.UpdateBaseUrl(apiBaseUrl);
-
-        // Only check released packages; developer builds can keep using the source tree.
-        if (File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "EsmatPlastic.API.exe")))
-        {
-            var update = await apiClient.GetLatestUpdateAsync();
-            var updateService = new AppUpdateService();
-            if (update is not null && updateService.IsNewerVersion(update.Version))
-            {
-                var message = localizationService.IsArabic
-                    ? $"يتوفر تحديث جديد ({update.Version}). هل تريد تنزيله وتثبيته الآن؟"
-                    : $"Version {update.Version} is available. Download and install it now?";
-                var title = localizationService.IsArabic ? "تحديث التطبيق" : "Application update";
-                var choice = MessageBox.Show(
-                    message,
-                    title,
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Information);
-
-                if (choice == MessageBoxResult.Yes &&
-                    await updateService.DownloadAndApplyAsync(update))
-                {
-                    Shutdown();
-                    return;
-                }
-            }
-        }
-
         EventManager.RegisterClassHandler(
             typeof(Window),
             FrameworkElement.LoadedEvent,
             new RoutedEventHandler(Window_Loaded));
-
-        EventManager.RegisterClassHandler(
-            typeof(UserControl),
-            FrameworkElement.LoadedEvent,
-            new RoutedEventHandler(UserControl_Loaded));
 
         var loginWindow =
             ServiceProvider
@@ -116,37 +78,6 @@ public partial class App : Application
         }
     }
 
-    private static void UserControl_Loaded(
-        object sender,
-        RoutedEventArgs e)
-    {
-        if (sender is UserControl view &&
-            ReferenceEquals(e.OriginalSource, view))
-        {
-            ServiceProvider
-                .GetRequiredService<LocalizationService>()
-                .ApplyTo(view);
-        }
-    }
-
-    public static void ChangeLanguage(string language)
-    {
-        var localizationService =
-            ServiceProvider.GetRequiredService<LocalizationService>();
-        var settingsService =
-            ServiceProvider.GetRequiredService<SettingsService>();
-
-        localizationService.SetLanguage(language);
-
-        if (settingsService.Current.RememberLanguage)
-        {
-            settingsService.Current.Language = localizationService.Language;
-            settingsService.Save();
-        }
-
-        ApplyLanguage();
-    }
-
     private static void ConfigureServices(
         IServiceCollection services)
     {
@@ -173,8 +104,6 @@ public partial class App : Application
     protected override void OnExit(
         ExitEventArgs e)
     {
-        LocalApiLauncher.Stop();
-
         if (ServiceProvider is IDisposable disposable)
         {
             disposable.Dispose();
