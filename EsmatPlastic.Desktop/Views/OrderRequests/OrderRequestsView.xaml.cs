@@ -93,7 +93,7 @@ namespace EsmatPlastic.Desktop.Views.OrderRequests
                 // API GET /api/OrderRequests implementation
                 await Task.CompletedTask;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // Log error
             }
