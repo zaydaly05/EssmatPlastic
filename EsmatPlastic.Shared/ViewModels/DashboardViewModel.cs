@@ -26,7 +26,6 @@ public sealed class DashboardViewModel : INotifyPropertyChanged
         ? _user.Username
         : _user.FullName;
 
-    public string Role => _user.Role;
     public bool CanViewProducts => HasPermission("Products.View");
     public bool CanViewStock => HasPermission("Stock.View");
     public bool CanViewReports => HasPermission("Reports.View");

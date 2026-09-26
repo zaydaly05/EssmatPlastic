@@ -61,7 +61,7 @@ public class LoginViewModel : INotifyPropertyChanged
         _username = string.Empty;
         _password = string.Empty;
         _statusMessage = string.Empty;
-        _loginCommand = new AsyncCommand(LoginFromCommandAsync);
+        _loginCommand = new AsyncCommand(LoginFromCommandAsync, () => !IsLoading);
     }
 
     public async Task<bool> LoginAsync()
@@ -122,34 +122,24 @@ public class LoginViewModel : INotifyPropertyChanged
     private sealed class AsyncCommand : ICommand
     {
         private readonly Func<Task> _execute;
-        private bool _isExecuting;
+        private readonly Func<bool> _canExecute;
 
-        public AsyncCommand(Func<Task> execute)
+        public AsyncCommand(Func<Task> execute, Func<bool> canExecute)
         {
             _execute = execute;
+            _canExecute = canExecute;
         }
 
         public event EventHandler? CanExecuteChanged;
 
-        public bool CanExecute(object? parameter) => !_isExecuting;
+        public bool CanExecute(object? parameter) => _canExecute();
 
         public async void Execute(object? parameter)
         {
             if (!CanExecute(parameter))
                 return;
 
-            _isExecuting = true;
-            NotifyCanExecuteChanged();
-
-            try
-            {
-                await _execute();
-            }
-            finally
-            {
-                _isExecuting = false;
-                NotifyCanExecuteChanged();
-            }
+            await _execute();
         }
 
         public void NotifyCanExecuteChanged() =>

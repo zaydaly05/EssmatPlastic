@@ -1,7 +1,6 @@
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Text;
 using System.Text.Json;
 using EsmatPlastic.Shared.Configuration;
 using EsmatPlastic.Shared.Models.System;
@@ -11,7 +10,6 @@ namespace EsmatPlastic.Shared.Services;
 public class ApiClient
 {
     private HttpClient _httpClient;
-    private string? _token;
 
     public ApiClient()
     {
@@ -38,14 +36,12 @@ public class ApiClient
 
     public void SetToken(string token)
     {
-        _token = token;
         _httpClient.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token);
     }
 
     public void ClearToken()
     {
-        _token = null;
         _httpClient.DefaultRequestHeaders.Authorization = null;
     }
 
@@ -73,25 +69,6 @@ public class ApiClient
             IsNeonBackupOnline = false,
             PrimaryDatabase = "Local Offline Cache"
         };
-    }
-
-    public async Task<LatestUpdateResponse?> GetLatestUpdateAsync()
-    {
-        try
-        {
-            using var response = await _httpClient.GetAsync("api/updates/latest");
-            if (!response.IsSuccessStatusCode ||
-                response.StatusCode == System.Net.HttpStatusCode.NoContent)
-            {
-                return null;
-            }
-
-            return await response.Content.ReadFromJsonAsync<LatestUpdateResponse>();
-        }
-        catch
-        {
-            return null;
-        }
     }
 
     public async Task<TResponse?> GetAsync<TResponse>(string endpoint)

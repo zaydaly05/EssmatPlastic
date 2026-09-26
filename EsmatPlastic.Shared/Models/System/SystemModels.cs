@@ -10,10 +10,3 @@ public class HealthStatusResponse
     public string PrimaryDatabase { get; set; } = "";
     public DateTime? LastSyncUtc { get; set; }
 }
-
-public sealed class LatestUpdateResponse
-{
-    public string Version { get; set; } = string.Empty;
-    public string DownloadUrl { get; set; } = string.Empty;
-    public DateTime PublishedAt { get; set; }
-}
