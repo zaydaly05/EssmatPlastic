@@ -20,18 +20,20 @@ public partial class App : Application
 
     protected override void OnStartup(StartupEventArgs e)
     {
-        base.OnStartup(e);
+        // Log to absolute path to ensure we find it
+        string logPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "crash_log.txt");
 
-        // Global Exception Handling
         AppDomain.CurrentDomain.UnhandledException += (s, args) =>
         {
-            System.IO.File.WriteAllText("crash_log.txt", $"Fatal Exception: {args.Exception}");
+            System.IO.File.WriteAllText(logPath, $"Fatal Exception: {args.ExceptionObject}");
         };
         DispatcherUnhandledException += (s, args) =>
         {
-            System.IO.File.WriteAllText("crash_log.txt", $"UI Exception: {args.Exception}");
+            System.IO.File.WriteAllText(logPath, $"UI Exception: {args.Exception}");
             args.Handled = true;
         };
+
+        base.OnStartup(e);
 
         var services = new ServiceCollection();
 
