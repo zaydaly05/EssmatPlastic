@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewModels="clr-namespace:EsmatPlastic.Shared.ViewModels;assembly=EsmatPlastic.Shared"
+             x:Class="EsmatPlastic.Mobile.Views.DashboardPage"
+             x:DataType="viewModels:DashboardViewModel"
+             Title="لوحة التحكم"
+             FlowDirection="RightToLeft"
+             BackgroundColor="#F1F5F9">
+    <Grid RowDefinitions="Auto,*">
+        <Grid Padding="20,14"
+              ColumnDefinitions="*,Auto"
+              BackgroundColor="White">
+            <VerticalStackLayout Spacing="3">
+                <Label Text="لوحة التحكم"
+                       FontSize="24"
+                       FontAttributes="Bold"
+                       TextColor="#1E293B" />
+                <Label Text="{Binding UserName}"
+                       FontSize="15"
+                       TextColor="#64748B" />
+            </VerticalStackLayout>
+            <Button Grid.Column="1"
+                    Text="تسجيل الخروج"
+                    Clicked="Logout_Clicked"
+                    BackgroundColor="#FEE2E2"
+                    TextColor="#B91C1C"
+                    CornerRadius="8"
+                    Padding="12,8"
+                    VerticalOptions="Center" />
+        </Grid>
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="18" Spacing="14">
+                <Border Padding="16"
+                        Stroke="#D8E2EA"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 8"
+                        BackgroundColor="White">
+                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                        <Label Text="قاعدة البيانات المحلية"
+                               FontSize="14"
+                               TextColor="#64748B" />
+                        <Label Grid.Column="1"
+                               Text="{Binding DatabaseStatus}"
+                               FontAttributes="Bold"
+                               TextColor="#0F766E" />
+                        <Label Grid.Row="1"
+                               Grid.ColumnSpan="2"
+                               Text="{Binding StatusMessage}"
+                               Margin="0,8,0,0"
+                               TextColor="#B91C1C"
+                               LineBreakMode="WordWrap" />
+                    </Grid>
+                </Border>
+
+                <ActivityIndicator IsRunning="{Binding IsLoading}"
+                                   IsVisible="{Binding IsLoading}"
+                                   Color="#0D9488" />
+
+                <Label Text="ملخص النظام"
+                       FontSize="19"
+                       FontAttributes="Bold"
+                       TextColor="#1E293B" />
+
+                <Grid ColumnDefinitions="*,*"
+                      RowDefinitions="Auto,Auto,Auto"
+                      ColumnSpacing="12"
+                      RowSpacing="12">
+                    <Border Grid.Row="0"
+                            Grid.Column="0"
+                            IsVisible="{Binding CanViewProducts}"
+                            Padding="16"
+                            Stroke="#C7ECE7"
+                            StrokeShape="RoundRectangle 8"
+                            BackgroundColor="#E8F6F6">
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="المنتجات" TextColor="#64748B" />
+                            <Label Text="{Binding ProductCount}"
+                                   FontSize="28"
+                                   FontAttributes="Bold"
+                                   TextColor="#1E293B" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Row="0"
+                            Grid.Column="1"
+                            IsVisible="{Binding CanViewStock}"
+                            Padding="16"
+                            Stroke="#F4D9CC"
+                            StrokeShape="RoundRectangle 8"
+                            BackgroundColor="#FFF1EC">
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="الأصناف" TextColor="#64748B" />
+                            <Label Text="{Binding VariantCount}"
+                                   FontSize="28"
+                                   FontAttributes="Bold"
+                                   TextColor="#1E293B" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Row="1"
+                            Grid.Column="0"
+                            Grid.ColumnSpan="2"
+                            IsVisible="{Binding CanViewStock}"
+                            Padding="16"
+                            Stroke="#C7D2FE"
+                            StrokeShape="RoundRectangle 8"
+                            BackgroundColor="#EEF1FF">
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="المخزون الحالي" TextColor="#64748B" />
+                            <Label Text="{Binding CurrentStock, StringFormat='{0:N0}'}"
+                                   FontSize="28"
+                                   FontAttributes="Bold"
+                                   TextColor="#1E293B" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Row="2"
+                            Grid.Column="0"
+                            IsVisible="{Binding CanViewReports}"
+                            Padding="16"
+                            Stroke="#D8E8C7"
+                            StrokeShape="RoundRectangle 8"
+                            BackgroundColor="#F2F8E9">
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="إجمالي الوارد" TextColor="#64748B" />
+                            <Label Text="{Binding TotalIn, StringFormat='{0:N0}'}"
+                                   FontSize="24"
+                                   FontAttributes="Bold"
+                                   TextColor="#1E293B" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Row="2"
+                            Grid.Column="1"
+                            IsVisible="{Binding CanViewReports}"
+                            Padding="16"
+                            Stroke="#F0E0B7"
+                            StrokeShape="RoundRectangle 8"
+                            BackgroundColor="#FFF7DE">
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="إجمالي الصادر" TextColor="#64748B" />
+                            <Label Text="{Binding TotalOut, StringFormat='{0:N0}'}"
+                                   FontSize="24"
+                                   FontAttributes="Bold"
+                                   TextColor="#1E293B" />
+                        </VerticalStackLayout>
+                    </Border>
+                </Grid>
+
+                <Label IsVisible="{Binding HasNoDashboardPermission}"
+                       Text="لا توجد صلاحيات لعرض بيانات لوحة التحكم."
+                       TextColor="#8A5A00"
+                       BackgroundColor="#FFF7DE"
+                       Padding="14" />
+
+                <Button Text="تحديث البيانات"
+                        Clicked="Refresh_Clicked"
+                        BackgroundColor="#0D9488"
+                        TextColor="White"
+                        CornerRadius="8"
+                        HeightRequest="48" />
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>

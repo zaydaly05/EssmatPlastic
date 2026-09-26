@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/EsmatPlastic.iml" filepath="$PROJECT_DIR$/.idea/EsmatPlastic.iml" />
+      <module fileurl="file://$PROJECT_DIR$/EsmatPlastic.iml" filepath="$PROJECT_DIR$/EsmatPlastic.iml" />
     </modules>
   </component>
 </project>

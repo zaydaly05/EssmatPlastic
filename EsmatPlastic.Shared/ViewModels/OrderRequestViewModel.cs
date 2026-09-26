@@ -39,6 +39,8 @@ public class OrderRequestViewModel : INotifyPropertyChanged
     public OrderRequestViewModel(ApiClient apiClient)
     {
         _apiClient = apiClient;
+        _customerName = string.Empty;
+        _customerPhone = string.Empty;
     }
 
     public async Task<bool> SubmitRequestAsync()
@@ -70,7 +72,7 @@ public class OrderRequestViewModel : INotifyPropertyChanged
         _selectedItems.Add(new OrderItemDto { ProductVariantId = variantId, VariantName = name, Quantity = qty });
     }
 
-    protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+    protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }

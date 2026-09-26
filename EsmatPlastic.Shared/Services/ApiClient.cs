@@ -1,22 +1,39 @@
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
-using System.Collections.Generic;
+using EsmatPlastic.Shared.Configuration;
+using EsmatPlastic.Shared.Models.System;
 
 namespace EsmatPlastic.Shared.Services;
 
 public class ApiClient
 {
-    private readonly HttpClient _httpClient;
+    private HttpClient _httpClient;
     private string? _token;
-    private string _baseUrl;
 
-    public ApiClient(string baseUrl)
+    public ApiClient()
     {
-        _baseUrl = baseUrl.TrimEnd('/');
-        _httpClient = new HttpClient();
+        _httpClient = CreateHttpClient(ApiConfig.GetBaseUrl());
+    }
+
+    private static HttpClient CreateHttpClient(string baseUrl)
+    {
+        if (!baseUrl.EndsWith("/")) baseUrl += "/";
+
+        var handler = new SocketsHttpHandler
+        {
+            PooledConnectionLifetime = TimeSpan.FromMinutes(15),
+            PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2),
+            EnableMultipleHttp2Connections = true
+        };
+
+        return new HttpClient(handler, disposeHandler: true)
+        {
+            BaseAddress = new Uri(baseUrl),
+            Timeout = TimeSpan.FromSeconds(15)
+        };
     }
 
     public void SetToken(string token)
@@ -32,30 +49,109 @@ public class ApiClient
         _httpClient.DefaultRequestHeaders.Authorization = null;
     }
 
-    public async Task<T?> GetAsync<T>(string endpoint)
+    public async Task<HealthStatusResponse?> GetHealthStatusAsync()
     {
-        var response = await _httpClient.GetAsync($"{_baseUrl}/{endpoint}");
-        if (!response.IsSuccessStatusCode) return default;
+        try
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+            var response = await _httpClient.GetAsync("api/Health/status", cts.Token);
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<HealthStatusResponse>(cancellationToken: cts.Token);
+            }
+        }
+        catch
+        {
+            // API unreachable or connection timed out
+        }
 
-        var content = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<T>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        return new HealthStatusResponse
+        {
+            Status = "Offline",
+            Mode = "LocalNetworkPrimary",
+            IsOnline = false,
+            IsNeonBackupOnline = false,
+            PrimaryDatabase = "Local Offline Cache"
+        };
     }
 
-    public async Task<TResponse?> PostAsync<TRequest, TResponse>(string endpoint, TRequest data)
+    public async Task<LatestUpdateResponse?> GetLatestUpdateAsync()
     {
-        var json = JsonSerializer.Serialize(data);
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
+        try
+        {
+            using var response = await _httpClient.GetAsync("api/updates/latest");
+            if (!response.IsSuccessStatusCode ||
+                response.StatusCode == System.Net.HttpStatusCode.NoContent)
+            {
+                return null;
+            }
 
-        var response = await _httpClient.PostAsync($"{_baseUrl}/{endpoint}", content);
-        if (!response.IsSuccessStatusCode) return default;
-
-        var responseContent = await response.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<TResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            return await response.Content.ReadFromJsonAsync<LatestUpdateResponse>();
+        }
+        catch
+        {
+            return null;
+        }
     }
 
-    public async Task<bool> DeleteAsync(string endpoint)
+    public async Task<TResponse?> GetAsync<TResponse>(string endpoint)
     {
-        var response = await _httpClient.DeleteAsync($"{_baseUrl}/{endpoint}");
-        return response.IsSuccessStatusCode;
+        var response = await _httpClient.GetAsync(endpoint);
+        await EnsureSuccessAsync(response);
+        return await response.Content.ReadFromJsonAsync<TResponse>();
+    }
+
+    public async Task<TResponse?> PostAsync<TRequest, TResponse>(string endpoint, TRequest request)
+    {
+        var response = await _httpClient.PostAsJsonAsync(endpoint, request);
+        await EnsureSuccessAsync(response);
+        return await response.Content.ReadFromJsonAsync<TResponse>();
+    }
+
+    public async Task<TResponse?> PutAsync<TRequest, TResponse>(string endpoint, TRequest request)
+    {
+        var response = await _httpClient.PutAsJsonAsync(endpoint, request);
+        await EnsureSuccessAsync(response);
+        return await response.Content.ReadFromJsonAsync<TResponse>();
+    }
+
+    public async Task DeleteAsync(string endpoint)
+    {
+        var response = await _httpClient.DeleteAsync(endpoint);
+        await EnsureSuccessAsync(response);
+    }
+
+    private static async Task EnsureSuccessAsync(HttpResponseMessage response)
+    {
+        if (response.IsSuccessStatusCode)
+            return;
+
+        var body = await response.Content.ReadAsStringAsync();
+        var message = response.ReasonPhrase;
+
+        if (!string.IsNullOrWhiteSpace(body))
+        {
+            try
+            {
+                using var document = JsonDocument.Parse(body);
+                if (document.RootElement.TryGetProperty("message", out var messageProperty))
+                {
+                    message = messageProperty.GetString();
+                }
+                else
+                {
+                    message = body;
+                }
+            }
+            catch (JsonException)
+            {
+                message = body;
+            }
+        }
+
+        throw new HttpRequestException(
+            message ?? $"HTTP {(int)response.StatusCode}",
+            inner: null,
+            statusCode: response.StatusCode);
     }
 }

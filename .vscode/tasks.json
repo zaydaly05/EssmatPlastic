@@ -52,6 +52,24 @@
             }
         },
         {
+            "label": "EsmatPlastic: Build Mobile Android",
+            "type": "shell",
+            "command": "dotnet build 'EsmatPlastic.Mobile/EsmatPlastic.Mobile.csproj' -f net9.0-android",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "EsmatPlastic: Start Mobile Android",
+            "type": "shell",
+            "command": "$project = 'EsmatPlastic.Mobile/EsmatPlastic.Mobile.csproj'; dotnet build $project -f net9.0-android; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; $adb = 'C:\\Users\\Dell\\AppData\\Local\\Android\\Sdk\\platform-tools\\adb.exe'; if (-not (Test-Path $adb)) { throw 'Android adb.exe was not found.' }; $onlineDevice = & $adb devices | Select-String '\\s+device$' | Select-Object -First 1; if (-not $onlineDevice) { throw 'No online Android device or emulator is connected.' }; $serial = $onlineDevice.Line.Split()[0]; $apk = Get-ChildItem 'EsmatPlastic.Mobile/bin/Debug/net9.0-android' -Filter 'com.esmatplastic.mobile-Signed.apk' | Sort-Object LastWriteTime -Descending | Select-Object -First 1; if (-not $apk) { throw 'Signed Android APK was not found.' }; & $adb -s $serial install -r $apk.FullName; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; & $adb -s $serial shell monkey -p com.esmatplastic.mobile -c android.intent.category.LAUNCHER 1; exit $LASTEXITCODE",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
             "label": "EsmatPlastic: Start Full Stack",
             "dependsOn": [
                 "EsmatPlastic: Start API",

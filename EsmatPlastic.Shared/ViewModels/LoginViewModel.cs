@@ -2,6 +2,7 @@ using EsmatPlastic.Shared.Services;
 using EsmatPlastic.Shared.Models.Auth;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Windows.Input;
 
 namespace EsmatPlastic.Shared.ViewModels;
 
@@ -11,30 +12,56 @@ public class LoginViewModel : INotifyPropertyChanged
     private string _username;
     private string _password;
     private string _statusMessage;
+    private bool _isLoading;
+    private readonly AsyncCommand _loginCommand;
 
-    public event PropertyChangedEventHandler PropertyChanged;
+    public event PropertyChangedEventHandler? PropertyChanged;
 
     public string Username
     {
-        get => _username;
+        get => _username ?? string.Empty;
         set { _username = value; OnPropertyChanged(); }
     }
 
     public string Password
     {
-        get => _password;
+        get => _password ?? string.Empty;
         set { _password = value; OnPropertyChanged(); }
     }
 
     public string StatusMessage
     {
-        get => _statusMessage;
+        get => _statusMessage ?? string.Empty;
         set { _statusMessage = value; OnPropertyChanged(); }
     }
+
+    public bool IsLoading
+    {
+        get => _isLoading;
+        private set
+        {
+            if (_isLoading == value)
+                return;
+
+            _isLoading = value;
+            OnPropertyChanged();
+            _loginCommand.NotifyCanExecuteChanged();
+        }
+    }
+
+    public ICommand LoginCommand => _loginCommand;
+
+    public LoginResponse? CurrentUser { get; private set; }
+
+    public event Action<LoginResponse>? LoginSucceeded;
 
     public LoginViewModel(ApiClient apiClient)
     {
         _apiClient = apiClient;
+        _username = string.Empty;
+        _password = string.Empty;
+        _statusMessage = string.Empty;
+        _loginCommand = new AsyncCommand(LoginFromCommandAsync);
     }
 
     public async Task<bool> LoginAsync()
@@ -53,8 +80,10 @@ public class LoginViewModel : INotifyPropertyChanged
                 Password = Password
             });
 
-            if (response != null)
+            if (response is not null && !string.IsNullOrWhiteSpace(response.Token))
             {
+                CurrentUser = response;
+                OnPropertyChanged(nameof(CurrentUser));
                 _apiClient.SetToken(response.Token);
                 return true;
             }
@@ -69,8 +98,61 @@ public class LoginViewModel : INotifyPropertyChanged
         }
     }
 
-    protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+    private async Task LoginFromCommandAsync()
+    {
+        StatusMessage = string.Empty;
+        IsLoading = true;
+
+        try
+        {
+            if (await LoginAsync() && CurrentUser is not null)
+                LoginSucceeded?.Invoke(CurrentUser);
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    private sealed class AsyncCommand : ICommand
+    {
+        private readonly Func<Task> _execute;
+        private bool _isExecuting;
+
+        public AsyncCommand(Func<Task> execute)
+        {
+            _execute = execute;
+        }
+
+        public event EventHandler? CanExecuteChanged;
+
+        public bool CanExecute(object? parameter) => !_isExecuting;
+
+        public async void Execute(object? parameter)
+        {
+            if (!CanExecute(parameter))
+                return;
+
+            _isExecuting = true;
+            NotifyCanExecuteChanged();
+
+            try
+            {
+                await _execute();
+            }
+            finally
+            {
+                _isExecuting = false;
+                NotifyCanExecuteChanged();
+            }
+        }
+
+        public void NotifyCanExecuteChanged() =>
+            CanExecuteChanged?.Invoke(this, EventArgs.Empty);
     }
 }
