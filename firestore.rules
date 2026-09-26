@@ -12,6 +12,18 @@ service cloud.firestore {
         && request.auth.token.permissions.hasAny([permission]);
     }
 
+    function validSyncRecord() {
+      return request.resource.data.keys().hasAll(['syncId', 'updatedAt', 'payloadJson', 'references'])
+        && request.resource.data.syncId is string
+        && request.resource.data.payloadJson is string
+        && request.resource.data.references is map
+        && request.resource.data.updatedAt is timestamp;
+    }
+
+    function canManageOrders() {
+      return signedIn() && request.auth.token.appRole in ['Admin', 'Secretary'];
+    }
+
     match /users/{userId} {
       allow read: if signedIn()
         && (request.auth.uid == userId || hasPermission('Users.View'));
@@ -20,17 +32,24 @@ service cloud.firestore {
 
     match /products/{productId} {
       allow read: if hasPermission('Products.View');
-      allow write: if false;
+      allow create: if hasPermission('Products.Create') && validSyncRecord();
+      allow update: if hasPermission('Products.Edit') && validSyncRecord();
+      allow delete: if hasPermission('Products.Delete');
     }
 
     match /productVariants/{variantId} {
       allow read: if hasPermission('Products.View');
-      allow write: if false;
+      allow create: if hasPermission('Products.Create') && validSyncRecord();
+      allow update: if hasPermission('Products.Edit') && validSyncRecord();
+      allow delete: if hasPermission('Products.Delete');
     }
 
     match /stockTransactions/{transactionId} {
       allow read: if hasPermission('Stock.View');
-      allow write: if false;
+      allow create: if (hasPermission('Stock.In') || hasPermission('Stock.Out')) && validSyncRecord()
+        && request.resource.data.references.productVariant is string
+        && request.resource.data.references.user is string;
+      allow update, delete: if false;
     }
 
     match /permissions/{permissionId} {
@@ -44,13 +63,17 @@ service cloud.firestore {
     }
 
     match /orderRequests/{orderRequestId} {
-      allow read: if hasPermission('OrderRequests.View');
-      allow write: if false;
+      allow read: if hasPermission('OrderRequests.View') || canManageOrders();
+      allow create: if canManageOrders() && validSyncRecord();
+      allow update, delete: if canManageOrders() && validSyncRecord();
     }
 
     match /orderRequestItems/{itemId} {
-      allow read: if hasPermission('OrderRequests.View');
-      allow write: if false;
+      allow read: if hasPermission('OrderRequests.View') || canManageOrders();
+      allow create: if canManageOrders() && validSyncRecord()
+        && request.resource.data.references.orderRequest is string
+        && request.resource.data.references.productVariant is string;
+      allow update, delete: if canManageOrders() && validSyncRecord();
     }
 
     match /userCredentials/{userId} {

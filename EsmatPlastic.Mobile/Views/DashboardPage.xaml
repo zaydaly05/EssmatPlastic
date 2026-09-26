@@ -56,7 +56,7 @@
                 </Border>
 
                 <Button Text="عرض المنتجات"
-                    IsVisible="{Binding CanViewProducts}"
+                    IsVisible="{Binding CanAccessWorkspace}"
                     Clicked="Products_Clicked"
                     BackgroundColor="#0D766E"
                     TextColor="White"

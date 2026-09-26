@@ -114,7 +114,8 @@ public sealed class FirebaseFirestoreClient
                     }
 
                     var references = ReadReferences(fields);
-                    results.Add(new FirestoreDataDocument<T>(payload, references));
+                    var documentName = cloudDocument.GetProperty("name").GetString() ?? string.Empty;
+                    results.Add(new FirestoreDataDocument<T>(payload, references, documentName.Split('/').Last()));
                 }
             }
 
@@ -125,6 +126,38 @@ public sealed class FirebaseFirestoreClient
         while (!string.IsNullOrWhiteSpace(pageToken));
 
         return results;
+    }
+
+    public async Task WriteDocumentAsync<T>(string collectionName, string documentId, T payload,
+        IReadOnlyDictionary<string, string>? references = null)
+    {
+        if (string.IsNullOrWhiteSpace(_idToken))
+            throw new InvalidOperationException("Sign in to Firebase before writing to Firestore.");
+
+        var now = DateTime.UtcNow;
+        var syncId = Guid.TryParse(documentId, out var parsed) ? parsed : Guid.NewGuid();
+        var body = JsonSerializer.Serialize(new
+        {
+            fields = new Dictionary<string, object>
+            {
+                ["syncId"] = new { stringValue = syncId.ToString("D") },
+                ["updatedAt"] = new { timestampValue = now.ToString("O") },
+                ["payloadJson"] = new { stringValue = JsonSerializer.Serialize(payload, JsonOptions) },
+                ["references"] = new { mapValue = new { fields = (references ?? new Dictionary<string, string>()).ToDictionary(
+                    item => item.Key, item => (object)new { stringValue = item.Value }) } }
+            }
+        }, JsonOptions);
+
+        var uri = $"https://firestore.googleapis.com/v1/projects/{Uri.EscapeDataString(_projectId)}/databases/(default)/documents/{Uri.EscapeDataString(collectionName)}/{Uri.EscapeDataString(syncId.ToString("D"))}";
+        using var request = new HttpRequestMessage(HttpMethod.Patch, uri)
+        {
+            Content = new StringContent(body, System.Text.Encoding.UTF8, "application/json")
+        };
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _idToken);
+        using var response = await HttpClient.SendAsync(request);
+        var responseBody = await response.Content.ReadAsStringAsync();
+        if (!response.IsSuccessStatusCode)
+            throw new HttpRequestException($"Firestore write failed for '{collectionName}': {responseBody}", null, response.StatusCode);
     }
 
     private static Dictionary<string, string> ReadReferences(JsonElement fields)
@@ -149,4 +182,4 @@ public sealed class FirebaseFirestoreClient
     }
 }
 
-public sealed record FirestoreDataDocument<T>(T Data, IReadOnlyDictionary<string, string> References);
+public sealed record FirestoreDataDocument<T>(T Data, IReadOnlyDictionary<string, string> References, string SyncId = "");

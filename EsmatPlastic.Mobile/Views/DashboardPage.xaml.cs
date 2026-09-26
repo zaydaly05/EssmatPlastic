@@ -40,10 +40,6 @@ public partial class DashboardPage : ContentPage
 
     private async void Products_Clicked(object sender, EventArgs e)
     {
-        if (_user.Permissions.Any(permission =>
-                permission.Equals("Products.View", StringComparison.OrdinalIgnoreCase)))
-        {
-            await Navigation.PushAsync(new ProductsPage(_firestoreClient, _user));
-        }
+        await Navigation.PushAsync(new MobileWorkspacePage(_user, _logout));
     }
 }
