@@ -33,10 +33,10 @@ public sealed class MobileWorkspacePage : ContentPage
         signOut.BackgroundColor = Color.FromArgb("#FEE2E2");
         signOut.TextColor = Color.FromArgb("#B91C1C");
 
-        var titleStack = new VerticalStackLayout { Spacing = 3, VerticalOptions = LayoutOptions.Center };
-        titleStack.Children.Add(new Label { Text = SectionHeading, FontSize = 24, FontAttributes = FontAttributes.Bold, TextColor = Color.FromArgb("#1E293B") });
-        titleStack.Children.Add(new Label { Text = $"Esmat Plastic · {_user.FullName}", FontSize = 13, TextColor = Color.FromArgb("#64748B") });
-        var header = new Grid { Padding = new Thickness(18, 12), ColumnDefinitions = { new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Auto) }, ColumnSpacing = 10, BackgroundColor = Colors.White };
+        var titleStack = new VerticalStackLayout { Spacing = 2, VerticalOptions = LayoutOptions.Center };
+        titleStack.Children.Add(new Label { Text = SectionHeading, FontSize = 22, FontAttributes = FontAttributes.Bold, TextColor = Color.FromArgb("#0F172A") });
+        titleStack.Children.Add(new Label { Text = $"Esmat Plastic · {_user.FullName}", FontSize = 12, TextColor = Color.FromArgb("#475569") });
+        var header = new Grid { Padding = new Thickness(16, 12), ColumnDefinitions = { new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Auto) }, ColumnSpacing = 12, BackgroundColor = Colors.White };
         header.Add(back, 0, 0);
         header.Add(titleStack, 1, 0);
         header.Add(refresh, 2, 0);
@@ -673,28 +673,28 @@ public sealed class MobileWorkspacePage : ContentPage
 
     private async Task<UserRecord> ReadCurrentUserRecordAsync() => (await CurrentUserDocumentAsync()).Data;
 
-    private static Color Ink => Color.FromArgb("#1E293B");
-    private static Color Muted => Color.FromArgb("#64748B");
+    private static Color Ink => Color.FromArgb("#0F172A");
+    private static Color Muted => Color.FromArgb("#475569");
     private static Border Panel(View content) => new() { Content = content, Padding = 15, Stroke = Color.FromArgb("#E2E8F0"), StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 12 }, BackgroundColor = Colors.White };
     private static Border Card(string title, string detail, string badge)
     {
         var stack = new VerticalStackLayout { Spacing = 5 };
         stack.Children.Add(new Label { Text = title, FontSize = 16, FontAttributes = FontAttributes.Bold, TextColor = Ink });
         if (!string.IsNullOrWhiteSpace(detail)) stack.Children.Add(new Label { Text = detail, FontSize = 13, TextColor = Muted });
-        if (!string.IsNullOrWhiteSpace(badge)) stack.Children.Add(Badge(badge, "#E8F6F3"));
+        if (!string.IsNullOrWhiteSpace(badge)) stack.Children.Add(Badge(badge, "#E2E8F0"));
         return Panel(stack);
     }
-    private static Label Badge(string text, string background) => new() { Text = text, FontSize = 12, TextColor = Color.FromArgb("#0F766E"), BackgroundColor = Color.FromArgb(background), Padding = new Thickness(9, 4), HorizontalOptions = LayoutOptions.Start };
+    private static Label Badge(string text, string background) => new() { Text = text, FontSize = 11, FontAttributes = FontAttributes.Bold, TextColor = Ink, BackgroundColor = Color.FromArgb(background), Padding = new Thickness(8, 3), HorizontalOptions = LayoutOptions.Start };
     private static Label SectionTitle(string text) => new() { Text = text, FontSize = 18, FontAttributes = FontAttributes.Bold, TextColor = Ink, Margin = new Thickness(2, 8, 2, 0) };
     private void AddSectionHeader(string title, string subtitle) { _content.Add(SectionTitle(title)); _content.Add(new Label { Text = subtitle, FontSize = 13, TextColor = Muted, Margin = new Thickness(2, -6, 2, 2) }); }
     private static Label EmptyState(string text) => new() { Text = text, HorizontalTextAlignment = TextAlignment.Center, TextColor = Muted, Margin = new Thickness(12, 28) };
     private static Button SmallButton(string text, Func<Task> action)
     {
-        var button = new Button { Text = text, CornerRadius = 9, Padding = new Thickness(12, 7), BackgroundColor = Color.FromArgb("#E8F6F3"), TextColor = Color.FromArgb("#0F766E"), FontSize = 13 };
+        var button = new Button { Text = text, CornerRadius = 6, Padding = new Thickness(12, 7), BackgroundColor = Color.FromArgb("#64748B"), TextColor = Colors.White, FontSize = 13 };
         button.Clicked += async (_, _) => { try { await action(); } catch (Exception ex) { await Application.Current!.Windows[0].Page!.DisplayAlert("Action failed", ex.Message, "OK"); } };
         return button;
     }
-    private static Button PrimaryButton(string text, Func<Task> action) { var button = SmallButton(text, action); button.BackgroundColor = Color.FromArgb("#0D9488"); button.TextColor = Colors.White; return button; }
+    private static Button PrimaryButton(string text, Func<Task> action) { var button = SmallButton(text, action); button.BackgroundColor = Color.FromArgb("#2563EB"); button.TextColor = Colors.White; return button; }
     private void AddAction(string text, Func<Task> action) => _content.Children.Insert(0, PrimaryButton(text, action));
 
     private async Task<string?> PromptPasswordAsync(string title, string subtitle)
