@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EsmatPlastic.Mobile.ViewModels"
+             x:Class="EsmatPlastic.Mobile.Views.ProductsPage"
+             x:DataType="vm:ProductsViewModel"
+             Title="المنتجات"
+             FlowDirection="RightToLeft"
+             BackgroundColor="#F1F5F9">
+    <Grid RowDefinitions="Auto,Auto,*">
+        <SearchBar Grid.Row="0"
+                   Margin="16,12"
+                   Placeholder="ابحث عن منتج"
+                   Text="{Binding SearchText}"
+                   BackgroundColor="White"
+                   TextColor="#1E293B"
+                   PlaceholderColor="#64748B"
+                   SearchButtonPressed="SearchButtonPressed" />
+
+        <Grid Grid.Row="1" Padding="18,0,18,10">
+            <ActivityIndicator IsRunning="{Binding IsLoading}"
+                               IsVisible="{Binding IsLoading}"
+                               HorizontalOptions="Start"
+                               Color="#0D766E" />
+            <Label Text="{Binding StatusMessage}"
+                   TextColor="#8A3B12"
+                   HorizontalOptions="Fill"
+                   HorizontalTextAlignment="Center"
+                   LineBreakMode="WordWrap" />
+        </Grid>
+
+        <RefreshView Grid.Row="2"
+                     IsRefreshing="{Binding IsRefreshing}"
+                     Command="{Binding RefreshCommand}">
+            <CollectionView ItemsSource="{Binding Products}"
+                            Margin="16,0,16,16"
+                            SelectionMode="None">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ProductItemViewModel">
+                        <Border Margin="0,0,0,10"
+                                Padding="16"
+                                Stroke="#D8E2EA"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 8"
+                                BackgroundColor="White">
+                            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                                <Label Text="{Binding Name}"
+                                       FontSize="17"
+                                       FontAttributes="Bold"
+                                       TextColor="#1E293B"
+                                       LineBreakMode="TailTruncation" />
+                                <Label Grid.Row="1"
+                                       Text="{Binding Description}"
+                                       Margin="0,5,0,0"
+                                       FontSize="13"
+                                       TextColor="#52636D"
+                                       LineBreakMode="WordWrap" />
+                                <Border Grid.Column="1"
+                                        Grid.RowSpan="2"
+                                        Padding="9,5"
+                                        Stroke="#B6D9D4"
+                                        StrokeShape="RoundRectangle 6"
+                                        BackgroundColor="#E8F6F3"
+                                        VerticalOptions="Center">
+                                    <Label Text="{Binding StatusText}"
+                                           FontSize="12"
+                                           FontAttributes="Bold"
+                                           TextColor="#145B55" />
+                                </Border>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+                <CollectionView.EmptyView>
+                    <Label Text="لا توجد منتجات مطابقة."
+                           Margin="12,32"
+                           HorizontalTextAlignment="Center"
+                           TextColor="#52636D" />
+                </CollectionView.EmptyView>
+            </CollectionView>
+        </RefreshView>
+    </Grid>
+</ContentPage>

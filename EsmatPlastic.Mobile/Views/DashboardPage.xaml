@@ -55,6 +55,14 @@
                     </Grid>
                 </Border>
 
+                <Button Text="عرض المنتجات"
+                    IsVisible="{Binding CanViewProducts}"
+                    Clicked="Products_Clicked"
+                    BackgroundColor="#0D766E"
+                    TextColor="White"
+                    CornerRadius="8"
+                    HeightRequest="48" />
+
                 <ActivityIndicator IsRunning="{Binding IsLoading}"
                                    IsVisible="{Binding IsLoading}"
                                    Color="#0D9488" />
