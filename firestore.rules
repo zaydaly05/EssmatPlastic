@@ -44,7 +44,7 @@ service cloud.firestore {
       allow read: if hasPermission('Products.View') || hasPermission('Stock.View')
         || hasPermission('Reports.View') || canManageOrders();
       allow create: if hasPermission('Products.Create') && validSyncRecord();
-      allow update: if hasPermission('Products.Edit') && validSyncRecord();
+      allow update: if (hasPermission('Products.Edit') || canManageOrders()) && validSyncRecord();
       allow delete: if hasPermission('Products.Delete');
     }
 
@@ -86,7 +86,8 @@ service cloud.firestore {
 
     match /userCredentials/{userId} {
       allow read: if false;
-      allow create, update: if (hasPermission('Users.Create') || hasPermission('Users.Edit'))
+      allow create, update: if (request.auth != null && (request.auth.uid == userId
+        || hasPermission('Users.Create') || hasPermission('Users.Edit')))
         && request.resource.data.keys().hasOnly(['passwordHash', 'updatedAt'])
         && request.resource.data.passwordHash is string
         && request.resource.data.updatedAt is timestamp;

@@ -516,7 +516,7 @@ public sealed class MobileWorkspacePage : ContentPage
     }
 
     // Account settings and locally applied appearance options
-    private async Task LoadSettingsAsync()
+    private Task LoadSettingsAsync()
     {
         AddSectionHeader("Account", "Signed in as");
         _content.Add(Card(_user.FullName, $"@{_user.Username}", _user.Role));
@@ -526,8 +526,9 @@ public sealed class MobileWorkspacePage : ContentPage
         _content.Add(SmallButton("Use light theme", async () => { Application.Current!.UserAppTheme = AppTheme.Light; Preferences.Set("appearance", "light"); await DisplayAlert("Appearance saved", "Light theme enabled.", "OK"); }));
         _content.Add(SmallButton("Use dark theme", async () => { Application.Current!.UserAppTheme = AppTheme.Dark; Preferences.Set("appearance", "dark"); await DisplayAlert("Appearance saved", "Dark theme enabled.", "OK"); }));
         _content.Add(SmallButton("Use device theme", async () => { Application.Current!.UserAppTheme = AppTheme.Unspecified; Preferences.Remove("appearance"); await DisplayAlert("Appearance saved", "Device theme enabled.", "OK"); }));
-        if (Has("Users.Edit")) _content.Add(PrimaryButton("Change my password", async () => await ChangePasswordAsync(await CurrentUserDocumentAsync())));
-        _content.Add(SmallButton("Sign out", async () => _logout()));
+        _content.Add(PrimaryButton("Change my password", async () => await ChangePasswordAsync(await CurrentUserDocumentAsync())));
+        _content.Add(SmallButton("Sign out", () => { _logout(); return Task.CompletedTask; }));
+        return Task.CompletedTask;
     }
 
     private async Task<FirestoreDataDocument<UserRecord>> CurrentUserDocumentAsync()
@@ -557,10 +558,10 @@ public sealed class MobileWorkspacePage : ContentPage
         return permissions.Where(x => x.Data.IsActive && names.Contains(x.Data.Name));
     }
 
-    private async Task<string> FindUserSyncIdAsync()
+    private Task<string> FindUserSyncIdAsync()
     {
-        return _firestore.AuthenticatedUserId
-               ?? throw new InvalidOperationException("The signed-in user record is missing from Firestore.");
+        return Task.FromResult(_firestore.AuthenticatedUserId
+               ?? throw new InvalidOperationException("The signed-in user record is missing from Firestore."));
     }
 
     private bool CanManageOrders => _user.Role is "Admin" or "Secretary";
