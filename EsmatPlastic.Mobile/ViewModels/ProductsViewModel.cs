@@ -144,7 +144,7 @@ public sealed class ProductsViewModel : INotifyPropertyChanged
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
-    private sealed class ProductRecord
+    public sealed class ProductRecord
     {
         public string Name { get; set; } = string.Empty;
         public string? Description { get; set; }
@@ -155,7 +155,11 @@ public sealed class ProductsViewModel : INotifyPropertyChanged
     {
         private readonly Func<Task> _execute;
 
-        public event EventHandler? CanExecuteChanged;
+        public event EventHandler? CanExecuteChanged
+        {
+            add { }
+            remove { }
+        }
 
         public AsyncCommand(Func<Task> execute) => _execute = execute;
 

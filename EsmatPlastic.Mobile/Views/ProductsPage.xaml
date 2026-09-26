@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:maui="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:EsmatPlastic.Mobile.ViewModels"
              x:Class="EsmatPlastic.Mobile.Views.ProductsPage"
-             x:DataType="vm:ProductsViewModel"
+             maui:DataType="vm:ProductsViewModel"
              Title="المنتجات"
              FlowDirection="RightToLeft"
              BackgroundColor="#F1F5F9">
     <Grid RowDefinitions="Auto,Auto,*">
-        <SearchBar Grid.Row="0"
+        <SearchBar maui:DataType="vm:ProductsViewModel"
+               Grid.Row="0"
                    Margin="16,12"
                    Placeholder="ابحث عن منتج"
                    Text="{Binding SearchText}"
@@ -18,25 +20,29 @@
                    SearchButtonPressed="SearchButtonPressed" />
 
         <Grid Grid.Row="1" Padding="18,0,18,10">
-            <ActivityIndicator IsRunning="{Binding IsLoading}"
+            <ActivityIndicator maui:DataType="vm:ProductsViewModel"
+                               IsRunning="{Binding IsLoading}"
                                IsVisible="{Binding IsLoading}"
                                HorizontalOptions="Start"
                                Color="#0D766E" />
-            <Label Text="{Binding StatusMessage}"
+                <Label maui:DataType="vm:ProductsViewModel"
+                     Text="{Binding StatusMessage}"
                    TextColor="#8A3B12"
                    HorizontalOptions="Fill"
                    HorizontalTextAlignment="Center"
                    LineBreakMode="WordWrap" />
         </Grid>
 
-        <RefreshView Grid.Row="2"
+        <RefreshView maui:DataType="vm:ProductsViewModel"
+                 Grid.Row="2"
                      IsRefreshing="{Binding IsRefreshing}"
                      Command="{Binding RefreshCommand}">
-            <CollectionView ItemsSource="{Binding Products}"
+            <CollectionView maui:DataType="vm:ProductsViewModel"
+                            ItemsSource="{Binding Products}"
                             Margin="16,0,16,16"
                             SelectionMode="None">
                 <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="vm:ProductItemViewModel">
+                    <DataTemplate maui:DataType="vm:ProductItemViewModel">
                         <Border Margin="0,0,0,10"
                                 Padding="16"
                                 Stroke="#D8E2EA"
@@ -44,12 +50,14 @@
                                 StrokeShape="RoundRectangle 8"
                                 BackgroundColor="White">
                             <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
-                                <Label Text="{Binding Name}"
+                                    <Label maui:DataType="vm:ProductItemViewModel"
+                                        Text="{Binding Name}"
                                        FontSize="17"
                                        FontAttributes="Bold"
                                        TextColor="#1E293B"
                                        LineBreakMode="TailTruncation" />
-                                <Label Grid.Row="1"
+                                    <Label maui:DataType="vm:ProductItemViewModel"
+                                        Grid.Row="1"
                                        Text="{Binding Description}"
                                        Margin="0,5,0,0"
                                        FontSize="13"
@@ -62,7 +70,8 @@
                                         StrokeShape="RoundRectangle 6"
                                         BackgroundColor="#E8F6F3"
                                         VerticalOptions="Center">
-                                    <Label Text="{Binding StatusText}"
+                                    <Label maui:DataType="vm:ProductItemViewModel"
+                                         Text="{Binding StatusText}"
                                            FontSize="12"
                                            FontAttributes="Bold"
                                            TextColor="#145B55" />
