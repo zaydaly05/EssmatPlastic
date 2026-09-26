@@ -11,6 +11,8 @@ namespace EsmatPlastic.Mobile;
 public partial class App : Application
 {
     public static ApiClient SharedApiClient { get; private set; } = null!;
+    public static FirebaseFirestoreClient SharedFirestoreClient { get; } = new("essmat-plastic");
+    private static readonly FirebaseAuthClient SharedFirebaseAuthClient = new();
 
     public App()
     {
@@ -25,7 +27,10 @@ public partial class App : Application
 
     private LoginViewModel CreateLoginViewModel()
     {
-        var viewModel = new LoginViewModel(SharedApiClient);
+        var viewModel = new LoginViewModel(
+            SharedApiClient,
+            SharedFirebaseAuthClient,
+            SharedFirestoreClient);
         viewModel.LoginSucceeded += ShowDashboard;
         return viewModel;
     }
@@ -35,12 +40,13 @@ public partial class App : Application
         var window = Windows.FirstOrDefault();
         if (window is not null)
             window.Page = new NavigationPage(
-                new DashboardPage(SharedApiClient, user, ShowLogin));
+                new DashboardPage(SharedFirestoreClient, user, ShowLogin));
     }
 
     private void ShowLogin()
     {
         SharedApiClient.ClearToken();
+        SharedFirestoreClient.ClearIdToken();
 
         var window = Windows.FirstOrDefault();
         if (window is not null)

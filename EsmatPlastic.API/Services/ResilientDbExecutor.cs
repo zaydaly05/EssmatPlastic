@@ -26,38 +26,14 @@ public class ResilientDbExecutor : IResilientDbExecutor
 
     public async Task<T> ExecuteAsync<T>(Func<AppDbContext, Task<T>> operation)
     {
-        await _connectionManager.EvaluateConnectionAsync();
-
-        try
-        {
-            await using var db = CreateDbContext(_connectionManager.ActiveConnectionString);
-            return await operation(db);
-        }
-        catch (Exception ex) when (_connectionManager.CurrentMode == DatabaseProviderMode.CloudNeon && IsNetworkOrConnectionException(ex))
-        {
-            _logger.LogWarning(ex, "Neon request failed; retrying against local SQLite.");
-            await _connectionManager.EvaluateConnectionAsync();
-            await using var localDb = CreateDbContext(_connectionManager.ActiveConnectionString);
-            return await operation(localDb);
-        }
+        await using var db = CreateDbContext(_connectionManager.LocalConnectionString);
+        return await operation(db);
     }
 
     public async Task ExecuteAsync(Func<AppDbContext, Task> operation)
     {
-        await _connectionManager.EvaluateConnectionAsync();
-
-        try
-        {
-            await using var db = CreateDbContext(_connectionManager.ActiveConnectionString);
-            await operation(db);
-        }
-        catch (Exception ex) when (_connectionManager.CurrentMode == DatabaseProviderMode.CloudNeon && IsNetworkOrConnectionException(ex))
-        {
-            _logger.LogWarning(ex, "Neon request failed; retrying against local SQLite.");
-            await _connectionManager.EvaluateConnectionAsync();
-            await using var localDb = CreateDbContext(_connectionManager.ActiveConnectionString);
-            await operation(localDb);
-        }
+        await using var db = CreateDbContext(_connectionManager.LocalConnectionString);
+        await operation(db);
     }
 
     private static AppDbContext CreateDbContext(string connectionString)
@@ -73,24 +49,5 @@ public class ResilientDbExecutor : IResilientDbExecutor
         }
 
         return new AppDbContext(optionsBuilder.Options);
-    }
-
-    private static bool IsNetworkOrConnectionException(Exception ex)
-    {
-        if (ex is NpgsqlException ||
-            ex is SocketException ||
-            ex is TimeoutException ||
-            ex is IOException ||
-            ex is DbUpdateException)
-        {
-            return true;
-        }
-
-        if (ex.InnerException != null)
-        {
-            return IsNetworkOrConnectionException(ex.InnerException);
-        }
-
-        return false;
     }
 }

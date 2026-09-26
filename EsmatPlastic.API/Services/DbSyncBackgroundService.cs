@@ -590,7 +590,6 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
             await neonDb.SaveChangesAsync(cancellationToken);
             await localDb.SaveChangesAsync(cancellationToken);
 
-            _connectionManager.UpdateLastSyncTime();
             _logger.LogInformation(
                 "Database sync cycle completed in {DurationMs} ms. Neon to local: {PulledUsers} users, {PulledProducts} products, {PulledVariants} variants. Local to Neon: {PushedUsers} users, {PushedProducts} products, {PushedVariants} variants.",
                 Stopwatch.GetElapsedTime(syncStartedAt).TotalMilliseconds,

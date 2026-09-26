@@ -19,8 +19,7 @@ public sealed class UpdatesController : ControllerBase
     public async Task<IActionResult> GetLatest(CancellationToken cancellationToken)
     {
         var connectionString = _connectionManager.NeonConnectionString;
-        if (string.IsNullOrWhiteSpace(connectionString) ||
-            !_connectionManager.IsNeonBackupAvailable)
+        if (string.IsNullOrWhiteSpace(connectionString))
         {
             return NoContent();
         }
@@ -44,6 +43,10 @@ public sealed class UpdatesController : ControllerBase
         catch (PostgresException ex) when (ex.SqlState == "42P01")
         {
             // The updates table is created by the release publisher when the first build is published.
+            return NoContent();
+        }
+        catch (NpgsqlException)
+        {
             return NoContent();
         }
     }

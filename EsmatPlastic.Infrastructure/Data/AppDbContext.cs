@@ -44,6 +44,7 @@ public class AppDbContext : DbContext
 
     private void StampSyncTimestamps()
     {
+        ChangeTracker.DetectChanges();
         var now = DateTime.UtcNow;
 
         foreach (var entry in ChangeTracker.Entries<ISyncTimestamped>())

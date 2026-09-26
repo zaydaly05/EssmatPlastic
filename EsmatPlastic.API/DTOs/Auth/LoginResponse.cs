@@ -4,6 +4,10 @@ public class LoginResponse
 {
     public string Token { get; set; } = string.Empty;
 
+    public string? FirebaseCustomToken { get; set; }
+
+    public string? FirebaseWebApiKey { get; set; }
+
     public DateTime ExpiresAt { get; set; }
 
     public int UserId { get; set; }

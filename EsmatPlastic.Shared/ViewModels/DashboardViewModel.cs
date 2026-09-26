@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using EsmatPlastic.Shared.Models.Auth;
 using EsmatPlastic.Shared.Models.Dashboard;
 using EsmatPlastic.Shared.Services;
@@ -9,7 +10,7 @@ namespace EsmatPlastic.Shared.ViewModels;
 
 public sealed class DashboardViewModel : INotifyPropertyChanged
 {
-    private readonly ApiClient _apiClient;
+    private readonly FirebaseFirestoreClient _firestoreClient;
     private readonly LoginResponse _user;
     private int _productCount;
     private int _variantCount;
@@ -79,9 +80,9 @@ public sealed class DashboardViewModel : INotifyPropertyChanged
         private set => SetProperty(ref _isLoading, value);
     }
 
-    public DashboardViewModel(ApiClient apiClient, LoginResponse user)
+    public DashboardViewModel(FirebaseFirestoreClient firestoreClient, LoginResponse user)
     {
-        _apiClient = apiClient;
+        _firestoreClient = firestoreClient;
         _user = user;
     }
 
@@ -95,45 +96,41 @@ public sealed class DashboardViewModel : INotifyPropertyChanged
 
         try
         {
-            var health = await _apiClient.GetHealthStatusAsync();
-            if (health is null || !health.IsOnline)
-            {
-                DatabaseStatus = "الخادم المحلي غير متصل";
-                StatusMessage = "تعذر الاتصال بقاعدة البيانات المحلية.";
-                return;
-            }
-
-            DatabaseStatus = $"متصل - {health.PrimaryDatabase}";
+            DatabaseStatus = "متصل - Firestore";
 
             if (CanViewProducts)
             {
-                var products = await _apiClient.GetAsync<List<DashboardProductSummary>>(
-                    "api/Products");
-                ProductCount = products?.Count ?? 0;
+                var products = await _firestoreClient.GetCollectionAsync<DashboardProductRecord>("products");
+                ProductCount = products.Count(item => item.Data.IsActive);
             }
 
             if (CanViewStock)
             {
-                var stock = await _apiClient.GetAsync<List<DashboardStockBalance>>(
-                    "api/Stock/current") ?? new List<DashboardStockBalance>();
-
-                VariantCount = stock.Count;
-                CurrentStock = stock.Sum(item => item.CurrentQuantity);
+                var variants = await _firestoreClient.GetCollectionAsync<DashboardVariantRecord>("productVariants");
+                var transactions = await _firestoreClient.GetCollectionAsync<DashboardTransactionRecord>("stockTransactions");
+                VariantCount = variants.Count(item => item.Data.IsActive);
+                var totalIn = transactions
+                    .Where(item => item.Data.Type == 1)
+                    .Sum(item => item.Data.Quantity);
+                var totalOut = transactions
+                    .Where(item => item.Data.Type == 2)
+                    .Sum(item => item.Data.Quantity);
+                CurrentStock = totalIn - totalOut;
 
                 if (CanViewReports)
                 {
-                    TotalIn = stock.Sum(item => item.TotalIn);
-                    TotalOut = stock.Sum(item => item.TotalOut);
+                    TotalIn = totalIn;
+                    TotalOut = totalOut;
                 }
             }
 
             if (HasNoDashboardPermission)
                 StatusMessage = "لا توجد صلاحيات لعرض بيانات لوحة التحكم.";
         }
-        catch (HttpRequestException)
+        catch (Exception ex) when (ex is HttpRequestException or JsonException or InvalidOperationException)
         {
             DatabaseStatus = "تعذر تحميل البيانات";
-            StatusMessage = "تعذر تحميل بيانات لوحة التحكم من الخادم المحلي.";
+            StatusMessage = "تعذر تحميل بيانات لوحة التحكم من Firestore.";
         }
         finally
         {
@@ -151,5 +148,21 @@ public sealed class DashboardViewModel : INotifyPropertyChanged
 
         field = value;
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    private sealed class DashboardProductRecord
+    {
+        public bool IsActive { get; set; } = true;
+    }
+
+    private sealed class DashboardVariantRecord
+    {
+        public bool IsActive { get; set; } = true;
+    }
+
+    private sealed class DashboardTransactionRecord
+    {
+        public int Type { get; set; }
+        public decimal Quantity { get; set; }
     }
 }

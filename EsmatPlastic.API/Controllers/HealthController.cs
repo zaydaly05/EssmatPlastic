@@ -8,10 +8,14 @@ namespace EsmatPlastic.API.Controllers;
 public class HealthController : ControllerBase
 {
     private readonly IDbConnectionManager _dbConnectionManager;
+    private readonly FirestoreDbSyncBackgroundService _syncService;
 
-    public HealthController(IDbConnectionManager dbConnectionManager)
+    public HealthController(
+        IDbConnectionManager dbConnectionManager,
+        FirestoreDbSyncBackgroundService syncService)
     {
         _dbConnectionManager = dbConnectionManager;
+        _syncService = syncService;
     }
 
     [HttpGet("status")]
@@ -22,30 +26,32 @@ public class HealthController : ControllerBase
         return Ok(new
         {
             status = "Healthy",
-            architecture = "Neon primary with automatic local SQLite fallback",
+            architecture = "Local SQLite with bidirectional Firestore synchronization",
             mode = mode.ToString(),
             isOnline = true,
-            isNeonBackupOnline = _dbConnectionManager.IsNeonBackupAvailable,
-            primaryDatabase = _dbConnectionManager.ActiveConnectionString.Contains("Host=") ? "Neon PostgreSQL" : "Local SQLite",
-            lastSyncUtc = _dbConnectionManager.LastSyncTimeUtc,
+            isFirestoreOnline = _syncService.IsOnline,
+            isNeonBackupOnline = false,
+            primaryDatabase = "Local SQLite",
+            lastSyncUtc = _syncService.LastSyncTimeUtc,
             timestampUtc = DateTime.UtcNow
         });
     }
 
     [HttpPost("sync")]
-    public async Task<IActionResult> TriggerSync([FromServices] DbSyncBackgroundService syncService)
+    public async Task<IActionResult> TriggerSync()
     {
-        if (!_dbConnectionManager.IsNeonBackupAvailable)
+        if (!_syncService.IsOnline)
         {
-            return BadRequest(new { message = "Cannot perform sync while Neon cloud backup is offline or unreachable." });
+            return StatusCode(StatusCodes.Status503ServiceUnavailable,
+                new { message = "Firestore is offline or not configured; local SQLite is still available." });
         }
 
-        await syncService.PerformDatabaseSyncAsync();
+        await _syncService.PerformDatabaseSyncAsync();
 
         return Ok(new
         {
             message = "Database synchronization triggered successfully.",
-            lastSyncUtc = _dbConnectionManager.LastSyncTimeUtc
+            lastSyncUtc = _syncService.LastSyncTimeUtc
         });
     }
 }

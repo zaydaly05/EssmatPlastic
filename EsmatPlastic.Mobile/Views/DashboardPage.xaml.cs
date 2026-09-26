@@ -10,10 +10,10 @@ public partial class DashboardPage : ContentPage
     private readonly DashboardViewModel _viewModel;
     private readonly Action _logout;
 
-    public DashboardPage(ApiClient apiClient, LoginResponse user, Action logout)
+    public DashboardPage(FirebaseFirestoreClient firestoreClient, LoginResponse user, Action logout)
     {
         InitializeComponent();
-        _viewModel = new DashboardViewModel(apiClient, user);
+        _viewModel = new DashboardViewModel(firestoreClient, user);
         _logout = logout;
         BindingContext = _viewModel;
     }

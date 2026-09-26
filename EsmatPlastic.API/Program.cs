@@ -158,13 +158,18 @@ builder.Services.AddSingleton<IDbConnectionManager>(sp =>
     return new DbConnectionManager(
         config.GetConnectionString("NeonConnection") ?? string.Empty,
         config.GetConnectionString("DefaultConnection") ?? string.Empty,
+        sp.GetRequiredService<FirestoreDbSyncBackgroundService>(),
         sp.GetRequiredService<ILogger<DbConnectionManager>>()
     );
 });
-builder.Services.AddSingleton<IDbSyncTrigger, DbSyncBackgroundService>();
-builder.Services.AddHostedService(sp => (DbSyncBackgroundService)sp.GetRequiredService<IDbSyncTrigger>());
+builder.Services.AddSingleton<FirestoreDbSyncBackgroundService>();
+builder.Services.AddSingleton<IDbSyncTrigger>(sp =>
+    sp.GetRequiredService<FirestoreDbSyncBackgroundService>());
+builder.Services.AddHostedService(sp =>
+    sp.GetRequiredService<FirestoreDbSyncBackgroundService>());
 builder.Services.AddScoped<IResilientDbExecutor, ResilientDbExecutor>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddSingleton<IFirebaseCustomTokenService, FirebaseCustomTokenService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IPermissionService, PermissionService>();
 builder.Services.AddScoped<IReportService, ReportService>();

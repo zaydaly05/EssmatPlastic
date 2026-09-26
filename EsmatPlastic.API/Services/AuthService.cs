@@ -14,14 +14,20 @@ public class AuthService : IAuthService
 {
     private readonly IResilientDbExecutor _executor;
     private readonly IConfiguration _configuration;
+    private readonly IFirebaseCustomTokenService _firebaseCustomTokenService;
+    private readonly ILogger<AuthService> _logger;
     private readonly PasswordHasher<User> _passwordHasher;
 
     public AuthService(
         IResilientDbExecutor executor,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IFirebaseCustomTokenService firebaseCustomTokenService,
+        ILogger<AuthService> logger)
     {
         _executor = executor;
         _configuration = configuration;
+        _firebaseCustomTokenService = firebaseCustomTokenService;
+        _logger = logger;
         _passwordHasher = new PasswordHasher<User>();
     }
 
@@ -77,6 +83,16 @@ public class AuthService : IAuthService
                 claims.Add(new Claim("Permission", permission));
             }
 
+            string? firebaseCustomToken = null;
+            try
+            {
+                firebaseCustomToken = await _firebaseCustomTokenService.CreateAsync(user, permissions);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Firebase sign-in token could not be issued; API login remains available.");
+            }
+
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
@@ -95,7 +111,9 @@ public class AuthService : IAuthService
                 Username = user.Username,
                 FullName = user.FullName,
                 Role = user.Role.ToString(),
-                Permissions = permissions
+                Permissions = permissions,
+                FirebaseCustomToken = firebaseCustomToken,
+                FirebaseWebApiKey = _configuration["Firebase:WebApiKey"]
             };
         });
     }

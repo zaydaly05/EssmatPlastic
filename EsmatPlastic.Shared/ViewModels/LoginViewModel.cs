@@ -9,6 +9,8 @@ namespace EsmatPlastic.Shared.ViewModels;
 public class LoginViewModel : INotifyPropertyChanged
 {
     private readonly ApiClient _apiClient;
+    private readonly FirebaseAuthClient _firebaseAuthClient;
+    private readonly FirebaseFirestoreClient _firestoreClient;
     private string _username;
     private string _password;
     private string _statusMessage;
@@ -55,9 +57,14 @@ public class LoginViewModel : INotifyPropertyChanged
 
     public event Action<LoginResponse>? LoginSucceeded;
 
-    public LoginViewModel(ApiClient apiClient)
+    public LoginViewModel(
+        ApiClient apiClient,
+        FirebaseAuthClient firebaseAuthClient,
+        FirebaseFirestoreClient firestoreClient)
     {
         _apiClient = apiClient;
+        _firebaseAuthClient = firebaseAuthClient;
+        _firestoreClient = firestoreClient;
         _username = string.Empty;
         _password = string.Empty;
         _statusMessage = string.Empty;
@@ -82,6 +89,11 @@ public class LoginViewModel : INotifyPropertyChanged
 
             if (response is not null && !string.IsNullOrWhiteSpace(response.Token))
             {
+                var firebaseIdToken = await _firebaseAuthClient.ExchangeCustomTokenAsync(
+                    response.FirebaseCustomToken ?? string.Empty,
+                    response.FirebaseWebApiKey ?? string.Empty);
+                response.FirebaseIdToken = firebaseIdToken;
+                _firestoreClient.SetIdToken(firebaseIdToken);
                 CurrentUser = response;
                 OnPropertyChanged(nameof(CurrentUser));
                 _apiClient.SetToken(response.Token);
