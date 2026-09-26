@@ -74,8 +74,8 @@ public sealed class MobileWorkspacePage : ContentPage
         string message = ex switch
         {
             System.Net.Http.HttpRequestException => "Network error: Please check your internet connection.",
-            Firebase.Firestore.FirestoreException fe when fe.ErrorCode == Firebase.Firestore.ErrorCode.PermissionDenied => "Access denied: You do not have permission to perform this action.",
-            Firebase.Firestore.FirestoreException fe when fe.ErrorCode == Firebase.Firestore.ErrorCode.Unavailable => "Firestore service is currently unavailable. Please try again later.",
+            _ when ex.Message.Contains("PermissionDenied") => "Access denied: You do not have permission to perform this action.",
+            _ when ex.Message.Contains("Unavailable") => "Firestore service is currently unavailable. Please try again later.",
             InvalidOperationException ioe => ioe.Message,
             _ => "An unexpected error occurred. Please try again or contact support."
         };

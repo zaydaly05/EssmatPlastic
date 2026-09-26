@@ -30,9 +30,17 @@ public partial class LoginWindow : Window
 
         Loaded += (_, _) =>
         {
+            UpdateLocalization();
             UpdateLanguageButtons();
             UsernameInput.Focus();
         };
+    }
+
+    private void UpdateLocalization()
+    {
+        var loc = App.ServiceProvider.GetRequiredService<LocalizationService>();
+        AppNameLabel.Text = loc["AppName"];
+        AppTaglineLabel.Text = loc["AppTagline"];
     }
 
     private void PasswordInput_OnPasswordChanged(
@@ -45,12 +53,14 @@ public partial class LoginWindow : Window
     private void ArabicLangButton_Click(object sender, RoutedEventArgs e)
     {
         App.ChangeLanguage("ar");
+        UpdateLocalization();
         UpdateLanguageButtons();
     }
 
     private void EnglishLangButton_Click(object sender, RoutedEventArgs e)
     {
         App.ChangeLanguage("en");
+        UpdateLocalization();
         UpdateLanguageButtons();
     }
 
@@ -66,9 +76,12 @@ public partial class LoginWindow : Window
 
     private void ViewModel_LoginSucceeded(object? sender, EventArgs e)
     {
-        Hide();
-        _mainWindow.RefreshForCurrentUser();
-        _mainWindow.Show();
+        Dispatcher.Invoke(() =>
+        {
+            Hide();
+            _mainWindow.RefreshForCurrentUser();
+            _mainWindow.Show();
+        });
     }
 
     protected override void OnClosed(EventArgs e)

@@ -99,7 +99,7 @@ public class LoginViewModel : INotifyPropertyChanged
 
         if (string.IsNullOrWhiteSpace(Username) || string.IsNullOrWhiteSpace(Password))
         {
-            ErrorMessage = _localization["يرجى إدخال اسم المستخدم وكلمة المرور."];
+            ErrorMessage = _localization["Please enter username and password"];
             return;
         }
 
@@ -113,7 +113,7 @@ public class LoginViewModel : INotifyPropertyChanged
 
             if (result is null)
             {
-                ErrorMessage = _localization["اسم المستخدم أو كلمة المرور غير صحيحة."];
+                ErrorMessage = _localization["Invalid username or password"];
                 return;
             }
 
@@ -133,9 +133,9 @@ public class LoginViewModel : INotifyPropertyChanged
 
             ErrorMessage = _localization["تعذر الاتصال بالخادم."];
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            ErrorMessage = _localization["حدث خطأ أثناء تسجيل الدخول."];
+            ErrorMessage = _localization["An error occurred during login"];
         }
         finally
         {

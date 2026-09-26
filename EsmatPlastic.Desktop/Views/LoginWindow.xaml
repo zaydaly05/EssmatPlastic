@@ -27,17 +27,17 @@
                                    VerticalAlignment="Center"/>
                     </Border>
 
-                    <TextBlock Text="عصمت للبلاستيك"
+                    <TextBlock x:Name="AppNameLabel"
                                FontSize="32"
                                FontWeight="SemiBold"
                                Foreground="White"/>
 
-                    <TextBlock Text="نظام إدارة المخزون"
+                    <TextBlock x:Name="AppTaglineLabel"
                                FontSize="16"
                                Foreground="#C5D9DD"
                                Margin="0,10,0,0"/>
 
-                    <TextBlock Text="لوحة تحكم بسيطة لإدارة مخزون البلاستيك."
+                    <TextBlock Text="Simple inventory management for plastic products."
                                FontSize="14"
                                Foreground="#9BB4B9"
                                TextWrapping="Wrap"
