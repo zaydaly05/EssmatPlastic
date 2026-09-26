@@ -120,7 +120,7 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="أصناف بمخزون كافٍ" Foreground="#64748B" VerticalAlignment="Center" />
-                            <TextBlock Grid.Column="1" Text="{Binding StockHealthPercent, StringFormat={}{0:N0}%}" FontWeight="Bold" Foreground="#0F766E" />
+                            <TextBlock Grid.Column="1" Text="{Binding StockHealthPercent, StringFormat={}{0:N0}%, Mode=OneWay}" FontWeight="Bold" Foreground="#0F766E" />
                         </Grid>
                         <ProgressBar Value="{Binding StockHealthPercent}" Maximum="100" Height="10" Background="#E2E8F0" Foreground="#0D9488" />
                         <DockPanel Margin="0,16,0,8">
