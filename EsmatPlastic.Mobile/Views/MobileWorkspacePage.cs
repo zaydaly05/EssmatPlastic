@@ -14,10 +14,11 @@ public sealed class MobileWorkspacePage : ContentPage
     private readonly Label _message = new() { TextColor = Color.FromArgb("#64748B"), HorizontalTextAlignment = TextAlignment.Center };
     private string _section = "Products";
 
-    public MobileWorkspacePage(LoginResponse user, Action logout)
+    public MobileWorkspacePage(LoginResponse user, Action logout, string initialSection = "Products")
     {
         _user = user;
         _logout = logout;
+        _section = initialSection;
         Title = "Workspace";
         BackgroundColor = Color.FromArgb("#F1F5F9");
         FlowDirection = FlowDirection.RightToLeft;

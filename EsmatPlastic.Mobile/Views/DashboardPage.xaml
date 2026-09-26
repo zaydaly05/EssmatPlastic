@@ -5,24 +5,34 @@
              xmlns:viewModels="clr-namespace:EsmatPlastic.Shared.ViewModels;assembly=EsmatPlastic.Shared"
              x:Class="EsmatPlastic.Mobile.Views.DashboardPage"
              maui:DataType="viewModels:DashboardViewModel"
-             Title="لوحة التحكم"
+             Title="Esmat Plastic"
              FlowDirection="RightToLeft"
              BackgroundColor="#F1F5F9">
-    <Grid RowDefinitions="Auto,*">
+    <Grid x:Name="RootLayout" RowDefinitions="Auto,*">
         <Grid Padding="20,14"
-              ColumnDefinitions="*,Auto"
+              ColumnDefinitions="Auto,*,Auto"
               BackgroundColor="White">
-            <VerticalStackLayout Spacing="3">
-                <Label Text="لوحة التحكم"
-                       FontSize="24"
+            <Button x:Name="MenuButton"
+                    Text="☰"
+                    Clicked="Menu_Clicked"
+                    BackgroundColor="Transparent"
+                    TextColor="#0F766E"
+                    FontSize="24"
+                    Padding="8,0"
+                    WidthRequest="44"
+                    HeightRequest="44"
+                    VerticalOptions="Center" />
+            <VerticalStackLayout Grid.Column="1" Spacing="3" VerticalOptions="Center">
+                <Label Text="Esmat Plastic"
+                       FontSize="21"
                        FontAttributes="Bold"
                        TextColor="#1E293B" />
-                <Label Text="{Binding UserName}"
-                       FontSize="15"
+                <Label Text="Operations dashboard"
+                       FontSize="13"
                        TextColor="#64748B" />
             </VerticalStackLayout>
-            <Button Grid.Column="1"
-                    Text="تسجيل الخروج"
+            <Button Grid.Column="2"
+                    Text="Sign out"
                     Clicked="Logout_Clicked"
                     BackgroundColor="#FEE2E2"
                     TextColor="#B91C1C"
@@ -83,6 +93,9 @@
                             Stroke="#C7ECE7"
                             StrokeShape="RoundRectangle 8"
                             BackgroundColor="#E8F6F6">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="ProductsCard_Tapped" />
+                        </Border.GestureRecognizers>
                         <VerticalStackLayout Spacing="6">
                             <Label Text="المنتجات" TextColor="#64748B" />
                             <Label Text="{Binding ProductCount}"
@@ -98,6 +111,9 @@
                             Stroke="#F4D9CC"
                             StrokeShape="RoundRectangle 8"
                             BackgroundColor="#FFF1EC">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="VariantsCard_Tapped" />
+                        </Border.GestureRecognizers>
                         <VerticalStackLayout Spacing="6">
                             <Label Text="الأصناف" TextColor="#64748B" />
                             <Label Text="{Binding VariantCount}"
@@ -114,6 +130,9 @@
                             Stroke="#C7D2FE"
                             StrokeShape="RoundRectangle 8"
                             BackgroundColor="#EEF1FF">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="WarehouseCard_Tapped" />
+                        </Border.GestureRecognizers>
                         <VerticalStackLayout Spacing="6">
                             <Label Text="المخزون الحالي" TextColor="#64748B" />
                             <Label Text="{Binding CurrentStock, StringFormat='{0:N0}'}"
@@ -129,6 +148,9 @@
                             Stroke="#D8E8C7"
                             StrokeShape="RoundRectangle 8"
                             BackgroundColor="#F2F8E9">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="ReportsCard_Tapped" />
+                        </Border.GestureRecognizers>
                         <VerticalStackLayout Spacing="6">
                             <Label Text="إجمالي الوارد" TextColor="#64748B" />
                             <Label Text="{Binding TotalIn, StringFormat='{0:N0}'}"
@@ -144,6 +166,9 @@
                             Stroke="#F0E0B7"
                             StrokeShape="RoundRectangle 8"
                             BackgroundColor="#FFF7DE">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="ReportsCard_Tapped" />
+                        </Border.GestureRecognizers>
                         <VerticalStackLayout Spacing="6">
                             <Label Text="إجمالي الصادر" TextColor="#64748B" />
                             <Label Text="{Binding TotalOut, StringFormat='{0:N0}'}"
