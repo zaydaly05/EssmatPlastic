@@ -153,8 +153,43 @@ public class ReportsViewModel : INotifyPropertyChanged
         }
     }
 
-    public event PropertyChangedEventHandler?
-        PropertyChanged;
+    public async Task ExportToCsvAsync()
+    {
+        if (Items.Count == 0)
+            return;
+
+        try
+        {
+            var csv = new System.Text.StringBuilder();
+            csv.AppendLine("Product,Variant,Size,Total In,Total Out,Current Quantity");
+
+            foreach (var item in Items)
+            {
+                csv.AppendLine($"{Csv(item.ProductName)},{Csv(item.VariantName)},{Csv(item.Size)},{item.TotalIn},{item.TotalOut},{item.CurrentQuantity}");
+            }
+
+            var dialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "CSV Files (*.csv)|*.csv",
+                FileName = $"StockReport_{DateTime.Now:yyyyMMdd}.csv"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                await System.IO.File.WriteAllTextAsync(dialog.FileName, csv.ToString(), System.Text.Encoding.UTF8);
+            }
+        }
+        catch (Exception ex)
+        {
+            var loc = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<EsmatPlastic.Desktop.Services.Localization.LocalizationService>(App.ServiceProvider);
+            StatusMessage = loc.IsArabic
+                ? $"خطأ في تصدير الملف: {ex.Message}"
+                : $"Error exporting file: {ex.Message}";
+        }
+    }
+
+    private static string Csv(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? "" : $"\"{value.Replace("\"", "\"\"")}\"";
 
     private void OnPropertyChanged(
         [CallerMemberName] string? propertyName = null)

@@ -50,4 +50,22 @@ public partial class ReportsView : UserControl
             RefreshButton.Content = "⟳  تحديث";
         }
     }
+
+    private async void ExportButton_Click(
+        object sender,
+        RoutedEventArgs e)
+    {
+        ExportButton.IsEnabled = false;
+        ExportButton.Content = "جاري التصدير...";
+
+        try
+        {
+            await _viewModel.ExportToCsvAsync();
+        }
+        finally
+        {
+            ExportButton.IsEnabled = true;
+            ExportButton.Content = "📥 تصدير CSV";
+        }
+    }
 }

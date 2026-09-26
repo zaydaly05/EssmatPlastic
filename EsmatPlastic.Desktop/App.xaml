@@ -13,11 +13,12 @@
             <!-- Color Palette -->
             <SolidColorBrush x:Key="InkBrush" Color="#1E293B"/>
             <SolidColorBrush x:Key="MutedBrush" Color="#64748B"/>
-            <SolidColorBrush x:Key="CanvasBrush" Color="#F1F5F9"/>
+            <SolidColorBrush x:Key="MutedLightBrush" Color="#94A3B8"/>
+            <SolidColorBrush x:Key="CanvasBrush" Color="#F8FAFC"/>
             <SolidColorBrush x:Key="PanelBrush" Color="#FFFFFF"/>
             <SolidColorBrush x:Key="TealBrush" Color="#0D9488"/>
             <SolidColorBrush x:Key="TealDarkBrush" Color="#0F766E"/>
-            <SolidColorBrush x:Key="TealSoftBrush" Color="#CCFBF1"/>
+            <SolidColorBrush x:Key="TealSoftBrush" Color="#F0FDFA"/>
             <SolidColorBrush x:Key="CoralBrush" Color="#F97316"/>
             <SolidColorBrush x:Key="LineBrush" Color="#E2E8F0"/>
             <SolidColorBrush x:Key="DangerBrush" Color="#EF4444"/>
@@ -110,14 +111,14 @@
 
             <!-- Typography Styles -->
             <Style x:Key="PageTitle" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="26"/>
-                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="FontSize" Value="32"/>
+                <Setter Property="FontWeight" Value="ExtraBold"/>
                 <Setter Property="Foreground" Value="{DynamicResource InkBrush}"/>
             </Style>
 
             <Style x:Key="PageSubtitle" TargetType="TextBlock">
                 <Setter Property="FontSize" Value="14"/>
-                <Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
+                <Setter Property="Foreground" Value="{DynamicResource MutedLightBrush}"/>
                 <Setter Property="Margin" Value="0,4,0,0"/>
             </Style>
 
@@ -139,9 +140,14 @@
             <Style x:Key="Card" TargetType="Border">
                 <Setter Property="Background" Value="{DynamicResource PanelBrush}"/>
                 <Setter Property="CornerRadius" Value="14"/>
-                <Setter Property="Padding" Value="20"/>
-                <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}"/>
-                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Padding" Value="24"/>
+                <Setter Property="BorderBrush" Value="Transparent"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Effect">
+                    <Setter.Value>
+                        <DropShadowEffect BlurRadius="15" ShadowDepth="2" Color="#CBD5E1" Opacity="0.4"/>
+                    </Setter.Value>
+                </Setter>
             </Style>
 
             <Style x:Key="StatCard" TargetType="Border" BasedOn="{StaticResource Card}">

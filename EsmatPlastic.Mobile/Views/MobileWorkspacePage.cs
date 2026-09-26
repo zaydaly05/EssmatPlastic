@@ -12,7 +12,7 @@ public sealed class MobileWorkspacePage : ContentPage
     private readonly LoginResponse _user;
     private readonly Action _logout;
     private readonly FirebaseFirestoreClient _firestore = App.SharedFirestoreClient;
-    private readonly VerticalStackLayout _content = new() { Spacing = 12, Padding = new Thickness(18, 10, 18, 24) };
+    private readonly VerticalStackLayout _content = new() { Spacing = 12, Padding = new Thickness(20, 16, 20, 32) };
     private readonly Label _message = new() { TextColor = Color.FromArgb("#64748B"), HorizontalTextAlignment = TextAlignment.Center };
     private string _section;
 
@@ -22,7 +22,7 @@ public sealed class MobileWorkspacePage : ContentPage
         _logout = logout;
         _section = initialSection;
         Title = SectionHeading;
-        BackgroundColor = Color.FromArgb("#F1F5F9");
+        BackgroundColor = Color.FromArgb("#F8FAFC");
         FlowDirection = FlowDirection.LeftToRight;
         NavigationPage.SetHasNavigationBar(this, false);
 
@@ -45,7 +45,8 @@ public sealed class MobileWorkspacePage : ContentPage
         var body = new VerticalStackLayout { Spacing = 12 };
         body.Children.Add(_message);
         body.Children.Add(_content);
-        Content = new Grid { RowDefinitions = { new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star) }, Children = { header, new ScrollView { Content = body } } };
+        var refreshView = new RefreshView { Content = new ScrollView { Content = body }, Command = new Command(async () => await LoadSectionAsync()) };
+        Content = new Grid { RowDefinitions = { new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star) }, Children = { header, refreshView } };
         Grid.SetRow((View)((Grid)Content).Children[1], 1);
     }
 
@@ -56,8 +57,34 @@ public sealed class MobileWorkspacePage : ContentPage
         "Settings" => "Settings", _ => "Esmat Plastic"
     };
 
-    protected override async void OnAppearing() { base.OnAppearing(); await LoadSectionAsync(); }
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+
+        // Cascade Entrance Animation
+        Content.Opacity = 0;
+        await Content.FadeTo(1, 300, Easing.CubicOut);
+
+        await LoadSectionAsync();
+    }
     private bool Has(string permission) => _user.Permissions.Contains(permission, StringComparer.OrdinalIgnoreCase);
+
+    private async Task HandleException(Exception ex)
+    {
+        string message = ex switch
+        {
+            System.Net.Http.HttpRequestException => "Network error: Please check your internet connection.",
+            Firebase.Firestore.FirestoreException fe when fe.ErrorCode == Firebase.Firestore.ErrorCode.PermissionDenied => "Access denied: You do not have permission to perform this action.",
+            Firebase.Firestore.FirestoreException fe when fe.ErrorCode == Firebase.Firestore.ErrorCode.Unavailable => "Firestore service is currently unavailable. Please try again later.",
+            InvalidOperationException ioe => ioe.Message,
+            _ => "An unexpected error occurred. Please try again or contact support."
+        };
+
+        await MainThread.InvokeOnMainThreadAsync(async () =>
+        {
+            await Application.Current!.Windows[0].Page!.DisplayAlert("Error", message, "OK");
+        });
+    }
 
     private async Task LoadSectionAsync()
     {
@@ -79,7 +106,21 @@ public sealed class MobileWorkspacePage : ContentPage
         }
         catch (Exception ex)
         {
-            _message.Text = $"Could not load or save data: {ex.Message}";
+            await HandleException(ex);
+            _message.Text = "Failed to load data.";
+        }
+        finally
+        {
+            foreach (var child in _content.Children)
+            {
+                if (child is Border panel)
+                {
+                    panel.TranslationY = 20;
+                    panel.Opacity = 0;
+                    _ = panel.FadeTo(1, 300, Easing.CubicOut);
+                    _ = panel.TranslateTo(0, 0, 300, Easing.CubicOut);
+                }
+            }
         }
     }
 
@@ -146,13 +187,21 @@ public sealed class MobileWorkspacePage : ContentPage
     {
         var name = await DisplayPromptAsync("New product", "Product name");
         if (string.IsNullOrWhiteSpace(name)) return;
-        var duplicate = (await _firestore.GetCollectionAsync<ProductRecord>("products")).Any(x => x.Data.Name.Equals(name.Trim(), StringComparison.OrdinalIgnoreCase));
+
+        var trimmedName = name.Trim();
+        var duplicate = (await _firestore.GetCollectionAsync<ProductRecord>("products")).Any(x => x.Data.Name.Equals(trimmedName, StringComparison.OrdinalIgnoreCase));
         if (duplicate) { await DisplayAlert("Duplicate product", "A product with this name already exists.", "OK"); return; }
+
         var description = await DisplayPromptAsync("New product", "Description (optional)");
         var imagePath = await DisplayPromptAsync("New product", "Image URL/path (optional)");
         var now = DateTime.UtcNow;
-        await _firestore.WriteDocumentAsync("products", Guid.NewGuid().ToString("D"), new ProductRecord { Name = name.Trim(), Description = description, ImagePath = imagePath, IsActive = true, CreatedAt = now, UpdatedAt = now });
-        await LoadSectionAsync();
+
+        try
+        {
+            await _firestore.WriteDocumentAsync("products", Guid.NewGuid().ToString("D"), new ProductRecord { Name = trimmedName, Description = description, ImagePath = imagePath, IsActive = true, CreatedAt = now, UpdatedAt = now });
+            await LoadSectionAsync();
+        }
+        catch (Exception ex) { await HandleException(ex); }
     }
 
     private async Task EditProductAsync(FirestoreDataDocument<ProductRecord> item)
@@ -226,10 +275,12 @@ public sealed class MobileWorkspacePage : ContentPage
         var variants = await _firestore.GetCollectionAsync<VariantRecord>("productVariants");
         var transactions = await _firestore.GetCollectionAsync<TransactionRecord>("stockTransactions");
         var products = await _firestore.GetCollectionAsync<ProductRecord>("products");
+        var transactionsLookup = transactions.ToLookup(x => x.References.GetValueOrDefault("productVariant"));
+
         AddSectionHeader("Current balances", "Select a variant to record stock in or stock out.");
         foreach (var variant in variants.Where(x => x.Data.IsActive).OrderBy(x => x.Data.Name))
         {
-            var related = transactions.Where(x => x.References.GetValueOrDefault("productVariant") == variant.SyncId).ToList();
+            var related = transactionsLookup[variant.SyncId].ToList();
             var incoming = related.Where(x => x.Data.Type == 1).Sum(x => x.Data.Quantity);
             var outgoing = related.Where(x => x.Data.Type == 2).Sum(x => x.Data.Quantity);
             var product = products.FirstOrDefault(x => x.SyncId == variant.References.GetValueOrDefault("product"));
@@ -239,6 +290,7 @@ public sealed class MobileWorkspacePage : ContentPage
             var actions = new HorizontalStackLayout { Spacing = 8 };
             if (Has("Stock.In")) actions.Children.Add(SmallButton("Stock in", async () => await CreateTransactionAsync(variant, 1, incoming - outgoing)));
             if (Has("Stock.Out")) actions.Children.Add(SmallButton("Stock out", async () => await CreateTransactionAsync(variant, 2, incoming - outgoing - variant.Data.ReservedQuantity)));
+            if (Has("Stock.Edit")) actions.Children.Add(SmallButton("Adjust", async () => await QuickAdjustAsync(variant)));
             body.Children.Add(actions);
             _content.Children.Add(Panel(body));
         }
@@ -262,12 +314,32 @@ public sealed class MobileWorkspacePage : ContentPage
     private async Task CreateTransactionAsync(FirestoreDataDocument<VariantRecord> variant, int type, decimal available)
     {
         var raw = await DisplayPromptAsync(type == 1 ? "Stock in" : "Stock out", $"Quantity{(type == 2 ? $" (available: {available:N0})" : string.Empty)}", keyboard: Keyboard.Numeric);
-        if (!decimal.TryParse(raw, NumberStyles.Number, CultureInfo.CurrentCulture, out var quantity) || quantity <= 0) return;
+        if (string.IsNullOrWhiteSpace(raw)) return;
+
+        if (!decimal.TryParse(raw, NumberStyles.Number, CultureInfo.CurrentCulture, out var quantity) || quantity <= 0)
+        {
+            await DisplayAlert("Invalid quantity", "Please enter a positive number.", "OK");
+            return;
+        }
+
         if (type == 2 && quantity > available) { await DisplayAlert("Insufficient stock", $"Only {available:N0} units are available after reservations.", "OK"); return; }
         var notes = await DisplayPromptAsync("Transaction", "Notes (optional)");
         var now = DateTime.UtcNow;
-        await _firestore.WriteDocumentAsync("stockTransactions", Guid.NewGuid().ToString("D"), new TransactionRecord { Type = type, Quantity = quantity, Notes = notes, CreatedAt = now, UpdatedAt = now }, new Dictionary<string, string> { ["productVariant"] = variant.SyncId, ["user"] = await FindUserSyncIdAsync() });
-        await LoadSectionAsync();
+
+        try
+        {
+            await _firestore.WriteDocumentAsync("stockTransactions", Guid.NewGuid().ToString("D"), new TransactionRecord { Type = type, Quantity = quantity, Notes = notes, CreatedAt = now, UpdatedAt = now }, new Dictionary<string, string> { ["productVariant"] = variant.SyncId, ["user"] = await FindUserSyncIdAsync() });
+            await LoadSectionAsync();
+        }
+        catch (Exception ex) { await HandleException(ex); }
+    }
+
+    private async Task QuickAdjustAsync(FirestoreDataDocument<VariantRecord> variant)
+    {
+        var type = await DisplayActionSheet("Adjustment type", "Cancel", null, "Stock In", "Stock Out");
+        if (string.IsNullOrEmpty(type) || type == "Cancel") return;
+        var txType = type == "Stock In" ? 1 : 2;
+        await CreateTransactionAsync(variant, txType, 0); // Available check handled inside CreateTransactionAsync for Stock Out
     }
 
     private async Task LoadReportsAsync()
@@ -276,13 +348,14 @@ public sealed class MobileWorkspacePage : ContentPage
         var variants = await _firestore.GetCollectionAsync<VariantRecord>("productVariants");
         var transactions = await _firestore.GetCollectionAsync<TransactionRecord>("stockTransactions");
         var products = await _firestore.GetCollectionAsync<ProductRecord>("products");
+        var transactionsLookup = transactions.ToLookup(t => t.References.GetValueOrDefault("productVariant"));
         var query = new SearchBar { Placeholder = "Search stock report", BackgroundColor = Colors.White };
         var summary = new Label { FontSize = 15, FontAttributes = FontAttributes.Bold, TextColor = Ink };
         var list = new VerticalStackLayout { Spacing = 8 };
         _content.Children.Add(summary); _content.Children.Add(query); _content.Children.Add(list);
         var report = variants.Select(v =>
         {
-            var rows = transactions.Where(t => t.References.GetValueOrDefault("productVariant") == v.SyncId).ToList();
+            var rows = transactionsLookup[v.SyncId].ToList();
             return new { Variant = v, Product = products.FirstOrDefault(p => p.SyncId == v.References.GetValueOrDefault("product"))?.Data.Name ?? "", In = rows.Where(t => t.Data.Type == 1).Sum(t => t.Data.Quantity), Out = rows.Where(t => t.Data.Type == 2).Sum(t => t.Data.Quantity) };
         }).ToList();
         var totalIn = report.Sum(x => x.In); var totalOut = report.Sum(x => x.Out);
@@ -516,7 +589,7 @@ public sealed class MobileWorkspacePage : ContentPage
     }
 
     // Account settings and locally applied appearance options
-    private Task LoadSettingsAsync()
+    private async Task LoadSettingsAsync()
     {
         AddSectionHeader("Account", "Signed in as");
         _content.Add(Card(_user.FullName, $"@{_user.Username}", _user.Role));
@@ -526,9 +599,17 @@ public sealed class MobileWorkspacePage : ContentPage
         _content.Add(SmallButton("Use light theme", async () => { Application.Current!.UserAppTheme = AppTheme.Light; Preferences.Set("appearance", "light"); await DisplayAlert("Appearance saved", "Light theme enabled.", "OK"); }));
         _content.Add(SmallButton("Use dark theme", async () => { Application.Current!.UserAppTheme = AppTheme.Dark; Preferences.Set("appearance", "dark"); await DisplayAlert("Appearance saved", "Dark theme enabled.", "OK"); }));
         _content.Add(SmallButton("Use device theme", async () => { Application.Current!.UserAppTheme = AppTheme.Unspecified; Preferences.Remove("appearance"); await DisplayAlert("Appearance saved", "Device theme enabled.", "OK"); }));
-        _content.Add(PrimaryButton("Change my password", async () => await ChangePasswordAsync(await CurrentUserDocumentAsync())));
+        _content.Add(PrimaryButton("Change my password", async () => {
+            try {
+                var userDoc = await CurrentUserDocumentAsync();
+                await ChangePasswordAsync(userDoc);
+            } catch (Exception ex) {
+                MainThread.BeginInvokeOnMainThread(async () => {
+                    await Application.Current!.Windows[0].Page!.DisplayAlert("Error", ex.Message, "OK");
+                });
+            }
+        }));
         _content.Add(SmallButton("Sign out", () => { _logout(); return Task.CompletedTask; }));
-        return Task.CompletedTask;
     }
 
     private async Task<FirestoreDataDocument<UserRecord>> CurrentUserDocumentAsync()

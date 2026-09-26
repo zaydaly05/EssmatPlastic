@@ -44,13 +44,13 @@ service cloud.firestore {
       allow read: if hasPermission('Products.View') || hasPermission('Stock.View')
         || hasPermission('Reports.View') || canManageOrders();
       allow create: if hasPermission('Products.Create') && validSyncRecord();
-      allow update: if (hasPermission('Products.Edit') || canManageOrders()) && validSyncRecord();
+      allow update: if hasPermission('Products.Edit') && validSyncRecord();
       allow delete: if hasPermission('Products.Delete');
     }
 
     match /stockTransactions/{transactionId} {
       allow read: if hasPermission('Stock.View');
-      allow create: if (hasPermission('Stock.In') || hasPermission('Stock.Out')) && validSyncRecord()
+      allow create: if (hasPermission('Stock.In') || hasPermission('Stock.Out') || hasPermission('Stock.Edit')) && validSyncRecord()
         && request.resource.data.references.productVariant is string
         && request.resource.data.references.user is string;
       allow update, delete: if false;
@@ -65,7 +65,8 @@ service cloud.firestore {
       allow read: if hasPermission('Users.View') || hasPermission('Users.Edit');
       allow create: if (hasPermission('Users.Create') || hasPermission('Users.Edit')) && validSyncRecord()
         && request.resource.data.references.user is string
-        && request.resource.data.references.permission is string;
+        && request.resource.data.references.permission is string
+        && hasPermission(request.resource.data.references.permission);
       allow update: if hasPermission('Users.Edit') && validSyncRecord();
       allow delete: if hasPermission('Users.Edit');
     }
@@ -86,8 +87,7 @@ service cloud.firestore {
 
     match /userCredentials/{userId} {
       allow read: if false;
-      allow create, update: if (request.auth != null && (request.auth.uid == userId
-        || hasPermission('Users.Create') || hasPermission('Users.Edit')))
+      allow create, update: if (request.auth != null && request.auth.uid == userId)
         && request.resource.data.keys().hasOnly(['passwordHash', 'updatedAt'])
         && request.resource.data.passwordHash is string
         && request.resource.data.updatedAt is timestamp;

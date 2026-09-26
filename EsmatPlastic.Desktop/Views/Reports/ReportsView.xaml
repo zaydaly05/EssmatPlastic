@@ -33,6 +33,13 @@
                     Height="40"
                     HorizontalAlignment="Right"
                     Click="RefreshButton_Click"/>
+                <Button x:Name="ExportButton"
+                    Content="📥 تصدير CSV"
+                    Width="120"
+                    Height="40"
+                    Margin="10,0,0,0"
+                    HorizontalAlignment="Right"
+                    Click="ExportButton_Click"/>
 
         </Grid>
 
