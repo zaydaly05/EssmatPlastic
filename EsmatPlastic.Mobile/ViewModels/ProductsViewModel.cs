@@ -12,6 +12,8 @@ public sealed class ProductsViewModel : INotifyPropertyChanged
     private readonly FirebaseFirestoreClient _firestoreClient;
     private readonly LoginResponse _user;
     private readonly List<ProductItemViewModel> _allProducts = new();
+    private readonly object _searchFilterLock = new();
+    private CancellationTokenSource? _searchFilterCancellation;
     private string _searchText = string.Empty;
     private string _statusMessage = string.Empty;
     private bool _isLoading;
@@ -34,7 +36,7 @@ public sealed class ProductsViewModel : INotifyPropertyChanged
 
             _searchText = value;
             OnPropertyChanged();
-            ApplyFilter();
+            _ = DebounceFilterAsync();
         }
     }
 
@@ -89,7 +91,10 @@ public sealed class ProductsViewModel : INotifyPropertyChanged
     public async Task LoadAsync()
     {
         if (IsLoading)
+        {
+            IsRefreshing = false;
             return;
+        }
 
         if (!CanViewProducts)
         {
@@ -139,6 +144,42 @@ public sealed class ProductsViewModel : INotifyPropertyChanged
         Products.Clear();
         foreach (var product in filtered)
             Products.Add(product);
+    }
+
+    private async Task DebounceFilterAsync()
+    {
+        CancellationTokenSource cancellation;
+        lock (_searchFilterLock)
+        {
+            _searchFilterCancellation?.Cancel();
+            cancellation = new CancellationTokenSource();
+            _searchFilterCancellation = cancellation;
+        }
+
+        try
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(250), cancellation.Token);
+            lock (_searchFilterLock)
+            {
+                if (!ReferenceEquals(_searchFilterCancellation, cancellation) || cancellation.IsCancellationRequested)
+                    return;
+            }
+
+            ApplyFilter();
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        finally
+        {
+            lock (_searchFilterLock)
+            {
+                if (ReferenceEquals(_searchFilterCancellation, cancellation))
+                    _searchFilterCancellation = null;
+            }
+
+            cancellation.Dispose();
+        }
     }
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null) =>

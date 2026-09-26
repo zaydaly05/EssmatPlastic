@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using EsmatPlastic.Desktop.Models.Products;
@@ -27,7 +27,8 @@ public partial class ProductsView : UserControl
 
         _viewModel = new ProductsViewModel(
             serviceProvider.GetRequiredService<ProductService>(),
-            _appSession);
+            _appSession,
+            _loc);
 
         DataContext = _viewModel;
         ApplyLocalization();
@@ -40,6 +41,7 @@ public partial class ProductsView : UserControl
     {
         PageTitleText.Text = _loc["المنتجات"];
         PageSubtitleText.Text = _loc["إدارة المنتجات والأصناف والبطاقات"];
+        SearchLabel.Text = _loc.IsArabic ? "بحث عن المنتج أو الوصف" : "Search products or descriptions";
 
         AddButton.Content = _loc["+  إضافة منتج"];
         HeaderPhoto.Text = _loc["الصورة"];

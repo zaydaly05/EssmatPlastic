@@ -17,6 +17,7 @@
                    BackgroundColor="White"
                    TextColor="#1E293B"
                    PlaceholderColor="#64748B"
+                   SemanticProperties.Description="البحث عن منتج"
                    SearchButtonPressed="SearchButtonPressed" />
 
         <Grid Grid.Row="1" Padding="18,0,18,10">

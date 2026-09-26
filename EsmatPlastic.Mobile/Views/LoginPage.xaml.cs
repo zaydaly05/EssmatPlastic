@@ -10,4 +10,7 @@ public partial class LoginPage : ContentPage
         InitializeComponent();
         BindingContext = viewModel;
     }
+
+    private void UsernameEntry_Completed(object sender, EventArgs e) =>
+        PasswordEntry.Focus();
 }

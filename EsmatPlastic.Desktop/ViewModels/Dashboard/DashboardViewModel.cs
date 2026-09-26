@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using EsmatPlastic.Desktop.Models.Dashboard;
@@ -123,15 +123,24 @@ public class DashboardViewModel : INotifyPropertyChanged
 
         try
         {
-            if (CanViewProducts)
-            {
-                var products = await _productService.GetAllAsync();
-                ProductCount = products.Count;
-            }
+            var productsTask = CanViewProducts ? _productService.GetAllAsync() : null;
+            var stockTask = CanViewStock ? _stockService.GetCurrentStockAsync() : null;
+            var transactionsTask = CanViewStock && CanViewReports
+                ? _stockService.GetTransactionsAsync(take: 8)
+                : null;
 
-            if (CanViewStock)
+            var pendingTasks = new List<Task>();
+            if (productsTask is not null) pendingTasks.Add(productsTask);
+            if (stockTask is not null) pendingTasks.Add(stockTask);
+            if (transactionsTask is not null) pendingTasks.Add(transactionsTask);
+            await Task.WhenAll(pendingTasks);
+
+            if (productsTask is not null)
+                ProductCount = (await productsTask).Count;
+
+            if (stockTask is not null)
             {
-                var stock = await _stockService.GetCurrentStockAsync();
+                var stock = await stockTask;
                 VariantCount = stock.Count;
                 CurrentStock = stock.Sum(x => x.CurrentQuantity);
 
@@ -145,12 +154,12 @@ public class DashboardViewModel : INotifyPropertyChanged
                     LowStockItems.Add(item);
                 }
 
-                if (CanViewReports)
+                if (transactionsTask is not null)
                 {
                     TotalIn = stock.Sum(x => x.TotalIn);
                     TotalOut = stock.Sum(x => x.TotalOut);
 
-                    var transactions = await _stockService.GetTransactionsAsync(take: 8);
+                    var transactions = await transactionsTask;
                     var recent = transactions.OrderByDescending(t => t.CreatedAt).Take(8).ToList();
 
                     RecentTransactions.Clear();

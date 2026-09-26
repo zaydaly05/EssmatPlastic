@@ -30,7 +30,7 @@ public partial class DashboardPage : ContentPage
 
     private async void Refresh_Clicked(object sender, EventArgs e)
     {
-        await _viewModel.LoadAsync();
+        await _viewModel.LoadAsync(forceRefresh: true);
     }
 
     private void Logout_Clicked(object sender, EventArgs e)

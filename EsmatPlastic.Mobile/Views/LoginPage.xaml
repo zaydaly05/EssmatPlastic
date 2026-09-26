@@ -1,4 +1,4 @@
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:maui="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewModels="clr-namespace:EsmatPlastic.Shared.ViewModels;assembly=EsmatPlastic.Shared"
@@ -6,9 +6,11 @@
              maui:DataType="viewModels:LoginViewModel"
              BackgroundColor="#F1F5F9">
 
-    <VerticalStackLayout Spacing="20"
-                         Padding="30"
-                         VerticalOptions="Center">
+    <Grid>
+        <ScrollView>
+            <VerticalStackLayout Spacing="20"
+                                 Padding="30"
+                                 VerticalOptions="Center">
 
         <Image Source="logo.png" HeightRequest="120" WidthRequest="120" HorizontalOptions="Center" />
 
@@ -23,19 +25,33 @@
                    HorizontalOptions="Center"
                    TextColor="#64748B"/>
 
-        <Frame CornerRadius="10" Padding="0" BorderColor="#E2E8F0">
-            <Entry Text="{Binding Username}"
+        <Border Padding="0"
+                Stroke="#E2E8F0"
+                StrokeShape="RoundRectangle 8"
+                Background="White">
+            <Entry x:Name="UsernameEntry"
+                   Text="{Binding Username}"
                    Placeholder="اسم المستخدم"
                    Keyboard="Text"
+                   ReturnType="Next"
+                   Completed="UsernameEntry_Completed"
+                   SemanticProperties.Description="اسم المستخدم"
                    HorizontalTextAlignment="Center" />
-        </Frame>
+        </Border>
 
-        <Frame CornerRadius="10" Padding="0" BorderColor="#E2E8F0">
-            <Entry Text="{Binding Password}"
+        <Border Padding="0"
+                Stroke="#E2E8F0"
+                StrokeShape="RoundRectangle 8"
+                Background="White">
+            <Entry x:Name="PasswordEntry"
+                   Text="{Binding Password}"
                    Placeholder="كلمة المرور"
                    IsPassword="True"
+                   ReturnType="Go"
+                   ReturnCommand="{Binding LoginCommand}"
+                   SemanticProperties.Description="كلمة المرور"
                    HorizontalTextAlignment="Center" />
-        </Frame>
+        </Border>
 
         <Button Text="دخول"
                 BackgroundColor="#0D9488"
@@ -53,5 +69,7 @@
                HorizontalOptions="Center"
                TextColor="#EF4444"
                HorizontalTextAlignment="Center" />
-    </VerticalStackLayout>
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
 </ContentPage>

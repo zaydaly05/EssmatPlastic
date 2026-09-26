@@ -20,6 +20,7 @@ public sealed class DashboardViewModel : INotifyPropertyChanged
     private string _databaseStatus = "جاري الاتصال...";
     private string _statusMessage = string.Empty;
     private bool _isLoading;
+    private bool _hasLoaded;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -86,9 +87,9 @@ public sealed class DashboardViewModel : INotifyPropertyChanged
         _user = user;
     }
 
-    public async Task LoadAsync()
+    public async Task LoadAsync(bool forceRefresh = false)
     {
-        if (IsLoading)
+        if (IsLoading || (_hasLoaded && !forceRefresh))
             return;
 
         IsLoading = true;
@@ -96,18 +97,35 @@ public sealed class DashboardViewModel : INotifyPropertyChanged
 
         try
         {
+            DatabaseStatus = "جاري تحميل البيانات...";
+
+            var productsTask = CanViewProducts
+                ? _firestoreClient.GetCollectionAsync<DashboardProductRecord>("products")
+                : null;
+            var variantsTask = CanViewStock
+                ? _firestoreClient.GetCollectionAsync<DashboardVariantRecord>("productVariants")
+                : null;
+            var transactionsTask = CanViewStock
+                ? _firestoreClient.GetCollectionAsync<DashboardTransactionRecord>("stockTransactions")
+                : null;
+
+            var pendingTasks = new List<Task>();
+            if (productsTask is not null) pendingTasks.Add(productsTask);
+            if (variantsTask is not null) pendingTasks.Add(variantsTask);
+            if (transactionsTask is not null) pendingTasks.Add(transactionsTask);
+            await Task.WhenAll(pendingTasks);
             DatabaseStatus = "متصل - Firestore";
 
-            if (CanViewProducts)
+            if (productsTask is not null)
             {
-                var products = await _firestoreClient.GetCollectionAsync<DashboardProductRecord>("products");
+                var products = await productsTask;
                 ProductCount = products.Count(item => item.Data.IsActive);
             }
 
-            if (CanViewStock)
+            if (variantsTask is not null && transactionsTask is not null)
             {
-                var variants = await _firestoreClient.GetCollectionAsync<DashboardVariantRecord>("productVariants");
-                var transactions = await _firestoreClient.GetCollectionAsync<DashboardTransactionRecord>("stockTransactions");
+                var variants = await variantsTask;
+                var transactions = await transactionsTask;
                 VariantCount = variants.Count(item => item.Data.IsActive);
                 var totalIn = transactions
                     .Where(item => item.Data.Type == 1)
@@ -126,8 +144,10 @@ public sealed class DashboardViewModel : INotifyPropertyChanged
 
             if (HasNoDashboardPermission)
                 StatusMessage = "لا توجد صلاحيات لعرض بيانات لوحة التحكم.";
+
+            _hasLoaded = true;
         }
-        catch (Exception ex) when (ex is HttpRequestException or JsonException or InvalidOperationException)
+        catch (Exception ex) when (ex is HttpRequestException or JsonException or InvalidOperationException or OperationCanceledException)
         {
             DatabaseStatus = "تعذر تحميل البيانات";
             StatusMessage = "تعذر تحميل بيانات لوحة التحكم من Firestore.";

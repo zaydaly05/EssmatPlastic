@@ -1,36 +1,20 @@
 .neon
-.env.local
-node_modules/
-# Build output
-**/bin/
-**/obj/
 
-# Visual Studio
-.vs/
-*.user
-*.suo
-
-# Local secrets/config
-.env
-.env.*
-**/appsettings.Development.json
-
-# Generated/debug files
-neon-schema-error.txt
-# .NET build output
-**/bin/
-**/obj/
-
-# Visual Studio
-.vs/
-*.user
-*.suo
-
-# Environment / secrets
+# Local environment and secrets
 .env
 .env.*
 **/appsettings.Development.json
 **/appsettings.Local.json
+
+# Dependencies and build output
+node_modules/
+**/bin/
+**/obj/
+
+# IDE files
+.vs/
+*.user
+*.suo
 
 # Database backups
 *.bak
@@ -42,7 +26,7 @@ neon-schema-error.txt
 *.sqlite-wal
 *.sqlite-shm
 
-# Generated files
+# Generated diagnostics
 neon-schema-output.txt
 neon-schema-error.txt
 
