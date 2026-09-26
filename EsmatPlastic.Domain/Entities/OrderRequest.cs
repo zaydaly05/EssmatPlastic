@@ -46,5 +46,6 @@ public enum OrderRequestStatus
     Pending = 1,
     Approved = 2,
     Rejected = 3,
-    Completed = 4
+    Completed = 4,
+    Cancelled = 5
 }

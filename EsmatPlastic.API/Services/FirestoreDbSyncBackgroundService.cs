@@ -702,9 +702,20 @@ public sealed class FirestoreDbSyncBackgroundService : BackgroundService, IDbSyn
     private static string ReadPayloadString(string payloadJson, string propertyName)
     {
         using var document = JsonDocument.Parse(payloadJson);
-        return document.RootElement.TryGetProperty(propertyName, out var value)
-            ? value.GetString() ?? string.Empty
-            : string.Empty;
+        if (document.RootElement.TryGetProperty(propertyName, out var value))
+        {
+            return value.GetString() ?? string.Empty;
+        }
+
+        foreach (var property in document.RootElement.EnumerateObject())
+        {
+            if (property.Name.Equals(propertyName, StringComparison.OrdinalIgnoreCase))
+            {
+                return property.Value.GetString() ?? string.Empty;
+            }
+        }
+
+        return string.Empty;
     }
 
     private static string Normalize(string value) => value.Trim().ToLowerInvariant();

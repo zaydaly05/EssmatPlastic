@@ -27,18 +27,22 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if signedIn()
         && (request.auth.uid == userId || hasPermission('Users.View'));
-      allow write: if false;
+      allow create: if hasPermission('Users.Create') && validSyncRecord();
+      allow update: if hasPermission('Users.Edit') && validSyncRecord();
+      allow delete: if false;
     }
 
     match /products/{productId} {
-      allow read: if hasPermission('Products.View');
+      allow read: if hasPermission('Products.View') || hasPermission('Stock.View')
+        || hasPermission('Reports.View') || canManageOrders();
       allow create: if hasPermission('Products.Create') && validSyncRecord();
       allow update: if hasPermission('Products.Edit') && validSyncRecord();
       allow delete: if hasPermission('Products.Delete');
     }
 
     match /productVariants/{variantId} {
-      allow read: if hasPermission('Products.View');
+      allow read: if hasPermission('Products.View') || hasPermission('Stock.View')
+        || hasPermission('Reports.View') || canManageOrders();
       allow create: if hasPermission('Products.Create') && validSyncRecord();
       allow update: if hasPermission('Products.Edit') && validSyncRecord();
       allow delete: if hasPermission('Products.Delete');
@@ -53,13 +57,17 @@ service cloud.firestore {
     }
 
     match /permissions/{permissionId} {
-      allow read: if hasPermission('Permissions.Manage');
+      allow read: if hasPermission('Permissions.Manage') || hasPermission('Users.Create') || hasPermission('Users.Edit');
       allow write: if false;
     }
 
     match /userPermissions/{userPermissionId} {
-      allow read: if hasPermission('Users.View');
-      allow write: if false;
+      allow read: if hasPermission('Users.View') || hasPermission('Users.Edit');
+      allow create: if (hasPermission('Users.Create') || hasPermission('Users.Edit')) && validSyncRecord()
+        && request.resource.data.references.user is string
+        && request.resource.data.references.permission is string;
+      allow update: if hasPermission('Users.Edit') && validSyncRecord();
+      allow delete: if hasPermission('Users.Edit');
     }
 
     match /orderRequests/{orderRequestId} {
@@ -77,11 +85,23 @@ service cloud.firestore {
     }
 
     match /userCredentials/{userId} {
-      allow read, write: if false;
+      allow read: if false;
+      allow create, update: if (hasPermission('Users.Create') || hasPermission('Users.Edit'))
+        && request.resource.data.keys().hasOnly(['passwordHash', 'updatedAt'])
+        && request.resource.data.passwordHash is string
+        && request.resource.data.updatedAt is timestamp;
+      allow delete: if false;
     }
 
     match /deletedRecords/{recordId} {
-      allow read, write: if false;
+      allow read: if false;
+      allow create: if request.resource.data.keys().hasOnly(['entityType', 'recordKey', 'deletedAt'])
+        && request.resource.data.entityType is string
+        && request.resource.data.recordKey is string
+        && request.resource.data.deletedAt is timestamp
+        && ((request.resource.data.entityType == 'User' && hasPermission('Users.Delete'))
+          || (request.resource.data.entityType in ['Product', 'ProductVariant'] && hasPermission('Products.Delete')));
+      allow update, delete: if false;
     }
 
     match /{document=**} {

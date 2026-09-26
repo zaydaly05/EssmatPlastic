@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Globalization;
 using EsmatPlastic.Desktop.Models.Dashboard;
 using EsmatPlastic.Desktop.Models.Stock;
 using EsmatPlastic.Desktop.Services;
@@ -27,6 +28,7 @@ public class DashboardViewModel : INotifyPropertyChanged
 
     public ObservableCollection<DashboardActivityItem> RecentTransactions { get; } = new();
     public ObservableCollection<StockBalanceResponse> LowStockItems { get; } = new();
+    public ObservableCollection<DashboardMovementDay> WeeklyMovement { get; } = new();
 
     public int ProductCount
     {
@@ -90,6 +92,8 @@ public class DashboardViewModel : INotifyPropertyChanged
 
     public bool HasLowStockAlerts => LowStockCount > 0;
     public bool HasRecentTransactions => RecentTransactions.Count > 0;
+    public decimal StockHealthPercent => VariantCount == 0 ? 0 :
+        Math.Round((decimal)(VariantCount - LowStockCount) / VariantCount * 100, 0);
 
     public bool IsLoading
     {
@@ -125,8 +129,8 @@ public class DashboardViewModel : INotifyPropertyChanged
         {
             var productsTask = CanViewProducts ? _productService.GetAllAsync() : null;
             var stockTask = CanViewStock ? _stockService.GetCurrentStockAsync() : null;
-            var transactionsTask = CanViewStock && CanViewReports
-                ? _stockService.GetTransactionsAsync(take: 8)
+            var transactionsTask = CanViewStock
+                ? _stockService.GetTransactionsAsync(take: 500)
                 : null;
 
             var pendingTasks = new List<Task>();
@@ -143,6 +147,8 @@ public class DashboardViewModel : INotifyPropertyChanged
                 var stock = await stockTask;
                 VariantCount = stock.Count;
                 CurrentStock = stock.Sum(x => x.CurrentQuantity);
+                TotalIn = stock.Sum(x => x.TotalIn);
+                TotalOut = stock.Sum(x => x.TotalOut);
 
                 // Low stock items threshold: quantity <= 10
                 var lowItems = stock.Where(x => x.CurrentQuantity <= 10).OrderBy(x => x.CurrentQuantity).Take(6).ToList();
@@ -156,9 +162,6 @@ public class DashboardViewModel : INotifyPropertyChanged
 
                 if (transactionsTask is not null)
                 {
-                    TotalIn = stock.Sum(x => x.TotalIn);
-                    TotalOut = stock.Sum(x => x.TotalOut);
-
                     var transactions = await transactionsTask;
                     var recent = transactions.OrderByDescending(t => t.CreatedAt).Take(8).ToList();
 
@@ -180,15 +183,45 @@ public class DashboardViewModel : INotifyPropertyChanged
                             Notes = tx.Notes
                         });
                     }
+
+                    BuildWeeklyMovement(transactions);
                 }
 
                 OnPropertyChanged(nameof(HasLowStockAlerts));
                 OnPropertyChanged(nameof(HasRecentTransactions));
+                OnPropertyChanged(nameof(StockHealthPercent));
             }
         }
         finally
         {
             IsLoading = false;
+        }
+    }
+
+    private void BuildWeeklyMovement(IReadOnlyCollection<StockTransactionResponse> transactions)
+    {
+        var start = DateTime.Today.AddDays(-6);
+        var days = Enumerable.Range(0, 7).Select(offset => start.AddDays(offset)).ToList();
+        var totals = days.Select(day =>
+        {
+            var daily = transactions.Where(tx => tx.CreatedAt.ToLocalTime().Date == day.Date).ToList();
+            return (Day: day, Incoming: daily.Where(tx => tx.Type == StockTransactionType.In).Sum(tx => tx.Quantity),
+                Outgoing: daily.Where(tx => tx.Type == StockTransactionType.Out).Sum(tx => tx.Quantity));
+        }).ToList();
+        var maximum = totals.Max(x => Math.Max(x.Incoming, x.Outgoing));
+        var culture = _loc.IsArabic ? CultureInfo.GetCultureInfo("ar-EG") : CultureInfo.CurrentCulture;
+
+        WeeklyMovement.Clear();
+        foreach (var day in totals)
+        {
+            WeeklyMovement.Add(new DashboardMovementDay
+            {
+                DayLabel = day.Day.ToString("ddd", culture),
+                Incoming = day.Incoming,
+                Outgoing = day.Outgoing,
+                IncomingPercent = maximum == 0 ? 0 : (double)(day.Incoming / maximum * 100),
+                OutgoingPercent = maximum == 0 ? 0 : (double)(day.Outgoing / maximum * 100)
+            });
         }
     }
 

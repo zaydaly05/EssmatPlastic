@@ -15,6 +15,7 @@ public partial class DashboardPage : ContentPage
     public DashboardPage(FirebaseFirestoreClient firestoreClient, LoginResponse user, Action logout)
     {
         InitializeComponent();
+        NavigationPage.SetHasNavigationBar(this, false);
         _firestoreClient = firestoreClient;
         _user = user;
         _viewModel = new DashboardViewModel(firestoreClient, user);

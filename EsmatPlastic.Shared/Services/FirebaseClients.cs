@@ -67,6 +67,25 @@ public sealed class FirebaseFirestoreClient
 
     public void ClearIdToken() => _idToken = null;
 
+    public string? AuthenticatedUserId
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(_idToken)) return null;
+            try
+            {
+                var parts = _idToken.Split('.');
+                if (parts.Length < 2) return null;
+                var payload = parts[1].Replace('-', '+').Replace('_', '/');
+                payload = payload.PadRight(payload.Length + (4 - payload.Length % 4) % 4, '=');
+                using var document = JsonDocument.Parse(Convert.FromBase64String(payload));
+                return document.RootElement.TryGetProperty("sub", out var subject) ? subject.GetString() : null;
+            }
+            catch (FormatException) { return null; }
+            catch (JsonException) { return null; }
+        }
+    }
+
     public async Task<IReadOnlyList<FirestoreDataDocument<T>>> GetCollectionAsync<T>(string collectionName)
     {
         if (string.IsNullOrWhiteSpace(_idToken))
@@ -128,6 +147,25 @@ public sealed class FirebaseFirestoreClient
         return results;
     }
 
+    public async Task<FirestoreDataDocument<T>> GetDocumentAsync<T>(string collectionName, string documentId)
+    {
+        if (string.IsNullOrWhiteSpace(_idToken))
+            throw new InvalidOperationException("Sign in to Firebase before reading Firestore.");
+        var uri = $"https://firestore.googleapis.com/v1/projects/{Uri.EscapeDataString(_projectId)}/databases/(default)/documents/{Uri.EscapeDataString(collectionName)}/{Uri.EscapeDataString(documentId)}";
+        using var request = new HttpRequestMessage(HttpMethod.Get, uri);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _idToken);
+        using var response = await HttpClient.SendAsync(request);
+        var responseBody = await response.Content.ReadAsStringAsync();
+        if (!response.IsSuccessStatusCode)
+            throw new HttpRequestException($"Firestore read failed for '{collectionName}/{documentId}': {responseBody}", null, response.StatusCode);
+        using var document = JsonDocument.Parse(responseBody);
+        var fields = document.RootElement.GetProperty("fields");
+        var payloadJson = fields.GetProperty("payloadJson").GetProperty("stringValue").GetString();
+        var payload = string.IsNullOrWhiteSpace(payloadJson) ? default : JsonSerializer.Deserialize<T>(payloadJson, JsonOptions);
+        if (payload is null) throw new InvalidOperationException($"Firestore document '{collectionName}/{documentId}' has no valid payload.");
+        return new FirestoreDataDocument<T>(payload, ReadReferences(fields), documentId);
+    }
+
     public async Task WriteDocumentAsync<T>(string collectionName, string documentId, T payload,
         IReadOnlyDictionary<string, string>? references = null)
     {
@@ -149,6 +187,52 @@ public sealed class FirebaseFirestoreClient
         }, JsonOptions);
 
         var uri = $"https://firestore.googleapis.com/v1/projects/{Uri.EscapeDataString(_projectId)}/databases/(default)/documents/{Uri.EscapeDataString(collectionName)}/{Uri.EscapeDataString(syncId.ToString("D"))}";
+        using var request = new HttpRequestMessage(HttpMethod.Patch, uri)
+        {
+            Content = new StringContent(body, System.Text.Encoding.UTF8, "application/json")
+        };
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _idToken);
+        using var response = await HttpClient.SendAsync(request);
+        var responseBody = await response.Content.ReadAsStringAsync();
+        if (!response.IsSuccessStatusCode)
+            throw new HttpRequestException($"Firestore write failed for '{collectionName}': {responseBody}", null, response.StatusCode);
+    }
+
+    public Task WriteTombstoneAsync(string entityType, string recordKey) =>
+        WriteRawFieldsAsync("deletedRecords", Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(
+            System.Text.Encoding.UTF8.GetBytes($"{entityType}|{recordKey}"))).ToLowerInvariant(), new Dictionary<string, object>
+        {
+            ["entityType"] = new { stringValue = entityType },
+            ["recordKey"] = new { stringValue = recordKey },
+            ["deletedAt"] = new { timestampValue = DateTime.UtcNow.ToString("O") }
+        });
+
+    public Task WriteUserCredentialAsync(string userSyncId, string passwordHash) =>
+        WriteRawFieldsAsync("userCredentials", userSyncId, new Dictionary<string, object>
+        {
+            ["passwordHash"] = new { stringValue = passwordHash },
+            ["updatedAt"] = new { timestampValue = DateTime.UtcNow.ToString("O") }
+        });
+
+    public async Task DeleteDocumentAsync(string collectionName, string documentId)
+    {
+        if (string.IsNullOrWhiteSpace(_idToken))
+            throw new InvalidOperationException("Sign in to Firebase before writing to Firestore.");
+        var uri = $"https://firestore.googleapis.com/v1/projects/{Uri.EscapeDataString(_projectId)}/databases/(default)/documents/{Uri.EscapeDataString(collectionName)}/{Uri.EscapeDataString(documentId)}";
+        using var request = new HttpRequestMessage(HttpMethod.Delete, uri);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _idToken);
+        using var response = await HttpClient.SendAsync(request);
+        var responseBody = await response.Content.ReadAsStringAsync();
+        if (!response.IsSuccessStatusCode && response.StatusCode != System.Net.HttpStatusCode.NotFound)
+            throw new HttpRequestException($"Firestore delete failed for '{collectionName}': {responseBody}", null, response.StatusCode);
+    }
+
+    private async Task WriteRawFieldsAsync(string collectionName, string documentId, IReadOnlyDictionary<string, object> fields)
+    {
+        if (string.IsNullOrWhiteSpace(_idToken))
+            throw new InvalidOperationException("Sign in to Firebase before writing to Firestore.");
+        var body = JsonSerializer.Serialize(new { fields }, JsonOptions);
+        var uri = $"https://firestore.googleapis.com/v1/projects/{Uri.EscapeDataString(_projectId)}/databases/(default)/documents/{Uri.EscapeDataString(collectionName)}/{Uri.EscapeDataString(documentId)}";
         using var request = new HttpRequestMessage(HttpMethod.Patch, uri)
         {
             Content = new StringContent(body, System.Text.Encoding.UTF8, "application/json")
