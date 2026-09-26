@@ -22,6 +22,17 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
+        // Global Exception Handling
+        AppDomain.CurrentDomain.UnhandledException += (s, args) =>
+        {
+            System.IO.File.WriteAllText("crash_log.txt", $"Fatal Exception: {args.Exception}");
+        };
+        DispatcherUnhandledException += (s, args) =>
+        {
+            System.IO.File.WriteAllText("crash_log.txt", $"UI Exception: {args.Exception}");
+            args.Handled = true;
+        };
+
         var services = new ServiceCollection();
 
         ConfigureServices(services);

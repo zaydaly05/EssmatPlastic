@@ -115,9 +115,14 @@ public class LocalizationService : INotifyPropertyChanged
 
     private void TranslateElement(DependencyObject element)
     {
+        if (element == null) return;
+
         if (element is TextBlock textBlock && !BindingOperations.IsDataBound(textBlock, TextBlock.TextProperty))
         {
-            textBlock.Text = this[textBlock.Text];
+            if (!string.IsNullOrEmpty(textBlock.Text))
+            {
+                textBlock.Text = this[textBlock.Text];
+            }
         }
 
         if (element is Button button && button.Content is string content)
@@ -135,10 +140,17 @@ public class LocalizationService : INotifyPropertyChanged
             win.FlowDirection = IsArabic ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
         }
 
-        int childrenCount = VisualTreeHelper.GetChildrenCount(element);
-        for (int i = 0; i < childrenCount; i++)
+        try
         {
-            TranslateElement(VisualTreeHelper.GetChild(element, i));
+            int childrenCount = VisualTreeHelper.GetChildrenCount(element);
+            for (int i = 0; i < childrenCount; i++)
+            {
+                TranslateElement(VisualTreeHelper.GetChild(element, i));
+            }
+        }
+        catch (Exception)
+        {
+            // Skip elements that cannot be traversed
         }
     }
 
