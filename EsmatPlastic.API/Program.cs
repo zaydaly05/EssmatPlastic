@@ -9,6 +9,30 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Npgsql;
 
+// Dynamic Port Allocation Logic
+var preferredPort = builder.Configuration.GetValue<int>("ASPNETCORE_PORT") ?? 5023;
+bool portAvailable = true;
+try
+{
+    using var socket = new System.Net.Sockets.Socket(System.Net.Sockets.AddressFamily.InterNetwork, System.Net.Sockets.SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
+    socket.Bind(new System.Net.IPEndPoint(System.Net.IPAddress.Loopback, preferredPort));
+    socket.Close();
+}
+catch
+{
+    portAvailable = false;
+}
+
+if (!portAvailable)
+{
+    Console.WriteLine($"\n[PORT ALERT] Port {preferredPort} is busy. System will automatically assign a free port.");
+    builder.WebHost.UseUrls("http://*:0"); // 0 tells OS to pick any free port
+}
+else
+{
+    builder.WebHost.UseUrls($"http://*:{preferredPort}");
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
