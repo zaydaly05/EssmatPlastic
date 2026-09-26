@@ -1,8 +1,9 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:maui="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewModels="clr-namespace:EsmatPlastic.Shared.ViewModels;assembly=EsmatPlastic.Shared"
              x:Class="EsmatPlastic.Mobile.Views.LoginPage"
-             x:DataType="viewModels:LoginViewModel"
+             maui:DataType="viewModels:LoginViewModel"
              BackgroundColor="#F1F5F9">
 
     <VerticalStackLayout Spacing="20"
