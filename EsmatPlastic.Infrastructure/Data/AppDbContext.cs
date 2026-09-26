@@ -28,6 +28,43 @@ public class AppDbContext : DbContext
 
     public DbSet<DeletedRecord> DeletedRecords => Set<DeletedRecord>();
 
+    public override int SaveChanges(bool acceptAllChangesOnSuccess)
+    {
+        StampSyncTimestamps();
+        return base.SaveChanges(acceptAllChangesOnSuccess);
+    }
+
+    public override Task<int> SaveChangesAsync(
+        bool acceptAllChangesOnSuccess,
+        CancellationToken cancellationToken = default)
+    {
+        StampSyncTimestamps();
+        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
+
+    private void StampSyncTimestamps()
+    {
+        var now = DateTime.UtcNow;
+
+        foreach (var entry in ChangeTracker.Entries<ISyncTimestamped>())
+        {
+            if (entry.State == EntityState.Added && entry.Entity.UpdatedAt == default)
+            {
+                entry.Entity.UpdatedAt = now;
+            }
+
+            if (entry.State == EntityState.Added && entry.Entity.SyncId == Guid.Empty)
+            {
+                entry.Entity.SyncId = Guid.NewGuid();
+            }
+            else if (entry.State == EntityState.Modified &&
+                     !entry.Property(nameof(ISyncTimestamped.UpdatedAt)).IsModified)
+            {
+                entry.Entity.UpdatedAt = now;
+            }
+        }
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -184,6 +221,14 @@ public class AppDbContext : DbContext
                 .HasForeignKey(x => x.ProductVariantId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
+
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes()
+                     .Where(type => typeof(ISyncTimestamped).IsAssignableFrom(type.ClrType)))
+        {
+            modelBuilder.Entity(entityType.ClrType)
+                .HasIndex(nameof(ISyncTimestamped.SyncId))
+                .IsUnique();
+        }
     }
 }
 

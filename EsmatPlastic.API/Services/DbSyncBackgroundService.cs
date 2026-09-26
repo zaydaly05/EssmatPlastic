@@ -99,6 +99,7 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
 
             using var localDb = new AppDbContext(optionsBuilder.Options);
             await localDb.Database.EnsureCreatedAsync(cancellationToken);
+            await SyncSchemaInitializer.EnsureAsync(localDb, cancellationToken);
             await EnsureRecentTransactionsIndexAsync(localDb, cancellationToken);
             var configuration = _serviceProvider.GetRequiredService<IConfiguration>();
             await DatabaseSeeder.SeedAsync(localDb, configuration);
@@ -146,6 +147,8 @@ public class DbSyncBackgroundService : BackgroundService, IDbSyncTrigger
             {
                 await neonDb.Database.EnsureCreatedAsync(cancellationToken);
                 await localDb.Database.EnsureCreatedAsync(cancellationToken);
+                await SyncSchemaInitializer.EnsureAsync(neonDb, cancellationToken);
+                await SyncSchemaInitializer.EnsureAsync(localDb, cancellationToken);
                 await EnsureDeletionTableAsync(neonDb, cancellationToken);
                 await EnsureDeletionTableAsync(localDb, cancellationToken);
                 await EnsureRecentTransactionsIndexAsync(neonDb, cancellationToken);

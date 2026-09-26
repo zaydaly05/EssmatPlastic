@@ -2,9 +2,11 @@
 
 namespace EsmatPlastic.Domain.Entities;
 
-public class StockTransaction
+public class StockTransaction : ISyncTimestamped
 {
     public int Id { get; set; }
+
+    public Guid SyncId { get; set; }
 
     public int ProductVariantId { get; set; }
 
@@ -17,6 +19,8 @@ public class StockTransaction
     public string? Notes { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     public ProductVariant ProductVariant { get; set; } = null!;
 

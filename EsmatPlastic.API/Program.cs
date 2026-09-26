@@ -224,6 +224,7 @@ using (var scope = app.Services.CreateScope())
         Console.WriteLine("Ensuring local database schema is created...");
 
         db.Database.EnsureCreated();
+        await SyncSchemaInitializer.EnsureAsync(db);
 
         Console.WriteLine("Local database tables ready.");
     }

@@ -2,9 +2,11 @@
 
 namespace EsmatPlastic.Domain.Entities;
 
-public class User
+public class User : ISyncTimestamped
 {
     public int Id { get; set; }
+
+    public Guid SyncId { get; set; }
 
     public string Username { get; set; } = string.Empty;
 
@@ -17,6 +19,8 @@ public class User
     public bool IsActive { get; set; } = true;
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<UserPermission> UserPermissions { get; set; }
         = new List<UserPermission>();

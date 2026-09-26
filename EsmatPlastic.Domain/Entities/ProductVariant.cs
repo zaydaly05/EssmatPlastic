@@ -1,8 +1,10 @@
 namespace EsmatPlastic.Domain.Entities;
 
-public class ProductVariant
+public class ProductVariant : ISyncTimestamped
 {
     public int Id { get; set; }
+
+    public Guid SyncId { get; set; }
 
     public int ProductId { get; set; }
 
@@ -23,6 +25,8 @@ public class ProductVariant
     public decimal ReservedQuantity { get; set; } = 0;
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     public Product Product { get; set; } = null!;
 }   
