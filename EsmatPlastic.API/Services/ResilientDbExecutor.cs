@@ -1,7 +1,5 @@
 using EsmatPlastic.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
-using System.Net.Sockets;
 
 namespace EsmatPlastic.API.Services;
 
@@ -14,14 +12,10 @@ public interface IResilientDbExecutor
 public class ResilientDbExecutor : IResilientDbExecutor
 {
     private readonly IDbConnectionManager _connectionManager;
-    private readonly ILogger<ResilientDbExecutor> _logger;
 
-    public ResilientDbExecutor(
-        IDbConnectionManager connectionManager,
-        ILogger<ResilientDbExecutor> logger)
+    public ResilientDbExecutor(IDbConnectionManager connectionManager)
     {
         _connectionManager = connectionManager;
-        _logger = logger;
     }
 
     public async Task<T> ExecuteAsync<T>(Func<AppDbContext, Task<T>> operation)

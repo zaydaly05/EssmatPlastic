@@ -11,7 +11,6 @@ public interface IDbConnectionManager
     DatabaseProviderMode CurrentMode { get; }
     bool IsOnline { get; }
     bool IsFirestoreAvailable { get; }
-    bool IsNeonBackupAvailable { get; }
     DateTime? LastSyncTimeUtc { get; }
     string ActiveConnectionString { get; }
     string LocalConnectionString { get; }
@@ -35,7 +34,6 @@ public class DbConnectionManager : IDbConnectionManager
 
     public bool IsOnline => _firestoreSync.IsOnline;
     public bool IsFirestoreAvailable => _firestoreSync.IsOnline;
-    public bool IsNeonBackupAvailable => false;
     public DateTime? LastSyncTimeUtc => _firestoreSync.LastSyncTimeUtc;
     public string ActiveConnectionString => _localConnectionString;
 

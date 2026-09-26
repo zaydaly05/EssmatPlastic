@@ -129,36 +129,36 @@ public sealed class FirestoreDbSyncBackgroundService : BackgroundService, IDbSyn
 
             await SyncDeletedRecordsAsync(localDb, firestore, cancellationToken);
             await SyncEntitiesAsync(
-                localDb, "users", localDb.Users, "userCredentials",
+                localDb, "users", localDb.Users,
                 OnGetReferencesAsync, OnApplyReferencesAsync,
                 omitPasswordHash: true,
                 OnPullUserAsync, OnPushUserAsync, cancellationToken);
             await SyncEntitiesAsync(
-                localDb, "products", localDb.Products, null,
+                localDb, "products", localDb.Products,
                 OnGetReferencesAsync, OnApplyReferencesAsync,
                 cancellationToken: cancellationToken);
             await SyncEntitiesAsync(
-                localDb, "permissions", localDb.Permissions, null,
+                localDb, "permissions", localDb.Permissions,
                 OnGetReferencesAsync, OnApplyReferencesAsync,
                 cancellationToken: cancellationToken);
             await SyncEntitiesAsync(
-                localDb, "productVariants", localDb.ProductVariants, null,
+                localDb, "productVariants", localDb.ProductVariants,
                 OnGetReferencesAsync, OnApplyReferencesAsync,
                 cancellationToken: cancellationToken);
             await SyncEntitiesAsync(
-                localDb, "userPermissions", localDb.UserPermissions, null,
+                localDb, "userPermissions", localDb.UserPermissions,
                 OnGetReferencesAsync, OnApplyReferencesAsync,
                 cancellationToken: cancellationToken);
             await SyncEntitiesAsync(
-                localDb, "orderRequests", localDb.OrderRequests, null,
+                localDb, "orderRequests", localDb.OrderRequests,
                 OnGetReferencesAsync, OnApplyReferencesAsync,
                 cancellationToken: cancellationToken);
             await SyncEntitiesAsync(
-                localDb, "orderRequestItems", localDb.OrderRequestItems, null,
+                localDb, "orderRequestItems", localDb.OrderRequestItems,
                 OnGetReferencesAsync, OnApplyReferencesAsync,
                 cancellationToken: cancellationToken);
             await SyncEntitiesAsync(
-                localDb, "stockTransactions", localDb.StockTransactions, null,
+                localDb, "stockTransactions", localDb.StockTransactions,
                 OnGetReferencesAsync, OnApplyReferencesAsync,
                 cancellationToken: cancellationToken);
 
@@ -248,7 +248,6 @@ public sealed class FirestoreDbSyncBackgroundService : BackgroundService, IDbSyn
         AppDbContext db,
         string collectionName,
         DbSet<TEntity> set,
-        string? protectedCollection,
         Func<TEntity, AppDbContext, Task<Dictionary<string, string>>> getReferences,
         Func<TEntity, Dictionary<string, string>, AppDbContext, Task> applyReferences,
         bool omitPasswordHash = false,
@@ -279,6 +278,10 @@ public sealed class FirestoreDbSyncBackgroundService : BackgroundService, IDbSyn
             incoming.SyncId = syncId;
             incoming.UpdatedAt = EnsureUtc(cloudRecord.UpdatedAt.ToDateTime());
             await applyReferences(incoming, cloudRecord.References, db);
+            if (onPull is not null)
+            {
+                await onPull(incoming, cloudRecord, GetFirestore(), cancellationToken);
+            }
 
             if (existing is null)
             {
@@ -290,10 +293,6 @@ public sealed class FirestoreDbSyncBackgroundService : BackgroundService, IDbSyn
                 ApplyCloudValues(db, existing, incoming, set);
             }
 
-            if (onPull is not null)
-            {
-                await onPull(incoming, cloudRecord, GetFirestore(), cancellationToken);
-            }
         }
 
         await db.SaveChangesAsync(cancellationToken);
@@ -322,11 +321,12 @@ public sealed class FirestoreDbSyncBackgroundService : BackgroundService, IDbSyn
                 incoming.SyncId = localRecord.SyncId;
                 incoming.UpdatedAt = EnsureUtc(cloudRecord.UpdatedAt.ToDateTime());
                 await applyReferences(incoming, cloudRecord.References, db);
-                ApplyCloudValues(db, localRecord, incoming, set);
                 if (onPull is not null)
                 {
                     await onPull(incoming, cloudRecord, GetFirestore(), cancellationToken);
                 }
+
+                ApplyCloudValues(db, localRecord, incoming, set);
 
                 continue;
             }
@@ -341,11 +341,12 @@ public sealed class FirestoreDbSyncBackgroundService : BackgroundService, IDbSyn
                 References = references
             };
 
-            await collection.Document(documentId).SetAsync(record, cancellationToken: cancellationToken);
             if (onPush is not null)
             {
                 await onPush(localRecord, GetFirestore(), cancellationToken);
             }
+
+            await collection.Document(documentId).SetAsync(record, cancellationToken: cancellationToken);
         }
 
         await db.SaveChangesAsync(cancellationToken);
@@ -601,8 +602,112 @@ public sealed class FirestoreDbSyncBackgroundService : BackgroundService, IDbSyn
                 .SetAsync(record, cancellationToken: cancellationToken);
         }
 
+        var changedTombstones = localByKey.Values
+            .Where(item => !_initialSyncCompleted || EnsureUtc(item.DeletedAt) >= _lastSyncUtc)
+            .ToArray();
+        await ApplyCloudTombstonesAsync(firestore, changedTombstones, cancellationToken);
         await ApplyTombstonesToLocalAsync(db, localByKey.Values, cancellationToken);
     }
+
+    private async Task ApplyCloudTombstonesAsync(
+        FirestoreDb firestore,
+        IReadOnlyCollection<DeletedRecord> tombstones,
+        CancellationToken cancellationToken)
+    {
+        if (tombstones.Count == 0)
+        {
+            return;
+        }
+
+        var productSnapshot = await firestore.Collection("products").GetSnapshotAsync(cancellationToken);
+        var productNames = productSnapshot.Documents
+            .Select(document => (document.Id, Record: document.ConvertTo<FirestoreSyncRecord>()))
+            .ToDictionary(
+                item => item.Id,
+                item => ReadPayloadString(item.Record.PayloadJson, "Name"),
+                StringComparer.OrdinalIgnoreCase);
+
+        foreach (var tombstone in tombstones)
+        {
+            var key = tombstone.RecordKey;
+            var deletedAt = EnsureUtc(tombstone.DeletedAt);
+            if (tombstone.EntityType == "User")
+            {
+                var users = await firestore.Collection("users").GetSnapshotAsync(cancellationToken);
+                foreach (var document in users.Documents)
+                {
+                    var record = document.ConvertTo<FirestoreSyncRecord>();
+                    if (Normalize(ReadPayloadString(record.PayloadJson, "Username")) == key &&
+                        record.UpdatedAt.ToDateTime() <= deletedAt)
+                    {
+                        await document.Reference.DeleteAsync(cancellationToken: cancellationToken);
+                        await firestore.Collection("userCredentials").Document(document.Id)
+                            .DeleteAsync(cancellationToken: cancellationToken);
+                    }
+                }
+            }
+            else if (tombstone.EntityType == "Product")
+            {
+                var deletedProductIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var document in productSnapshot.Documents)
+                {
+                    var record = document.ConvertTo<FirestoreSyncRecord>();
+                    if (Normalize(ReadPayloadString(record.PayloadJson, "Name")) == key &&
+                        record.UpdatedAt.ToDateTime() <= deletedAt)
+                    {
+                        deletedProductIds.Add(document.Id);
+                        await document.Reference.DeleteAsync(cancellationToken: cancellationToken);
+                    }
+                }
+
+                var variants = await firestore.Collection("productVariants").GetSnapshotAsync(cancellationToken);
+                foreach (var document in variants.Documents)
+                {
+                    var record = document.ConvertTo<FirestoreSyncRecord>();
+                    if (record.References.TryGetValue("product", out var productId) &&
+                        deletedProductIds.Contains(productId) &&
+                        record.UpdatedAt.ToDateTime() <= deletedAt)
+                    {
+                        await document.Reference.DeleteAsync(cancellationToken: cancellationToken);
+                    }
+                }
+            }
+            else if (tombstone.EntityType == "ProductVariant")
+            {
+                var separator = key.IndexOf('|');
+                if (separator <= 0)
+                {
+                    continue;
+                }
+
+                var productKey = key[..separator];
+                var variantKey = key[(separator + 1)..];
+                var variants = await firestore.Collection("productVariants").GetSnapshotAsync(cancellationToken);
+                foreach (var document in variants.Documents)
+                {
+                    var record = document.ConvertTo<FirestoreSyncRecord>();
+                    var productId = record.References.GetValueOrDefault("product");
+                    if (productNames.TryGetValue(productId ?? string.Empty, out var productName) &&
+                        Normalize(productName) == productKey &&
+                        Normalize(ReadPayloadString(record.PayloadJson, "Name")) == variantKey &&
+                        record.UpdatedAt.ToDateTime() <= deletedAt)
+                    {
+                        await document.Reference.DeleteAsync(cancellationToken: cancellationToken);
+                    }
+                }
+            }
+        }
+    }
+
+    private static string ReadPayloadString(string payloadJson, string propertyName)
+    {
+        using var document = JsonDocument.Parse(payloadJson);
+        return document.RootElement.TryGetProperty(propertyName, out var value)
+            ? value.GetString() ?? string.Empty
+            : string.Empty;
+    }
+
+    private static string Normalize(string value) => value.Trim().ToLowerInvariant();
 
     private static async Task ApplyTombstonesToLocalAsync(
         AppDbContext db,

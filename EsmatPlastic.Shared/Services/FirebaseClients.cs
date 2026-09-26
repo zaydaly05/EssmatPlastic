@@ -7,6 +7,7 @@ namespace EsmatPlastic.Shared.Services;
 public sealed class FirebaseAuthClient
 {
     private static readonly HttpClient HttpClient = new() { Timeout = TimeSpan.FromSeconds(15) };
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     public async Task<string> ExchangeCustomTokenAsync(string customToken, string webApiKey)
     {
@@ -23,11 +24,22 @@ public sealed class FirebaseAuthClient
             returnSecureToken = true
         });
 
-        var result = await response.Content.ReadFromJsonAsync<FirebaseTokenResponse>();
+        var responseBody = await response.Content.ReadAsStringAsync();
+        FirebaseTokenResponse? result = null;
+        try
+        {
+            result = JsonSerializer.Deserialize<FirebaseTokenResponse>(responseBody, JsonOptions);
+        }
+        catch (JsonException)
+        {
+        }
+
         if (!response.IsSuccessStatusCode || string.IsNullOrWhiteSpace(result?.IdToken))
         {
-            var error = await response.Content.ReadAsStringAsync();
-            throw new HttpRequestException($"Firebase sign-in failed: {error}", null, response.StatusCode);
+            throw new HttpRequestException(
+                $"Firebase sign-in failed: {responseBody}",
+                null,
+                response.StatusCode);
         }
 
         return result.IdToken;
