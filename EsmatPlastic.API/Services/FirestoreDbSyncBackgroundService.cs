@@ -89,15 +89,22 @@ public sealed class FirestoreDbSyncBackgroundService : BackgroundService, IDbSyn
             }
             catch (Exception ex)
             {
-                IsOnline = false;
-                if (!_hasLoggedOfflineError)
+                try 
                 {
-                    _logger.LogWarning(ex, "Firestore is unavailable; local SQLite remains available.");
-                    _hasLoggedOfflineError = true;
+                    IsOnline = false;
+                    if (!_hasLoggedOfflineError)
+                    {
+                        _logger.LogWarning(ex, "Firestore is unavailable; local SQLite remains available.");
+                        _hasLoggedOfflineError = true;
+                    }
+                    else
+                    {
+                        _logger.LogDebug("Firestore sync is still unavailable: {Message}", ex.Message);
+                    }
                 }
-                else
+                catch
                 {
-                    _logger.LogDebug("Firestore sync is still unavailable: {Message}", ex.Message);
+                    // Prevent logging failures (like EventLog disposed) from crashing the background service
                 }
             }
 
