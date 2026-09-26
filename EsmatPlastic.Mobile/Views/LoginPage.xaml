@@ -1,11 +1,13 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewModels="clr-namespace:EsmatPlastic.Shared.ViewModels;assembly=EsmatPlastic.Shared"
              x:Class="EsmatPlastic.Mobile.Views.LoginPage"
              x:DataType="viewModels:LoginViewModel"
              BackgroundColor="#F1F5F9">
 
-    <VerticalStackLayout Spacing="20" Padding="30" VerticalOptions="Center">
+    <VerticalStackLayout Spacing="20"
+                         Padding="30"
+                         VerticalOptions="Center">
 
         <Image Source="logo.png" HeightRequest="120" WidthRequest="120" HorizontalOptions="Center" />
 
@@ -43,8 +45,8 @@
                 Command="{Binding LoginCommand}" />
 
         <ActivityIndicator IsRunning="{Binding IsLoading}"
-                   IsVisible="{Binding IsLoading}"
-                   Color="#0D9488" />
+                           IsVisible="{Binding IsLoading}"
+                           Color="#0D9488" />
 
         <Label Text="{Binding StatusMessage}"
                HorizontalOptions="Center"
