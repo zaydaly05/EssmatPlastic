@@ -133,7 +133,7 @@ public class LoginViewModel : INotifyPropertyChanged
 
             ErrorMessage = _localization["تعذر الاتصال بالخادم."];
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             ErrorMessage = _localization["An error occurred during login"];
         }

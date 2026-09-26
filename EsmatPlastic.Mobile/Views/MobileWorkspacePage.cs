@@ -604,9 +604,7 @@ public sealed class MobileWorkspacePage : ContentPage
                 var userDoc = await CurrentUserDocumentAsync();
                 await ChangePasswordAsync(userDoc);
             } catch (Exception ex) {
-                MainThread.BeginInvokeOnMainThread(async () => {
-                    await Application.Current!.Windows[0].Page!.DisplayAlert("Error", ex.Message, "OK");
-                });
+                await HandleException(ex);
             }
         }));
         _content.Add(SmallButton("Sign out", () => { _logout(); return Task.CompletedTask; }));
