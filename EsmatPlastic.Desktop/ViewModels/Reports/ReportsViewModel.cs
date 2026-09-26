@@ -191,6 +191,8 @@ public class ReportsViewModel : INotifyPropertyChanged
     private static string Csv(string? value) =>
         string.IsNullOrWhiteSpace(value) ? "" : $"\"{value.Replace("\"", "\"\"")}\"";
 
+    public event PropertyChangedEventHandler? PropertyChanged;
+
     private void OnPropertyChanged(
         [CallerMemberName] string? propertyName = null)
     {
