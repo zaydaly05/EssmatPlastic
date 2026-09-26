@@ -40,7 +40,8 @@ namespace EsmatPlastic.Desktop.Views.OrderRequests
             {
                 if (decimal.TryParse(QuantityInput.Text, out decimal qty))
                 {
-                    _currentItems.Add(new OrderItemDto {
+                    _currentItems.Add(new OrderItemDto
+                    {
                         ProductVariantId = variant.Id,
                         Quantity = qty,
                         VariantName = variant.Name
@@ -57,7 +58,8 @@ namespace EsmatPlastic.Desktop.Views.OrderRequests
                 return;
             }
 
-            var request = new {
+            var request = new
+            {
                 CustomerName = CustomerNameInput.Text,
                 CustomerPhone = CustomerPhoneInput.Text,
                 Items = _currentItems.Select(i => new { i.ProductVariantId, i.Quantity }).ToList()

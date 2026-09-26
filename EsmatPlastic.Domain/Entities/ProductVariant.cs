@@ -29,4 +29,4 @@ public class ProductVariant : ISyncTimestamped
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     public Product Product { get; set; } = null!;
-}   
+}
