@@ -589,7 +589,7 @@ public sealed class MobileWorkspacePage : ContentPage
     }
 
     // Account settings and locally applied appearance options
-    private async Task LoadSettingsAsync()
+    private Task LoadSettingsAsync()
     {
         AddSectionHeader("Account", "Signed in as");
         _content.Add(Card(_user.FullName, $"@{_user.Username}", _user.Role));
@@ -608,6 +608,7 @@ public sealed class MobileWorkspacePage : ContentPage
             }
         }));
         _content.Add(SmallButton("Sign out", () => { _logout(); return Task.CompletedTask; }));
+        return Task.CompletedTask;
     }
 
     private async Task<FirestoreDataDocument<UserRecord>> CurrentUserDocumentAsync()
