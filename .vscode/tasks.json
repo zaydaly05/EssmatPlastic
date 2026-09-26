@@ -27,9 +27,9 @@
             }
         },
         {
-            "label": "EsmatPlastic: Start Desktop",
+            "label": "EsmatPlastic: Start Desktop Visible",
             "type": "shell",
-            "command": "$desktopProcess = Get-Process -Name 'EsmatPlastic.Desktop' -ErrorAction SilentlyContinue | Select-Object -First 1; if ($desktopProcess) { Write-Output '__ESMATPLASTIC_DESKTOP_READY__'; Wait-Process -Id $desktopProcess.Id; exit 0 }; dotnet build 'EsmatPlastic.Desktop/EsmatPlastic.Desktop.csproj'; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; $desktopPath = Join-Path (Get-Location) 'EsmatPlastic.Desktop/bin/Debug/net9.0-windows/EsmatPlastic.Desktop.exe'; if (-not (Test-Path $desktopPath)) { throw 'Desktop executable was not produced by the build.' }; $desktopProcess = Start-Process -FilePath $desktopPath -WorkingDirectory (Join-Path (Get-Location) 'EsmatPlastic.Desktop') -PassThru; Write-Output '__ESMATPLASTIC_DESKTOP_READY__'; Wait-Process -Id $desktopProcess.Id",
+            "command": "$desktopProcess = Get-Process -Name 'EsmatPlastic.Desktop' -ErrorAction SilentlyContinue | Select-Object -First 1; if ($desktopProcess -and $desktopProcess.MainWindowHandle -ne 0) { Write-Output '__ESMATPLASTIC_DESKTOP_READY__'; Wait-Process -Id $desktopProcess.Id; exit 0 }; if ($desktopProcess) { Stop-Process -Id $desktopProcess.Id -Force; $desktopProcess.WaitForExit() }; dotnet build 'EsmatPlastic.Desktop/EsmatPlastic.Desktop.csproj'; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; $desktopPath = Join-Path (Get-Location) 'EsmatPlastic.Desktop/bin/Debug/net9.0-windows/EsmatPlastic.Desktop.exe'; if (-not (Test-Path $desktopPath)) { throw 'Desktop executable was not produced by the build.' }; $startedProcess = Start-Process -FilePath $desktopPath -WorkingDirectory (Join-Path (Get-Location) 'EsmatPlastic.Desktop') -PassThru; $deadline = [DateTime]::UtcNow.AddSeconds(60); $desktopWindow = $null; do { Start-Sleep -Milliseconds 500; $desktopWindow = Get-Process -Name 'EsmatPlastic.Desktop' -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowHandle -ne 0 } | Select-Object -First 1; $startedProcess.Refresh() } while (-not $desktopWindow -and -not $startedProcess.HasExited -and [DateTime]::UtcNow -lt $deadline); if (-not $desktopWindow) { throw 'Desktop process started but did not create a visible main window.' }; Write-Output '__ESMATPLASTIC_DESKTOP_READY__'; Wait-Process -Id $desktopWindow.Id",
             "options": {
                 "cwd": "${workspaceFolder}"
             },
@@ -86,7 +86,7 @@
             "label": "EsmatPlastic: Start Full Stack",
             "dependsOn": [
                 "EsmatPlastic: Start API",
-                "EsmatPlastic: Start Desktop",
+                "EsmatPlastic: Start Desktop Visible",
                 "EsmatPlastic: Start Mobile Android"
             ],
             "dependsOrder": "sequence",
