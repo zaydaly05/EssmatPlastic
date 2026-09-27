@@ -1,22 +1,13 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using EsmatPlastic.Desktop.Models;
-using EsmatPlastic.Shared.Models.ProductVariants; // Fixed missing namespace
-using System.Net.Http;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
+using EsmatPlastic.Desktop.Models.ProductVariants;
 
 namespace EsmatPlastic.Desktop.Views.OrderRequests
 {
     public partial class OrderRequestsView : UserControl
     {
-        private readonly HttpClient _httpClient = new HttpClient();
-        private ObservableCollection<OrderItemDto> _currentItems = new ObservableCollection<OrderItemDto>();
+        private readonly ObservableCollection<OrderItemDto> _currentItems = new();
 
         public OrderRequestsView()
         {
@@ -36,7 +27,7 @@ namespace EsmatPlastic.Desktop.Views.OrderRequests
         {
             if (ProductVariantCombo.SelectedItem == null) return;
 
-            if (ProductVariantCombo.SelectedItem is ProductVariantResponseDto variant)
+            if (ProductVariantCombo.SelectedItem is ProductVariantResponse variant)
             {
                 if (decimal.TryParse(QuantityInput.Text, out decimal qty))
                 {
@@ -81,11 +72,6 @@ namespace EsmatPlastic.Desktop.Views.OrderRequests
             {
                 MessageBox.Show($"Error: {ex.Message}");
             }
-        }
-
-        private async void LoadRequests()
-        {
-            await LoadRequestsAsync();
         }
 
         private async Task LoadRequestsAsync()

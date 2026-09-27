@@ -7,25 +7,24 @@
         <ResourceDictionary>
             <converters:BoolToStatusConverter x:Key="BoolToStatusConverter"/>
             <converters:RoleToTextConverter x:Key="RoleToTextConverter"/>
-            <converters:StockTypeToTextConverter x:Key="StockTypeToTextConverter"/>
             <converters:UnitFormatConverter x:Key="UnitFormatConverter"/>
 
             <!-- Color Palette -->
-            <SolidColorBrush x:Key="InkBrush" Color="#1E293B"/>
-            <SolidColorBrush x:Key="MutedBrush" Color="#64748B"/>
-            <SolidColorBrush x:Key="MutedLightBrush" Color="#94A3B8"/>
-            <SolidColorBrush x:Key="CanvasBrush" Color="#F8FAFC"/>
+            <SolidColorBrush x:Key="InkBrush" Color="#18313A"/>
+            <SolidColorBrush x:Key="MutedBrush" Color="#5E737C"/>
+            <SolidColorBrush x:Key="MutedLightBrush" Color="#82949B"/>
+            <SolidColorBrush x:Key="CanvasBrush" Color="#F3F7F7"/>
             <SolidColorBrush x:Key="PanelBrush" Color="#FFFFFF"/>
-            <SolidColorBrush x:Key="TealBrush" Color="#0D9488"/>
-            <SolidColorBrush x:Key="TealDarkBrush" Color="#0F766E"/>
-            <SolidColorBrush x:Key="TealSoftBrush" Color="#F0FDFA"/>
-            <SolidColorBrush x:Key="CoralBrush" Color="#F97316"/>
-            <SolidColorBrush x:Key="LineBrush" Color="#E2E8F0"/>
+            <SolidColorBrush x:Key="TealBrush" Color="#0E766E"/>
+            <SolidColorBrush x:Key="TealDarkBrush" Color="#115E59"/>
+            <SolidColorBrush x:Key="TealSoftBrush" Color="#EAF6F4"/>
+            <SolidColorBrush x:Key="CoralBrush" Color="#E8793B"/>
+            <SolidColorBrush x:Key="LineBrush" Color="#DCE6E7"/>
             <SolidColorBrush x:Key="DangerBrush" Color="#EF4444"/>
             <SolidColorBrush x:Key="DangerSoftBrush" Color="#FEE2E2"/>
             <SolidColorBrush x:Key="SuccessBrush" Color="#10B981"/>
             <SolidColorBrush x:Key="SuccessSoftBrush" Color="#D1FAE5"/>
-            <SolidColorBrush x:Key="SidebarBrush" Color="#0F172A"/>
+            <SolidColorBrush x:Key="SidebarBrush" Color="#153A42"/>
 
             <FontFamily x:Key="AppFont">Segoe UI, Segoe UI Arabic, Tahoma, Inter</FontFamily>
             <CornerRadius x:Key="PanelRadius">14</CornerRadius>
@@ -111,7 +110,7 @@
 
             <!-- Typography Styles -->
             <Style x:Key="PageTitle" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="32"/>
+                <Setter Property="FontSize" Value="30"/>
                 <Setter Property="FontWeight" Value="ExtraBold"/>
                 <Setter Property="Foreground" Value="{DynamicResource InkBrush}"/>
             </Style>
@@ -141,8 +140,8 @@
                 <Setter Property="Background" Value="{DynamicResource PanelBrush}"/>
                 <Setter Property="CornerRadius" Value="14"/>
                 <Setter Property="Padding" Value="24"/>
-                <Setter Property="BorderBrush" Value="Transparent"/>
-                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="BorderBrush" Value="#E7EEEE"/>
+                <Setter Property="BorderThickness" Value="1"/>
                 <Setter Property="Effect">
                     <Setter.Value>
                         <DropShadowEffect BlurRadius="15" ShadowDepth="2" Color="#CBD5E1" Opacity="0.4"/>
@@ -164,13 +163,14 @@
             <!-- Navigation Button Style with Micro-Interactions -->
             <Style x:Key="NavButton" TargetType="Button">
                 <Setter Property="Background" Value="Transparent"/>
-                <Setter Property="Foreground" Value="#94A3B8"/>
+                <Setter Property="Foreground" Value="#C0D0D3"/>
                 <Setter Property="BorderThickness" Value="0"/>
-                <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                <Setter Property="Padding" Value="14,4"/>
+                <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                <Setter Property="Padding" Value="16,4"/>
                 <Setter Property="Margin" Value="0,3"/>
                 <Setter Property="MinHeight" Value="44"/>
                 <Setter Property="FontSize" Value="15"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
                 <Setter Property="Cursor" Value="Hand"/>
                 <Setter Property="Template">
                     <Setter.Value>
@@ -477,12 +477,70 @@
                                     <Setter TargetName="Bd" Property="Background" Value="#F0FDFA"/>
                                 </Trigger>
                                 <Trigger Property="IsSelected" Value="True">
-                                    <Setter TargetName="Bd" Property="Background" Value="#CCFBF1"/>
+                                    <Setter TargetName="Bd" Property="Background" Value="#DDF1EE"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>
+            </Style>
+
+            <!-- Shared table treatment keeps reports and activity grids aligned. -->
+            <Style TargetType="DataGridColumnHeader">
+                <Setter Property="Background" Value="#F3F7F7"/>
+                <Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}"/>
+                <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                <Setter Property="Padding" Value="12,10"/>
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+            </Style>
+
+            <Style TargetType="DataGridCell">
+                <Setter Property="Padding" Value="12,7"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            </Style>
+
+            <Style TargetType="DataGridRow">
+                <Setter Property="MinHeight" Value="42"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}"/>
+                <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                <Style.Triggers>
+                    <Trigger Property="IsSelected" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource TealSoftBrush}"/>
+                        <Setter Property="Foreground" Value="{DynamicResource InkBrush}"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style TargetType="DataGrid">
+                <Setter Property="Background" Value="{DynamicResource PanelBrush}"/>
+                <Setter Property="Foreground" Value="{DynamicResource InkBrush}"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+                <Setter Property="HorizontalGridLinesBrush" Value="{DynamicResource LineBrush}"/>
+                <Setter Property="VerticalGridLinesBrush" Value="Transparent"/>
+                <Setter Property="RowBackground" Value="{DynamicResource PanelBrush}"/>
+                <Setter Property="AlternatingRowBackground" Value="#F8FBFB"/>
+                <Setter Property="AlternationCount" Value="2"/>
+                <Setter Property="ColumnHeaderHeight" Value="42"/>
+                <Setter Property="MinRowHeight" Value="42"/>
+            </Style>
+
+            <Style TargetType="ComboBoxItem">
+                <Setter Property="Padding" Value="10,8"/>
+                <Setter Property="MinHeight" Value="36"/>
+                <Style.Triggers>
+                    <Trigger Property="IsHighlighted" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource TealSoftBrush}"/>
+                        <Setter Property="Foreground" Value="{DynamicResource InkBrush}"/>
+                    </Trigger>
+                    <Trigger Property="IsSelected" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource TealSoftBrush}"/>
+                        <Setter Property="Foreground" Value="{DynamicResource TealDarkBrush}"/>
+                    </Trigger>
+                </Style.Triggers>
             </Style>
         </ResourceDictionary>
     </Application.Resources>

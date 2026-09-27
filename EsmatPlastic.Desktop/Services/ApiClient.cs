@@ -105,26 +105,6 @@ public class ApiClient
         };
     }
 
-    public async Task<LatestUpdateResponse?> GetLatestUpdateAsync()
-    {
-        try
-        {
-            using var response = await _httpClient.GetAsync("api/updates/latest");
-            if (!response.IsSuccessStatusCode ||
-                response.StatusCode == System.Net.HttpStatusCode.NoContent)
-            {
-                return null;
-            }
-
-            return await response.Content.ReadFromJsonAsync<LatestUpdateResponse>();
-        }
-        catch
-        {
-            // Update checks must never block normal app startup.
-            return null;
-        }
-    }
-
     public async Task<TResponse?> GetAsync<TResponse>(
         string endpoint)
     {
@@ -225,11 +205,4 @@ public class HealthStatusResponse
     public bool IsNeonBackupOnline { get; set; } = false;
     public string PrimaryDatabase { get; set; } = "";
     public DateTime? LastSyncUtc { get; set; }
-}
-
-public sealed class LatestUpdateResponse
-{
-    public string Version { get; set; } = string.Empty;
-    public string DownloadUrl { get; set; } = string.Empty;
-    public DateTime PublishedAt { get; set; }
 }

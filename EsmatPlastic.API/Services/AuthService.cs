@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using EsmatPlastic.API.DTOs.Auth;
 using EsmatPlastic.Domain.Entities;
+using EsmatPlastic.Domain.Enums;
 using EsmatPlastic.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -56,10 +57,15 @@ public class AuthService : IAuthService
 
             if (passwordResult == PasswordVerificationResult.Failed) return null;
 
-            var permissions = user.UserPermissions
-                .Where(x => x.Permission.IsActive)
-                .Select(x => x.Permission.Name)
-                .ToList();
+            var permissions = user.Role == UserRole.Admin
+                ? await db.Permissions
+                    .Where(x => x.IsActive)
+                    .Select(x => x.Name)
+                    .ToListAsync()
+                : user.UserPermissions
+                    .Where(x => x.Permission.IsActive)
+                    .Select(x => x.Permission.Name)
+                    .ToList();
 
             var jwtSettings = _configuration.GetSection("Jwt");
             var key = jwtSettings["Key"] ?? throw new InvalidOperationException("JWT Key is not configured.");

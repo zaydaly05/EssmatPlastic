@@ -129,7 +129,7 @@ public class StockController : ControllerBase
 
     private bool HasPermission(string permission)
     {
-        return User.FindAll("Permission")
+        return User.IsInRole("Admin") || User.FindAll("Permission")
             .Any(x => x.Value.Equals(
                 permission,
                 StringComparison.OrdinalIgnoreCase));

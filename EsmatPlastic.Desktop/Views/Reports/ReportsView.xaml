@@ -3,209 +3,174 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <Grid>
-
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="20"/>
+            <RowDefinition Height="18"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="20"/>
+            <RowDefinition Height="16"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="16"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <Grid Grid.Row="0">
-
             <StackPanel>
-
-                <TextBlock Text="التقارير"
-                           FontSize="28"
-                           FontWeight="Bold"/>
-
-                <TextBlock Text="تقارير حركة المخزون"
-                           Foreground="#666666"
-                           Margin="0,5,0,0"/>
-
+                <TextBlock Text="التقارير" Style="{StaticResource PageTitle}"/>
+                <TextBlock Text="تقارير حركة المخزون" Style="{StaticResource PageSubtitle}"/>
             </StackPanel>
 
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                 <Button x:Name="RefreshButton"
-                    Content="⟳  تحديث"
-                    Width="110"
-                    Height="40"
-                    HorizontalAlignment="Right"
-                    Click="RefreshButton_Click"/>
+                        Content="⟳  تحديث"
+                        Style="{StaticResource SecondaryButton}"
+                        Width="110"
+                        Height="40"
+                        Click="RefreshButton_Click"/>
                 <Button x:Name="ExportButton"
-                    Content="📥 تصدير CSV"
-                    Width="120"
-                    Height="40"
-                    Margin="10,0,0,0"
-                    HorizontalAlignment="Right"
-                    Click="ExportButton_Click"/>
-
+                        Content="📥 تصدير CSV"
+                        Width="132"
+                        Height="40"
+                        Margin="8,0,0,0"
+                        HorizontalAlignment="Right"
+                        Click="ExportButton_Click"/>
+            </StackPanel>
         </Grid>
 
-
-        <!-- Statistics -->
-
-        <UniformGrid Grid.Row="2"
-                     Columns="4"
-                     Margin="0">
-
-            <Border Background="White"
-                    CornerRadius="10"
-                    Padding="20"
-                    Margin="0,0,8,0">
-
+        <UniformGrid Grid.Row="2" Columns="4">
+            <Border Style="{StaticResource StatCard}">
                 <StackPanel>
-                    <TextBlock Text="اسم المنتج"
-                               Foreground="#666666"/>
-
-                    <TextBlock Text="{Binding TotalIn}"
-                               FontSize="25"
-                               FontWeight="Bold"
-                               Margin="0,8,0,0"/>
+                    <TextBlock Text="إجمالي الوارد" Style="{StaticResource ColumnHeader}"/>
+                    <TextBlock Text="{Binding TotalIn}" FontSize="25" FontWeight="Bold" Margin="0,8,0,0"/>
                 </StackPanel>
-
             </Border>
 
-            <Border Background="White"
-                    CornerRadius="10"
-                    Padding="20"
-                    Margin="8,0">
-
+            <Border Style="{StaticResource StatCard}">
                 <StackPanel>
-                    <TextBlock Text="الرصيد الحالي"
-                               Foreground="#666666"/>
-
-                    <TextBlock Text="{Binding TotalOut}"
-                               FontSize="25"
-                               FontWeight="Bold"
-                               Margin="0,8,0,0"/>
+                    <TextBlock Text="إجمالي الصادر" Style="{StaticResource ColumnHeader}"/>
+                    <TextBlock Text="{Binding TotalOut}" FontSize="25" FontWeight="Bold" Margin="0,8,0,0"/>
                 </StackPanel>
-
             </Border>
 
-            <Border Background="White"
-                    CornerRadius="10"
-                    Padding="20"
-                    Margin="8,0">
-
+            <Border Style="{StaticResource StatCard}">
                 <StackPanel>
-                    <TextBlock Text="إجمالي الوارد"
-                               Foreground="#666666"/>
-
-                    <TextBlock Text="{Binding CurrentStock}"
-                               FontSize="25"
-                               FontWeight="Bold"
-                               Margin="0,8,0,0"/>
+                    <TextBlock Text="الرصيد الحالي" Style="{StaticResource ColumnHeader}"/>
+                    <TextBlock Text="{Binding CurrentStock}" FontSize="25" FontWeight="Bold" Margin="0,8,0,0"/>
                 </StackPanel>
-
             </Border>
 
-            <Border Background="White"
-                    CornerRadius="10"
-                    Padding="20"
-                    Margin="8,0,0,0">
-
+            <Border Style="{StaticResource StatCard}" Margin="0">
                 <StackPanel>
-                    <TextBlock Text="إجمالي الصادر"
-                               Foreground="#666666"/>
-
-                    <TextBlock Text="{Binding VariantCount}"
-                               FontSize="25"
-                               FontWeight="Bold"
-                               Margin="0,8,0,0"/>
+                    <TextBlock Text="عدد الأصناف" Style="{StaticResource ColumnHeader}"/>
+                    <TextBlock Text="{Binding VariantCount}" FontSize="25" FontWeight="Bold" Margin="0,8,0,0"/>
                 </StackPanel>
-
             </Border>
-
         </UniformGrid>
 
-
-        <!-- Search -->
-
-        <TextBox Grid.Row="3"
-                 Height="40"
-                 Padding="10"
-                 FontSize="14"
-                 Text="{Binding SearchText,
-                                UpdateSourceTrigger=PropertyChanged}"/>
-
-
-        <!-- Report -->
-
-        <Border Grid.Row="4"
-                Background="White"
-                CornerRadius="10"
-                Padding="15">
-
-            <ListView ItemsSource="{Binding FilteredItems}"
-                      BorderThickness="0">
-
-                <ListView.ItemTemplate>
-
-                    <DataTemplate>
-
-                        <Border Padding="8"
-                                BorderBrush="#E5E7EB"
-                                BorderThickness="0,0,0,1">
-
-                            <Grid>
-
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="110"/>
-                                    <ColumnDefinition Width="110"/>
-                                    <ColumnDefinition Width="110"/>
-                                    <ColumnDefinition Width="110"/>
-                                </Grid.ColumnDefinitions>
-
-                                <StackPanel>
-
-                                    <TextBlock Text="{Binding ProductName}"
-                                               FontWeight="SemiBold"/>
-
-                                    <TextBlock Text="{Binding VariantName}"
-                                               Foreground="#777777"
-                                               FontSize="12"
-                                               Margin="0,3,0,0"/>
-
-                                </StackPanel>
-
-                                <TextBlock Grid.Column="1"
-                                           Text="{Binding Size}"
-                                           HorizontalAlignment="Center"/>
-
-                                <TextBlock Grid.Column="2"
-                                           Text="{Binding TotalIn}"
-                                           HorizontalAlignment="Center"/>
-
-                                <TextBlock Grid.Column="3"
-                                           Text="{Binding TotalOut}"
-                                           HorizontalAlignment="Center"/>
-
-                                <TextBlock Grid.Column="4"
-                                           Text="{Binding CurrentQuantity}"
-                                           FontWeight="Bold"
-                                           HorizontalAlignment="Center"/>
-
-                            </Grid>
-
-                        </Border>
-
-                    </DataTemplate>
-
-                </ListView.ItemTemplate>
-
-            </ListView>
-
+        <Border Grid.Row="4" Style="{StaticResource Card}" Padding="12">
+            <Grid>
+                <TextBox x:Name="SearchInput"
+                         Height="40"
+                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"/>
+                <TextBlock Text="بحث باسم المنتج أو الصنف..."
+                           Margin="14,0"
+                           VerticalAlignment="Center"
+                           Foreground="{DynamicResource MutedLightBrush}"
+                           IsHitTestVisible="False">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ElementName=SearchInput, Path=Text}" Value="">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding ElementName=SearchInput, Path=Text}" Value="{x:Null}">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Grid>
         </Border>
 
+        <Border Grid.Row="6" Style="{StaticResource Card}" Padding="8,12">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="8"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="5"
+                <Grid Margin="12,0,12,4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="110"/>
+                        <ColumnDefinition Width="110"/>
+                        <ColumnDefinition Width="110"/>
+                        <ColumnDefinition Width="110"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="المنتج والصنف" Style="{StaticResource ColumnHeader}"/>
+                    <TextBlock Grid.Column="1" Text="المقاس" Style="{StaticResource ColumnHeader}" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Column="2" Text="الوارد" Style="{StaticResource ColumnHeader}" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Column="3" Text="الصادر" Style="{StaticResource ColumnHeader}" HorizontalAlignment="Center"/>
+                    <TextBlock Grid.Column="4" Text="المتاح" Style="{StaticResource ColumnHeader}" HorizontalAlignment="Center"/>
+                </Grid>
+
+                <Separator Grid.Row="1" Background="{DynamicResource LineBrush}" Margin="0,0,0,4"/>
+
+                <ListView x:Name="ReportItemsList"
+                          Grid.Row="2"
+                          ItemsSource="{Binding FilteredItems}"
+                          BorderThickness="0">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Border Padding="10,9" CornerRadius="8">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="110"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding ProductName}" FontWeight="SemiBold"/>
+                                        <TextBlock Text="{Binding VariantName}"
+                                                   Foreground="{DynamicResource MutedBrush}"
+                                                   FontSize="12"
+                                                   Margin="0,3,0,0"/>
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1" Text="{Binding Size}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding TotalIn}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="3" Text="{Binding TotalOut}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="4" Text="{Binding CurrentQuantity}" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+
+                <StackPanel Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+                    <TextBlock Text="لا توجد بيانات مطابقة" FontWeight="SemiBold" Foreground="{DynamicResource MutedBrush}" HorizontalAlignment="Center"/>
+                    <StackPanel.Style>
+                        <Style TargetType="StackPanel">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ElementName=ReportItemsList, Path=HasItems}" Value="False">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </StackPanel.Style>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <TextBlock Grid.Row="7"
                    Text="{Binding StatusMessage}"
-                   Foreground="#666666"
-                   Margin="5,10"/>
-
+                   Foreground="{DynamicResource MutedBrush}"
+                   Margin="5,8,5,0"/>
     </Grid>
-
 </UserControl>

@@ -59,29 +59,6 @@ public class RoleToTextConverter : IValueConverter
         throw new NotSupportedException();
 }
 
-public class StockTypeToTextConverter : IValueConverter
-{
-    public object Convert(
-        object value,
-        Type targetType,
-        object parameter,
-        CultureInfo culture)
-    {
-        var type = value?.ToString() ?? string.Empty;
-
-        return type.Equals("In", StringComparison.OrdinalIgnoreCase)
-            ? Loc.Current["Incoming"]
-            : Loc.Current["Outgoing"];
-    }
-
-    public object ConvertBack(
-        object value,
-        Type targetType,
-        object parameter,
-        CultureInfo culture) =>
-        throw new NotSupportedException();
-}
-
 public class UnitFormatConverter : IValueConverter
 {
     public object Convert(

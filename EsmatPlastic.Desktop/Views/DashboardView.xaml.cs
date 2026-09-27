@@ -48,9 +48,11 @@ public partial class DashboardView : UserControl
         try
         {
             await _viewModel.LoadAsync();
+            LastUpdatedText.Text = $"محدث: {DateTime.Now:HH:mm:ss}";
         }
         catch (Exception ex)
         {
+            LastUpdatedText.Text = "تعذر التحديث";
             MessageBox.Show(
                 ex.Message,
                 "تعذر تحميل بيانات لوحة التحكم",

@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
              d:DesignHeight="600" d:DesignWidth="1000">
-    <Grid Margin="20">
+    <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="350"/>
             <ColumnDefinition Width="20"/>
@@ -13,9 +13,9 @@
         </Grid.ColumnDefinitions>
 
         <!-- Request Form -->
-        <Border Grid.Column="0" Style="{StaticResource Card}">
+        <Border Grid.Column="0" Style="{StaticResource Card}" Padding="22">
             <StackPanel>
-                <TextBlock Text="طلب حجز منتجات" Style="{StaticResource PageTitle}" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+                <TextBlock Text="طلب حجز منتجات" Style="{StaticResource PageTitle}" Margin="0,0,0,20"/>
 
                 <TextBlock Text="اسم العميل" Style="{StaticResource FieldLabel}"/>
                 <TextBox x:Name="CustomerNameInput" Margin="0,0,0,15"/>
@@ -58,29 +58,50 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <TextBlock Text="طلبات الحجز الحالية" Style="{StaticResource PageTitle}" Margin="0,0,0,20"/>
+            <TextBlock Text="طلبات الحجز الحالية" Style="{StaticResource PageTitle}" Margin="0,0,0,16"/>
 
-            <DataGrid x:Name="OrdersDataGrid" Grid.Row="1"
-                         AutoGenerateColumns="False"
-                         CanUserAddRows="False"
-                         Background="Transparent"
-                         BorderThickness="0"
-                         RowHeight="40">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="العميل" Binding="{Binding CustomerName}" Width="150"/>
-                    <DataGridTextColumn Header="التاريخ" Binding="{Binding RequestedAt}" Width="120"/>
-                    <DataGridTextColumn Header="الحالة" Binding="{Binding Status}" Width="100"/>
-                    <DataGridTemplateColumn Header="إجراءات" Width="120">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Button Content="إلغاء" Style="{StaticResource DangerButton}"
-                                        Click="CancelRequest_Click" Tag="{Binding Id}"
-                                        Padding="5,2"/>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                </DataGrid.Columns>
-            </DataGrid>
+            <Border Grid.Row="1" Style="{StaticResource Card}" Padding="8">
+                <Grid>
+                    <DataGrid x:Name="OrdersDataGrid"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False"
+                              Background="Transparent"
+                              BorderThickness="0"
+                              RowHeight="44">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="العميل" Binding="{Binding CustomerName}" Width="*"/>
+                            <DataGridTextColumn Header="التاريخ" Binding="{Binding RequestedAt}" Width="160"/>
+                            <DataGridTextColumn Header="الحالة" Binding="{Binding Status}" Width="130"/>
+                            <DataGridTemplateColumn Header="إجراءات" Width="120">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="إلغاء" Style="{StaticResource DangerButton}"
+                                                Click="CancelRequest_Click" Tag="{Binding Id}"
+                                                Padding="10,3" MinHeight="32"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <TextBlock Text="لا توجد طلبات حجز حالياً"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               Foreground="{DynamicResource MutedBrush}"
+                               IsHitTestVisible="False">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ElementName=OrdersDataGrid, Path=HasItems}" Value="False">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Grid>
+            </Border>
         </Grid>
     </Grid>
 </UserControl>

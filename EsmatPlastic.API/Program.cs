@@ -9,8 +9,12 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Npgsql;
 
+var builder = WebApplication.CreateBuilder(args);
+
 // Dynamic Port Allocation Logic
-var preferredPort = builder.Configuration.GetValue<int>("ASPNETCORE_PORT") ?? 5023;
+var preferredPort = int.TryParse(builder.Configuration["ASPNETCORE_PORT"], out var configuredPort)
+    ? configuredPort
+    : 5023;
 bool portAvailable = true;
 try
 {
@@ -32,8 +36,6 @@ else
 {
     builder.WebHost.UseUrls($"http://*:{preferredPort}");
 }
-
-var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 

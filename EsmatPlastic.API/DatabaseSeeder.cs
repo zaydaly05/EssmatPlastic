@@ -98,7 +98,7 @@ public static class DatabaseSeeder
         await db.SaveChangesAsync();
 
         var permissions = await db.Permissions
-            .Where(x => permissionNames.Contains(x.Name))
+            .Where(x => x.IsActive)
             .ToListAsync();
 
         var existingUserPermissions = await db.UserPermissions

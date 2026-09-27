@@ -1,5 +1,6 @@
 using EsmatPlastic.API.DTOs.Users;
 using EsmatPlastic.Domain.Entities;
+using EsmatPlastic.Domain.Enums;
 using EsmatPlastic.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -97,15 +98,22 @@ public class UserService : IUserService
 
             var permissionIds = request.PermissionIds.Distinct().ToList();
 
-            var validPermissionIds = await db.Permissions
+            var selectedPermissionIds = await db.Permissions
                 .Where(x => x.IsActive && permissionIds.Contains(x.Id))
                 .Select(x => x.Id)
                 .ToListAsync();
 
-            if (validPermissionIds.Count != permissionIds.Count)
+            if (selectedPermissionIds.Count != permissionIds.Count)
             {
                 throw new InvalidOperationException("One or more selected permissions are invalid.");
             }
+
+            var validPermissionIds = request.Role == UserRole.Admin
+                ? await db.Permissions
+                    .Where(x => x.IsActive)
+                    .Select(x => x.Id)
+                    .ToListAsync()
+                : selectedPermissionIds;
 
             var user = new User
             {
@@ -170,15 +178,22 @@ public class UserService : IUserService
 
             var permissionIds = request.PermissionIds.Distinct().ToList();
 
-            var validPermissionIds = await db.Permissions
+            var selectedPermissionIds = await db.Permissions
                 .Where(x => x.IsActive && permissionIds.Contains(x.Id))
                 .Select(x => x.Id)
                 .ToListAsync();
 
-            if (validPermissionIds.Count != permissionIds.Count)
+            if (selectedPermissionIds.Count != permissionIds.Count)
             {
                 throw new InvalidOperationException("One or more selected permissions are invalid.");
             }
+
+            var validPermissionIds = request.Role == UserRole.Admin
+                ? await db.Permissions
+                    .Where(x => x.IsActive)
+                    .Select(x => x.Id)
+                    .ToListAsync()
+                : selectedPermissionIds;
 
             user.FullName = request.FullName.Trim();
             user.Role = request.Role;

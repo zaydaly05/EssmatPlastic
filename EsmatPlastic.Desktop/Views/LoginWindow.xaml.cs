@@ -78,9 +78,10 @@ public partial class LoginWindow : Window
     {
         Dispatcher.Invoke(() =>
         {
-            Hide();
             _mainWindow.RefreshForCurrentUser();
+            Application.Current.MainWindow = _mainWindow;
             _mainWindow.Show();
+            Hide();
         });
     }
 

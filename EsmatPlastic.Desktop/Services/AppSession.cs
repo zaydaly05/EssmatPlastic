@@ -37,7 +37,7 @@ public class AppSession
 
     public bool HasPermission(string permission)
     {
-        return Permissions.Any(x =>
+        return IsAdmin() || Permissions.Any(x =>
             x.Equals(
                 permission,
                 StringComparison.OrdinalIgnoreCase));

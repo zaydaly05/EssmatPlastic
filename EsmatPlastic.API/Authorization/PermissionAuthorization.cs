@@ -19,7 +19,7 @@ public class PermissionAuthorizationHandler
         AuthorizationHandlerContext context,
         PermissionRequirement requirement)
     {
-        var hasPermission = context.User
+        var hasPermission = context.User.IsInRole("Admin") || context.User
             .FindAll("Permission")
             .Any(x => x.Value.Equals(
                 requirement.Permission,
