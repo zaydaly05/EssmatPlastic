@@ -1,0 +1,31 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "EsmatPlastic Mobile App (with API)",
+            "request": "launch",
+            "type": "dart",
+            "program": "esmat_plastic_mobile/lib/main.dart",
+            "cwd": "esmat_plastic_mobile",
+            "preLaunchTask": "EsmatPlastic: Start API"
+        },
+        {
+            "name": "EsmatPlastic API",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/EsmatPlastic.API/bin/Debug/net9.0/EsmatPlastic.API.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/EsmatPlastic.API",
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "action": "openUrl",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)",
+                "uriFormat": "%s/swagger"
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            }
+        }
+    ]
+}
