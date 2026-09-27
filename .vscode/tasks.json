@@ -4,7 +4,7 @@
         {
             "label": "EsmatPlastic: Start API",
             "type": "shell",
-            "command": "$apiListener = Get-NetTCPConnection -LocalPort 5023 -State Listen -ErrorAction SilentlyContinue; if ($apiListener) { try { $health = Invoke-RestMethod -Uri 'http://localhost:5023/api/health/status' -UseBasicParsing -TimeoutSec 3; if ($health.status -eq 'Healthy') { Write-Output 'Now listening on: http://localhost:5023 (reusing healthy API)'; exit 0 } } catch {}; throw 'Port 5023 is already in use by an unhealthy or unrelated service.' }; $envFile = '.env.local'; Get-Content $envFile | ForEach-Object { if ($_ -match '^(.*?)=(.*)$') { $name = $matches[1].Trim(); $value = $matches[2].Trim('\\\"'); [Environment]::SetEnvironmentVariable($name, $value, 'Process') } }; dotnet run --project 'EsmatPlastic.API/EsmatPlastic.API.csproj' -p:BaseOutputPath=bin\\VSCodeTask\\",
+            "command": "$apiListener = Get-NetTCPConnection -LocalPort 5023 -State Listen -ErrorAction SilentlyContinue; if ($apiListener) { try { $health = Invoke-RestMethod -Uri 'http://localhost:5023/api/health/status' -UseBasicParsing -TimeoutSec 3; if ($health.status -eq 'Healthy') { Write-Output 'Now listening on: http://localhost:5023 (reusing healthy API)'; exit 0 } } catch {}; throw 'Port 5023 is already in use by an unhealthy or unrelated service.' }; if (Test-Path '.env.local') { Get-Content '.env.local' | ForEach-Object { if ($_ -match '^(.*?)=(.*)$') { [Environment]::SetEnvironmentVariable($matches[1].Trim(), $matches[2].Trim('\"'), 'Process') } } }; dotnet run --project 'EsmatPlastic.API/EsmatPlastic.API.csproj' -p:BaseOutputPath=bin\\VSCodeTask\\",
             "options": {
                 "cwd": "${workspaceFolder}"
             },
@@ -49,6 +49,23 @@
                 "reveal": "always",
                 "panel": "dedicated",
                 "focus": false
+            }
+        },
+        {
+            "label": "EsmatPlastic: Start Mobile App",
+            "type": "shell",
+            "command": "$env:ANDROID_PREFS_ROOT=$null; flutter run -d emulator-5554",
+            "options": {
+                "cwd": "${workspaceFolder}/esmat_plastic_mobile"
+            },
+            "dependsOn": [
+                "EsmatPlastic: Start API"
+            ],
+            "dependsOrder": "sequence",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "focus": true
             }
         },
         {

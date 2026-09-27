@@ -68,6 +68,21 @@ class ApiClient {
     return fromJson(jsonDecode(response.body) as Map<String, dynamic>);
   }
 
+  Future<List<T>> getListAsync<T>(
+      String endpoint, T Function(Map<String, dynamic>) fromJson) async {
+    final response = await _httpClient
+        .get(
+          Uri.parse('$_baseUrl$endpoint'),
+          headers: _headers,
+        )
+        .timeout(const Duration(seconds: 15));
+    await _ensureSuccess(response);
+    final list = jsonDecode(response.body) as List<dynamic>;
+    return list
+        .map((item) => fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
   Future<T?> postAsync<T>(String endpoint, Map<String, dynamic> request,
       T Function(Map<String, dynamic>) fromJson) async {
     final response = await _httpClient

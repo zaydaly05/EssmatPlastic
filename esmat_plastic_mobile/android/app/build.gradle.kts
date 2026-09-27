@@ -1,3 +1,7 @@
+import java.net.URL
+import java.net.HttpURLConnection
+import java.io.File
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
@@ -42,6 +46,53 @@ kotlin {
     compilerOptions {
         jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
+}
+
+tasks.register("ensureApiRunning") {
+    doFirst {
+        try {
+            val url = URL("http://localhost:5023/api/Health/status")
+            val connection = url.openConnection() as HttpURLConnection
+            connection.connectTimeout = 2000
+            connection.readTimeout = 2000
+            connection.requestMethod = "GET"
+            if (connection.responseCode == 200) {
+                println("EsmatPlastic API is already running.")
+                return@doFirst
+            }
+        } catch (e: Exception) {
+            // API not running
+        }
+
+        println("Starting EsmatPlastic.API automatically...")
+        val rootDir = file("../..").absolutePath
+        val processBuilder = ProcessBuilder(
+            "cmd.exe", "/c", "start", "EsmatPlastic.API", "dotnet", "run", "--project", "EsmatPlastic.API/EsmatPlastic.API.csproj", "--urls", "http://localhost:5023"
+        )
+        processBuilder.directory(File(rootDir))
+        processBuilder.start()
+
+        var attempts = 0
+        while (attempts < 10) {
+            Thread.sleep(1000)
+            attempts++
+            try {
+                val url = URL("http://localhost:5023/api/Health/status")
+                val connection = url.openConnection() as HttpURLConnection
+                connection.connectTimeout = 1000
+                connection.readTimeout = 1000
+                if (connection.responseCode == 200) {
+                    println("EsmatPlastic API started successfully!")
+                    return@doFirst
+                }
+            } catch (e: Exception) {}
+        }
+        println("Warning: Could not verify EsmatPlastic API startup.")
+    }
+}
+
+tasks.named("preBuild").configure {
+    dependsOn("ensureApiRunning")
 }
 
 flutter {

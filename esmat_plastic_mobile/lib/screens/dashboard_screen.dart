@@ -116,8 +116,62 @@ class _DashboardScreenState extends State<DashboardScreen> {
       }
       _hasLoaded = true;
     } catch (e) {
-      _databaseStatus = 'تعذر تحميل البيانات';
-      _statusMessage = 'تعذر تحميل بيانات لوحة التحكم من Firestore.';
+      // Fallback to EsmatPlastic API if Firestore is unconfigured or unavailable
+      try {
+        final apiClient = context.read<AuthProvider>().apiClient;
+
+        if (_canViewProducts) {
+          final products = await apiClient.getListAsync(
+            'api/Products',
+            (json) => json['isActive'] as bool? ?? true,
+          );
+          _productCount = products.where((active) => active).length;
+        }
+
+        if (_canViewStock) {
+          final variants = await apiClient.getListAsync(
+            'api/ProductVariants',
+            (json) => json['isActive'] as bool? ?? true,
+          );
+          _variantCount = variants.where((active) => active).length;
+
+          final transactions = await apiClient.getListAsync(
+            'api/Stock/transactions',
+            (json) => {
+              'type': json['type'] as int? ?? 0,
+              'quantity': (json['quantity'] as num?)?.toDouble() ?? 0.0,
+            },
+          );
+
+          double totalIn = 0, totalOut = 0;
+          for (final tx in transactions) {
+            final type = tx['type'] as int;
+            final quantity = tx['quantity'] as double;
+            if (type == 1) {
+              totalIn += quantity;
+            } else if (type == 2) {
+              totalOut += quantity;
+            }
+          }
+          _currentStock = totalIn - totalOut;
+
+          if (_canViewReports) {
+            _totalIn = totalIn;
+            _totalOut = totalOut;
+          }
+        }
+
+        _databaseStatus = 'متصل - API الخادم المحلي';
+        if (_hasNoDashboardPermission) {
+          _statusMessage = 'لا توجد صلاحيات لعرض بيانات لوحة التحكم.';
+        } else {
+          _statusMessage = '';
+        }
+        _hasLoaded = true;
+      } catch (apiErr) {
+        _databaseStatus = 'تعذر تحميل البيانات';
+        _statusMessage = 'تعذر تحميل بيانات لوحة التحكم من Firestore أو API الخادم.';
+      }
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);

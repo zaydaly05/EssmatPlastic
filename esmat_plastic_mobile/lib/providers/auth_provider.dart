@@ -46,13 +46,22 @@ class AuthProvider extends ChangeNotifier {
       );
 
       if (response != null && response.token.isNotEmpty) {
-        // Exchange custom token for Firebase ID token
-        final firebaseIdToken = await firebaseAuthClient.exchangeCustomToken(
-          response.firebaseCustomToken ?? '',
-          response.firebaseWebApiKey ?? '',
-        );
-        response.firebaseIdToken = firebaseIdToken;
-        firestoreClient.setIdToken(firebaseIdToken);
+        // Exchange custom token for Firebase ID token if configured
+        if (response.firebaseCustomToken != null &&
+            response.firebaseCustomToken!.isNotEmpty &&
+            response.firebaseWebApiKey != null &&
+            response.firebaseWebApiKey!.isNotEmpty) {
+          try {
+            final firebaseIdToken = await firebaseAuthClient.exchangeCustomToken(
+              response.firebaseCustomToken!,
+              response.firebaseWebApiKey!,
+            );
+            response.firebaseIdToken = firebaseIdToken;
+            firestoreClient.setIdToken(firebaseIdToken);
+          } catch (_) {
+            // Firebase optional fallback during development
+          }
+        }
         apiClient.setToken(response.token);
         currentUser = response;
         isLoading = false;

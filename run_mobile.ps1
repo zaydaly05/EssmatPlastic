@@ -2,6 +2,9 @@
 $ErrorActionPreference = "Stop"
 
 $root = $PSScriptRoot
+if (-not $root) {
+    $root = "D:\Desktop\EsmatPlastic"
+}
 Set-Location $root
 
 Write-Host "Checking EsmatPlastic API status on http://localhost:5023..." -ForegroundColor Cyan
@@ -19,7 +22,12 @@ try {
 
 if (-not $apiRunning) {
     Write-Host "Starting EsmatPlastic.API in background..." -ForegroundColor Yellow
-    Start-Process dotnet -ArgumentList "run --project '$root/EsmatPlastic.API/EsmatPlastic.API.csproj' --urls http://localhost:5023" -WorkingDirectory $root
+    $apiProjectPath = Join-Path $root "EsmatPlastic.API\EsmatPlastic.API.csproj"
+    if (-not (Test-Path $apiProjectPath)) {
+        Write-Error "Could not find EsmatPlastic.API project at: $apiProjectPath"
+        exit 1
+    }
+    Start-Process dotnet -ArgumentList "run --project `"$apiProjectPath`" --urls http://localhost:5023" -WorkingDirectory $root
 
     $attempts = 0
     while (-not $apiRunning -and $attempts -lt 15) {
@@ -42,5 +50,10 @@ if (-not $apiRunning) {
 
 Write-Host "Launching Flutter Mobile App..." -ForegroundColor Cyan
 $env:ANDROID_PREFS_ROOT = $null
-Set-Location "$root/esmat_plastic_mobile"
+$mobileDir = Join-Path $root "esmat_plastic_mobile"
+if (-not (Test-Path $mobileDir)) {
+    Write-Error "Could not find mobile app directory at: $mobileDir"
+    exit 1
+}
+Set-Location $mobileDir
 flutter run
