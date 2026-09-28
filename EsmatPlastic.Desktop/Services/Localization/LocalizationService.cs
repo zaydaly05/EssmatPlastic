@@ -42,7 +42,30 @@ public class LocalizationService : INotifyPropertyChanged
         ["AdminRole"] = "مدير النظام",
         ["WarehouseRole"] = "أمين المستودع",
         ["AccountantRole"] = "محاسب",
-        ["OrderRequests"] = "طلبات الحجز"
+        ["SecretaryRole"] = "سكرتير",
+        ["OrderRequests"] = "طلبات الحجز",
+        ["StatusPending"] = "معلق",
+        ["StatusApproved"] = "مقبول",
+        ["StatusProcessing"] = "قيد المعالجة",
+        ["StatusCompleted"] = "مكتمل",
+        ["StatusCancelled"] = "ملغى",
+        ["StatusRejected"] = "مرفوض",
+        ["All"] = "الكل",
+        ["CustomerName"] = "اسم الزبون",
+        ["CustomerPhone"] = "رقم الهاتف",
+        ["Quantity"] = "الكمية",
+        ["Variant"] = "الصنف",
+        ["Actions"] = "الإجراءات",
+        ["Add"] = "إضافة",
+        ["Remove"] = "إزالة",
+        ["Submit"] = "إرسال",
+        ["Loading"] = "جاري التحميل...",
+        ["Login"] = "تسجيل الدخول",
+        ["Username"] = "اسم المستخدم",
+        ["Password"] = "كلمة المرور",
+        ["Language"] = "اللغة",
+        ["Arabic"] = "العربية",
+        ["English"] = "الإنجليزية"
     };
 
     private readonly Dictionary<string, string> _en = new()
@@ -76,7 +99,30 @@ public class LocalizationService : INotifyPropertyChanged
         ["AdminRole"] = "Administrator",
         ["WarehouseRole"] = "Warehouse Keeper",
         ["AccountantRole"] = "Accountant",
-        ["OrderRequests"] = "Order Requests"
+        ["SecretaryRole"] = "Secretary",
+        ["OrderRequests"] = "Order Requests",
+        ["StatusPending"] = "Pending",
+        ["StatusApproved"] = "Approved",
+        ["StatusProcessing"] = "Processing",
+        ["StatusCompleted"] = "Completed",
+        ["StatusCancelled"] = "Cancelled",
+        ["StatusRejected"] = "Rejected",
+        ["All"] = "All",
+        ["CustomerName"] = "Customer Name",
+        ["CustomerPhone"] = "Customer Phone",
+        ["Quantity"] = "Quantity",
+        ["Variant"] = "Variant",
+        ["Actions"] = "Actions",
+        ["Add"] = "Add",
+        ["Remove"] = "Remove",
+        ["Submit"] = "Submit",
+        ["Loading"] = "Loading...",
+        ["Login"] = "Login",
+        ["Username"] = "Username",
+        ["Password"] = "Password",
+        ["Language"] = "Language",
+        ["Arabic"] = "Arabic",
+        ["English"] = "English"
     };
 
     public string Language

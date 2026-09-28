@@ -356,7 +356,7 @@
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="75"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <ProgressBar Grid.Column="0" Value="{Binding IncomingPercent}" Maximum="100" Style="{StaticResource RoundedProgressBar}" Foreground="#0D9488" VerticalAlignment="Center"/>
+                                                    <ProgressBar Grid.Column="0" Value="{Binding IncomingPercent, Mode=OneWay}" Maximum="100" Style="{StaticResource RoundedProgressBar}" Foreground="#0D9488" VerticalAlignment="Center"/>
                                                     <TextBlock Grid.Column="1" Text="{Binding Incoming, StringFormat={}{0:N0}}" HorizontalAlignment="Right" FontSize="11" FontWeight="Bold" Foreground="#0F766E" VerticalAlignment="Center"/>
                                                 </Grid>
 
@@ -366,7 +366,7 @@
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="75"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <ProgressBar Grid.Column="0" Value="{Binding OutgoingPercent}" Maximum="100" Style="{StaticResource RoundedProgressBar}" Foreground="#F97316" VerticalAlignment="Center"/>
+                                                    <ProgressBar Grid.Column="0" Value="{Binding OutgoingPercent, Mode=OneWay}" Maximum="100" Style="{StaticResource RoundedProgressBar}" Foreground="#F97316" VerticalAlignment="Center"/>
                                                     <TextBlock Grid.Column="1" Text="{Binding Outgoing, StringFormat={}{0:N0}}" HorizontalAlignment="Right" FontSize="11" FontWeight="Bold" Foreground="#C2410C" VerticalAlignment="Center"/>
                                                 </Grid>
                                             </Grid>
@@ -406,7 +406,7 @@
                                         <TextBlock Text="مستوى آمن" FontSize="11" FontWeight="Bold" Foreground="#047857"/>
                                     </Border>
                                 </Grid>
-                                <ProgressBar Value="{Binding StockHealthPercent}" Maximum="100" Style="{StaticResource RoundedProgressBar}" Height="8" Foreground="#0D9488" Margin="0,10,0,0"/>
+                                <ProgressBar Value="{Binding StockHealthPercent, Mode=OneWay}" Maximum="100" Style="{StaticResource RoundedProgressBar}" Height="8" Foreground="#0D9488" Margin="0,10,0,0"/>
                             </StackPanel>
                         </Border>
 

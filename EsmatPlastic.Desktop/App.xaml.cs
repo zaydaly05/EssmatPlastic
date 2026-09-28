@@ -12,6 +12,8 @@ using EsmatPlastic.Desktop.Views;
 using EsmatPlastic.Desktop.Views.Products;
 using Microsoft.Extensions.DependencyInjection;
 
+using EsmatPlastic.Desktop.Services.OrderRequests;
+
 namespace EsmatPlastic.Desktop;
 
 public partial class App : Application
@@ -110,6 +112,7 @@ public partial class App : Application
         services.AddSingleton<ProductVariantService>();
         services.AddSingleton<StockService>();
         services.AddSingleton<ReportService>();
+        services.AddSingleton<OrderRequestService>();
         services.AddSingleton<UserService>();
         services.AddSingleton<PermissionService>();
         services.AddSingleton<SettingsService>();

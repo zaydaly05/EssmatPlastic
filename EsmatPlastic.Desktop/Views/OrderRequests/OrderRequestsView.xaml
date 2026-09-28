@@ -4,102 +4,227 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
-             d:DesignHeight="600" d:DesignWidth="1000">
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="350"/>
-            <ColumnDefinition Width="20"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
+             d:DesignHeight="700" d:DesignWidth="1100">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-        <!-- Request Form -->
-        <Border Grid.Column="0" Style="{StaticResource Card}" Padding="22">
-            <StackPanel>
-                <TextBlock Text="طلب حجز منتجات" Style="{StaticResource PageTitle}" Margin="0,0,0,20"/>
+        <!-- Header Bar -->
+        <Grid Grid.Row="0" Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
 
-                <TextBlock Text="اسم العميل" Style="{StaticResource FieldLabel}"/>
-                <TextBox x:Name="CustomerNameInput" Margin="0,0,0,15"/>
-
-                <TextBlock Text="رقم الهاتف" Style="{StaticResource FieldLabel}"/>
-                <TextBox x:Name="CustomerPhoneInput" Margin="0,0,0,15"/>
-
-                <Separator Margin="0,10" Background="{DynamicResource LineBrush}"/>
-                <TextBlock Text="المنتجات المطلوبة" Style="{StaticResource FieldLabel}" Margin="0,10,0,10"/>
-
-                <Grid Margin="0,0,0,15">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="80"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <ComboBox x:Name="ProductVariantCombo" Grid.Column="0" Margin="0,0,5,0"/>
-                    <TextBox x:Name="QuantityInput" Grid.Column="1" Margin="0,0,5,0" Text="1"/>
-                    <Button Content="+" Style="{StaticResource PrimaryButton}" Grid.Column="2" Width="40" Click="AddItem_Click"/>
-                </Grid>
-
-                <ListView x:Name="RequestedItemsList" Height="200" Margin="0,10">
-                    <ListView.View>
-                        <GridView>
-                            <GridViewColumn Header="المنتج" DisplayMemberBinding="{Binding VariantName}" Width="150"/>
-                            <GridViewColumn Header="الكمية" DisplayMemberBinding="{Binding Quantity}" Width="80"/>
-                        </GridView>
-                    </ListView.View>
-                </ListView>
-
-                <Button Content="إرسال طلب الحجز" Style="{StaticResource PrimaryButton}"
-                        Margin="0,20,0,0" Height="45" Click="SubmitRequest_Click"/>
+            <StackPanel Grid.Column="0">
+                <TextBlock x:Name="PageTitleText" Text="طلبات الحجز" Style="{StaticResource PageTitle}"/>
+                <TextBlock x:Name="PageSubtitleText" Text="إدارة طلبات حجز المنتجات ومتابعة حالتها للعملاء" Style="{StaticResource PageSubtitle}" Margin="0,4,0,0"/>
             </StackPanel>
-        </Border>
 
-        <!-- Requests List -->
-        <Grid Grid.Column="2">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+            <Button x:Name="RefreshButton" Grid.Column="1" Content="⟳  تحديث" Style="{StaticResource SecondaryButton}" Click="RefreshButton_Click" Height="40" Padding="16,0"/>
+        </Grid>
 
-            <TextBlock Text="طلبات الحجز الحالية" Style="{StaticResource PageTitle}" Margin="0,0,0,16"/>
+        <!-- Stat Cards Bar -->
+        <Grid Grid.Row="1" Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="12"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="12"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="12"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="12"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
-            <Border Grid.Row="1" Style="{StaticResource Card}" Padding="8">
+            <!-- Total Requests Card -->
+            <Border Grid.Column="0" Style="{StaticResource Card}" Padding="16,14">
+                <StackPanel>
+                    <TextBlock x:Name="TotalStatLabel" Text="إجمالي الطلبات" Style="{StaticResource FieldLabel}"/>
+                    <TextBlock Text="{Binding TotalCount}" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource InkBrush}" Margin="0,4,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Pending Card -->
+            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="16,14">
+                <StackPanel>
+                    <TextBlock x:Name="PendingStatLabel" Text="قيد الانتظار" Style="{StaticResource FieldLabel}"/>
+                    <TextBlock Text="{Binding PendingCount}" FontSize="24" FontWeight="Bold" Foreground="#D97706" Margin="0,4,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Approved Card -->
+            <Border Grid.Column="4" Style="{StaticResource Card}" Padding="16,14">
+                <StackPanel>
+                    <TextBlock x:Name="ApprovedStatLabel" Text="مقبولة / قيد المعالجة" Style="{StaticResource FieldLabel}"/>
+                    <TextBlock Text="{Binding ApprovedCount}" FontSize="24" FontWeight="Bold" Foreground="#2563EB" Margin="0,4,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Completed Card -->
+            <Border Grid.Column="6" Style="{StaticResource Card}" Padding="16,14">
+                <StackPanel>
+                    <TextBlock x:Name="CompletedStatLabel" Text="مكتملة" Style="{StaticResource FieldLabel}"/>
+                    <TextBlock Text="{Binding CompletedCount}" FontSize="24" FontWeight="Bold" Foreground="#059669" Margin="0,4,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Cancelled Card -->
+            <Border Grid.Column="8" Style="{StaticResource Card}" Padding="16,14">
+                <StackPanel>
+                    <TextBlock x:Name="CancelledStatLabel" Text="ملغاة" Style="{StaticResource FieldLabel}"/>
+                    <TextBlock Text="{Binding CancelledCount}" FontSize="24" FontWeight="Bold" Foreground="#DC2626" Margin="0,4,0,0"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Main Content Area -->
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="380"/>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Order Creation Form Card -->
+            <Border Grid.Column="0" Style="{StaticResource Card}" Padding="20">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <TextBlock x:Name="NewOrderTitleText" Text="إنشاء طلب حجز جديد" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource InkBrush}" Margin="0,0,0,16"/>
+
+                        <TextBlock x:Name="CustomerNameLabel" Text="اسم العميل *" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding CustomerName, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,12"/>
+
+                        <TextBlock x:Name="CustomerPhoneLabel" Text="رقم الهاتف" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding CustomerPhone, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,16"/>
+
+                        <Separator Background="{DynamicResource LineBrush}" Margin="0,4,0,16"/>
+
+                        <TextBlock x:Name="AddProductsLabel" Text="إضافة منتجات للطلب" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}" Margin="0,0,0,10"/>
+
+                        <TextBlock x:Name="ProductVariantLabel" Text="الصنف / المنتج *" Style="{StaticResource FieldLabel}"/>
+                        <ComboBox ItemsSource="{Binding AvailableVariants}"
+                                  SelectedItem="{Binding SelectedVariant}"
+                                  DisplayMemberPath="VariantName"
+                                  Margin="0,4,0,10"/>
+
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                <TextBlock x:Name="QuantityLabel" Text="الكمية *" Style="{StaticResource FieldLabel}"/>
+                                <TextBox Text="{Binding Quantity, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,0"/>
+                            </StackPanel>
+                            <Button Grid.Column="1" VerticalAlignment="Bottom" Content="+ إضافة للسلّة" Style="{StaticResource SecondaryButton}" Height="36" Padding="12,0" Click="AddItem_Click"/>
+                        </Grid>
+
+                        <!-- Items List -->
+                        <TextBlock x:Name="SelectedItemsLabel" Text="الأصناف المحددة:" Style="{StaticResource FieldLabel}" Margin="0,8,0,4"/>
+                        <Border BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" CornerRadius="8" Padding="6" Height="140" Margin="0,0,0,16">
+                            <ListView ItemsSource="{Binding CurrentItems}" Background="Transparent" BorderThickness="0">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{Binding VariantName}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding Quantity, StringFormat='({0:N0})'}" FontWeight="Bold" Foreground="{DynamicResource TealBrush}" Margin="8,0" VerticalAlignment="Center"/>
+                                            <Button Grid.Column="2" Content="✕" Foreground="#DC2626" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="RemoveItem_Click" Tag="{Binding}"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </Border>
+
+                        <Button x:Name="SubmitOrderButton" Content="إرسال طلب الحجز" Style="{StaticResource PrimaryButton}" Height="42" Click="SubmitOrder_Click"/>
+
+                        <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource MutedBrush}" FontSize="12" Margin="0,8,0,0" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+
+            <!-- Order Requests List Card -->
+            <Border Grid.Column="2" Style="{StaticResource Card}" Padding="20">
                 <Grid>
-                    <DataGrid x:Name="OrdersDataGrid"
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Filter Bar -->
+                    <Grid Grid.Row="0" Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="160"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox x:Name="SearchBox" Grid.Column="0" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Height="36" Padding="10,6"/>
+
+                        <ComboBox x:Name="StatusFilterCombo" Grid.Column="2" SelectedValuePath="Tag" SelectedValue="{Binding SelectedStatusFilter}" Height="36">
+                            <ComboBoxItem Content="جميع الحالات" Tag="All" IsSelected="True"/>
+                            <ComboBoxItem Content="قيد الانتظار" Tag="Pending"/>
+                            <ComboBoxItem Content="مقبولة" Tag="Approved"/>
+                            <ComboBoxItem Content="قيد المعالجة" Tag="Processing"/>
+                            <ComboBoxItem Content="مكتملة" Tag="Completed"/>
+                            <ComboBoxItem Content="ملغاة" Tag="Cancelled"/>
+                        </ComboBox>
+                    </Grid>
+
+                    <!-- Orders DataGrid -->
+                    <DataGrid x:Name="OrdersGrid"
+                              Grid.Row="1"
+                              ItemsSource="{Binding FilteredRequests}"
                               AutoGenerateColumns="False"
                               CanUserAddRows="False"
+                              IsReadOnly="True"
+                              GridLinesVisibility="Horizontal"
+                              HorizontalGridLinesBrush="{DynamicResource LineBrush}"
+                              RowHeight="52"
                               Background="Transparent"
-                              BorderThickness="0"
-                              RowHeight="44">
+                              BorderThickness="0">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="العميل" Binding="{Binding CustomerName}" Width="*"/>
-                            <DataGridTextColumn Header="التاريخ" Binding="{Binding RequestedAt}" Width="160"/>
-                            <DataGridTextColumn Header="الحالة" Binding="{Binding Status}" Width="130"/>
-                            <DataGridTemplateColumn Header="إجراءات" Width="120">
+                            <DataGridTextColumn Header="#" Binding="{Binding Id}" Width="50"/>
+                            <DataGridTextColumn x:Name="ColCustomer" Header="العميل" Binding="{Binding CustomerName}" Width="140"/>
+                            <DataGridTextColumn x:Name="ColPhone" Header="الهاتف" Binding="{Binding CustomerPhone}" Width="110"/>
+                            <DataGridTextColumn x:Name="ColDate" Header="التاريخ" Binding="{Binding RequestedAtFormatted}" Width="130"/>
+                            <DataGridTextColumn x:Name="ColItems" Header="الأصناف" Binding="{Binding ItemsSummary}" Width="*"/>
+                            
+                            <!-- Status Pill Column -->
+                            <DataGridTemplateColumn x:Name="ColStatus" Header="الحالة" Width="120">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <Button Content="إلغاء" Style="{StaticResource DangerButton}"
-                                                Click="CancelRequest_Click" Tag="{Binding Id}"
-                                                Padding="10,3" MinHeight="32"/>
+                                        <Border Background="{Binding StatusBgColor}" CornerRadius="12" Padding="10,4" HorizontalAlignment="Center">
+                                            <TextBlock Text="{Binding LocalizedStatus}" Foreground="{Binding StatusFgColor}" FontWeight="SemiBold" FontSize="12"/>
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                            <!-- Actions Column -->
+                            <DataGridTemplateColumn x:Name="ColActions" Header="الإجراءات" Width="140">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <!-- Change status button for Admin / Manage -->
+                                            <Button Content="تغيير الحالة" Style="{StaticResource SecondaryButton}" Padding="8,2" FontSize="11" Height="28" Click="ChangeStatus_Click" Tag="{Binding}"/>
+                                            <!-- Cancel button -->
+                                            <Button Content="إلغاء" Style="{StaticResource DangerButton}" Padding="8,2" FontSize="11" Height="28" Margin="4,0,0,0" Click="CancelOrder_Click" Tag="{Binding}"/>
+                                        </StackPanel>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
                         </DataGrid.Columns>
                     </DataGrid>
-
-                    <TextBlock Text="لا توجد طلبات حجز حالياً"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center"
-                               Foreground="{DynamicResource MutedBrush}"
-                               IsHitTestVisible="False">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Visibility" Value="Collapsed"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding ElementName=OrdersDataGrid, Path=HasItems}" Value="False">
-                                        <Setter Property="Visibility" Value="Visible"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
                 </Grid>
             </Border>
         </Grid>

@@ -101,10 +101,12 @@
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,15">
                         <Button x:Name="ArabicLangButton" Content="العربية"
                                 Style="{StaticResource NavButton}" Width="80" Margin="5,0"
-                                HorizontalContentAlignment="Center" Padding="8,4"/>
+                                HorizontalContentAlignment="Center" Padding="8,4"
+                                Click="ArabicLangButton_Click"/>
                         <Button x:Name="EnglishLangButton" Content="English"
                                 Style="{StaticResource NavButton}" Width="80" Margin="5,0"
-                                HorizontalContentAlignment="Center" Padding="8,4"/>
+                                HorizontalContentAlignment="Center" Padding="8,4"
+                                Click="EnglishLangButton_Click"/>
                     </StackPanel>
 
                     <Button x:Name="LogoutButton"

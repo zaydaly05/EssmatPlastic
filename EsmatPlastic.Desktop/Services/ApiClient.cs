@@ -155,6 +155,33 @@ public class ApiClient
         await EnsureSuccessAsync(response);
     }
 
+    public async Task PatchAsync<TRequest>(
+        string endpoint,
+        TRequest request)
+    {
+        var response =
+            await _httpClient.PatchAsJsonAsync(
+                endpoint,
+                request);
+
+        await EnsureSuccessAsync(response);
+    }
+
+    public async Task<TResponse?> PatchAsync<TRequest, TResponse>(
+        string endpoint,
+        TRequest request)
+    {
+        var response =
+            await _httpClient.PatchAsJsonAsync(
+                endpoint,
+                request);
+
+        await EnsureSuccessAsync(response);
+
+        return await response.Content
+            .ReadFromJsonAsync<TResponse>();
+    }
+
     private static async Task EnsureSuccessAsync(
         HttpResponseMessage response)
     {
